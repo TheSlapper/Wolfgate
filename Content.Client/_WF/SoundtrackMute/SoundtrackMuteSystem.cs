@@ -11,11 +11,12 @@ using Robust.Shared.Configuration;
 namespace Content.Client._WF.SoundtrackMute;
 
 /// <summary>Fades background music out while a jukebox or MIDI instrument is in range.</summary>
-public sealed partial class SoundtrackMuteSystem : EntitySystem
+public sealed class SoundtrackMuteSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private AudioSystem _audio = default!;
     [Dependency] private ContentAudioSystem _contentAudio = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     private const float CheckInterval = 1f;
 
@@ -71,11 +72,25 @@ public sealed partial class SoundtrackMuteSystem : EntitySystem
 
     private bool IsJukeboxAudible()
     {
+        var listener = _audio.GetListenerCoordinates();
         var query = EntityQueryEnumerator<JukeboxComponent>();
 
         while (query.MoveNext(out _, out var jukebox))
         {
-            if (TryComp<AudioComponent>(jukebox.AudioStream, out var audio) && audio.Playing && audio.Gain > 0f)
+            if (jukebox.AudioStream is not { } stream
+                || !TryComp<AudioComponent>(stream, out var audio)
+                || !audio.Playing
+                || audio.Gain <= 0f)
+            {
+                continue;
+            }
+
+            // The stream reaches the client across all of PVS, further than it can be heard.
+            var position = _transform.GetMapCoordinates(stream);
+            if (position.MapId != listener.MapId)
+                continue;
+
+            if ((position.Position - listener.Position).Length() <= audio.Params.MaxDistance)
                 return true;
         }
 
