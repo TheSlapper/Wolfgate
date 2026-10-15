@@ -1,0 +1,386 @@
+- type: entity
+  parent: ClothingHeadBase
+  id: ClothingHeadHatCircusClown
+  components:
+  - type: Icon
+    sprite: _WF/ClownCosmetics/Clothing/Head/Hats/circusclownhat.rsi
+    state: "icon"
+  - type: Sprite
+    state: "icon"
+    sprite: _WF/ClownCosmetics/Clothing/Head/Hats/circusclownhat.rsi
+  - type: Clothing
+    clothingVisuals:
+      head:
+      - state: equipped-HELMET
+        offset: "0, 0.15" #this shit is so fiddly and i don't understand it at all
+    sprite: _WF/ClownCosmetics/Clothing/Head/Hats/circusclownhat.rsi
+
+- type: entity
+  parent: [ClothingUniformBase]
+  id: ClothingUniformCircusClown
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpsuit/circusclown.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpsuit/circusclown.rsi
+
+- type: entity
+  parent: [ClothingUniformBase]
+  id: ClothingUniformJokester
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpsuit/clown_jokester.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpsuit/clown_jokester.rsi
+
+- type: entity
+  parent: ClothingOuterStorageBase
+  id: ClothingOuterCoatJokester
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/OuterClothing/Coats/clown_jokestercoat.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/OuterClothing/Coats/clown_jokestercoat.rsi
+
+- type: entity
+  parent: [ClothingUniformBase]
+  id: ClothingUniformJesterEvil
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpsuit/jesterevil.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpsuit/jesterevil.rsi
+  - type: Tag
+    tags:
+    - WhitelistChameleon
+    - ClothMade
+
+- type: entity
+  parent: ClothingHeadBase
+  id: ClothingHeadJesterEvilHat
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Head/Hats/jesterevilhat.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Head/Hats/jesterevilhat.rsi
+  - type: Tag
+    tags:
+    - ClothMade
+    - WhitelistChameleon
+
+- type: entity
+  parent: [ ClothingNeckBase]
+  id: ClothingNeckRuffle
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Neck/Misc/ruffle.rsi
+
+- type: entity
+  parent: ClothingMaskBase
+  id: ClothingMaskClownNose
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Mask/clownnose.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Mask/clownnose.rsi
+  - type: Tag
+    tags:
+    - ClownMask
+
+- type: entity
+  parent: ClothingShoesClown
+  id: ClothingShoesCircus
+  components:
+    - type: Sprite
+      sprite: _WF/ClownCosmetics/Clothing/Shoes/Specific/circusclownshoes.rsi
+    - type: Clothing
+      sprite: _WF/ClownCosmetics/Clothing/Shoes/Specific/circusclownshoes.rsi
+    - type: FootstepModifier
+      footstepSoundCollection:
+        collection: FootstepJester
+        params:
+          variation: 0.07 #copied from the existing jester shoes
+
+- type: entity
+  parent: ClothingShoesClown
+  id: ClothingShoesJokester
+  components:
+    - type: Sprite
+      sprite: _WF/ClownCosmetics/Clothing/Shoes/Specific/clown_jokestershoes.rsi
+    - type: Clothing
+      sprite: _WF/ClownCosmetics/Clothing/Shoes/Specific/clown_jokestershoes.rsi
+
+- type: entity
+  parent: ClothingShoesBaseButcherable
+  id: ClothingShoesJesterEvilJanglers
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Shoes/Specific/jestereviljanglers.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Shoes/Specific/jestereviljanglers.rsi
+  - type: FootstepModifier
+    footstepSoundCollection:
+      collection: FootstepJester
+      params:
+        variation: 0.07 #copied from the existing jester shoes
+  - type: Tag
+    tags:
+    - WhitelistChameleon
+
+- type: entity
+  parent: ClothingHeadBase
+  id: ClothingHeadHatMimeBowler
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Head/Hats/mimebowler.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Head/Hats/mimebowler.rsi
+  - type: Tag
+    tags:
+    - HamsterWearable
+    - WhitelistChameleon
+
+- type: entity
+  parent: ClothingOuterStorageBase
+  id: ClothingOuterCoatPufferMime
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/OuterClothing/Coats/big_puffercoat_mime.rsi
+  - type: Clothing
+    slots:
+      - OUTERCLOTHING
+    sprite: _WF/ClownCosmetics/Clothing/OuterClothing/Coats/big_puffercoat_mime.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitMimeCropped
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpsuit/mimecropped.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpsuit/mimecropped.rsi
+
+- type: entity
+  parent: ClothingUniformSkirtBase
+  id: ClothingUniformJumpskirtMimeCropped
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpskirt/mimecropped.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpskirt/mimecropped.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitMimeNouveau
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpsuit/mimenouveau.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpsuit/mimenouveau.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpskirtMimeNouveau
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpskirt/mimenouveau.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpskirt/mimenouveau.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: ClothingShoesMimeBoots
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Shoes/Boots/mimeboots.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Shoes/Boots/mimeboots.rsi
+  - type: FootstepModifier
+    footstepSoundCollection:
+      collection: FootstepBoots
+
+- type: entity
+  parent: ClothingUniformBase
+  id: CandyClownUniformSuit
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/candy_clown.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/candy_clown.rsi
+  - type: Tag
+    tags:
+    - ClownSuit
+    - WhitelistChameleon
+
+- type: entity
+  parent: ClothingUniformBase
+  id: StripedClownUniformSuit
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/striped_clown.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/striped_clown.rsi
+  - type: Tag
+    tags:
+    - ClownSuit
+    - WhitelistChameleon
+
+- type: entity
+  parent: ClothingUniformBase
+  id: SpottedClownUniformSuit
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/clown_spots.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/clown_spots.rsi
+  - type: Tag
+    tags:
+    - ClownSuit
+    - WhitelistChameleon
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitPerformerClown
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpsuit/performer_clown.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpsuit/performer_clown.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpskirtPerformerClown
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpskirt/performer_clown.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpskirt/performer_clown.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitClownFormal
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpsuit/clown_distinguished.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpsuit/clown_distinguished.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpskirtClownFormal
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpskirt/clown_distinguished.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpskirt/clown_distinguished.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitPerformerMime
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpsuit/performer_mime.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpsuit/performer_mime.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpskirtPerformerMime
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpskirt/performer_mime.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpskirt/performer_mime.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitMimeSuaveWhite
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpsuit/suave-mime.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpsuit/suave-mime.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitMimeSuaveBlack
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpsuit/suave-mime-black.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/Jumpsuit/suave-mime-black.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: MimeFrillsUniformSuit
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/mime_frills.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/mime_frills.rsi
+
+- type: entity
+  parent: ClothingMaskMime
+  id: ClothingMaskSusMime
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Mask/mime_sus.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Mask/mime_sus.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: ClothingUnderSocksMime
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Under/mime_socks.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Under/mime_socks.rsi
+
+- type: entity
+  parent: ClothingMaskMime
+  id: ClothingMaskMimeSecurity
+  components:
+  - type: Sprite
+    sprite: _WF/ClownCosmetics/Clothing/Mask/mime_security.rsi
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Mask/mime_security.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.95
+        Slash: 0.95
+        Piercing: 0.95
+        Heat: 0.95
+
+- type: entity
+  parent: ClothingUniformSkirtBase
+  id: CoolCoyoteClothesSexyclown
+  components:
+  - type: Sprite
+    overrideDir: South
+    enableOverrideDir: true
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/sexyclown.rsi
+    layers:
+    - state: sexyclown
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/sexyclown.rsi
+    clothingVisuals:
+      jumpsuit:
+      - state: sexyclown
+
+- type: entity
+  parent: ClothingUniformSkirtBase
+  id: CoolCoyoteClothesSexymime
+  components:
+  - type: Sprite
+    overrideDir: South
+    enableOverrideDir: true
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/sexymime.rsi
+    layers:
+    - state: sexymime
+  - type: Clothing
+    sprite: _WF/ClownCosmetics/Clothing/Uniforms/sexymime.rsi
+    clothingVisuals:
+      jumpsuit:
+      - state: sexymime
