@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 10/19/2026 21:09:42
-  entityCount: 1261
+  entityCount: 1250
 maps: []
 grids:
 - 1
@@ -4945,6 +4945,13 @@ entities:
     - type: Transform
       parent: 1
       pos: 11.5,-91.5
+  - uid: 5069
+    components:
+    - type: Transform
+      parent: 1
+      pos: 13.5,-94.5
+- proto: ShiptestSofaWhiteCorpo4
+  entities:
   - uid: 5067
     components:
     - type: Transform
@@ -4957,11 +4964,6 @@ entities:
       parent: 1
       rot: -1.5707963267948966 rad
       pos: 12.5,-93.5
-  - uid: 5069
-    components:
-    - type: Transform
-      parent: 1
-      pos: 13.5,-94.5
 - proto: ShiptestWhiteCorpoCorner
   entities:
   - uid: 5070
@@ -8627,83 +8629,6 @@ entities:
     - type: Transform
       parent: 1
       pos: 47.5,-199.5
-- proto: DarkPackNoSmoothModularDeskLeft2
-  entities:
-  - uid: 9066
-    components:
-    - type: Transform
-      parent: 1
-      pos: 30.5,-118.5
-- proto: DarkPackNoSmoothModularDeskLeft3
-  entities:
-  - uid: 9067
-    components:
-    - type: Transform
-      parent: 1
-      pos: 32.5,-118.5
-- proto: DarkPackNoSmoothModularDeskLeft4
-  entities:
-  - uid: 9068
-    components:
-    - type: Transform
-      parent: 1
-      pos: 34.5,-118.5
-- proto: DarkPackTableNoSmoothModularDesk2
-  entities:
-  - uid: 9069
-    components:
-    - type: Transform
-      parent: 1
-      pos: 36.5,-118.5
-- proto: DarkPackTableNoSmoothModularDesk3
-  entities:
-  - uid: 9070
-    components:
-    - type: Transform
-      parent: 1
-      pos: 38.5,-118.5
-- proto: DarkPackNoSmoothModularDeskCorner3
-  entities:
-  - uid: 9071
-    components:
-    - type: Transform
-      parent: 1
-      pos: 40.5,-118.5
-- proto: DarkPackNoSmoothModularDeskCorner4
-  entities:
-  - uid: 9072
-    components:
-    - type: Transform
-      parent: 1
-      pos: 42.5,-118.5
-- proto: DarkPackNoSmoothModularDeskRight2
-  entities:
-  - uid: 9073
-    components:
-    - type: Transform
-      parent: 1
-      pos: 44.5,-118.5
-- proto: DarkPackNoSmoothModularDeskRight3
-  entities:
-  - uid: 9074
-    components:
-    - type: Transform
-      parent: 1
-      pos: 46.5,-118.5
-- proto: DarkPackNoSmoothModularDeskCorner
-  entities:
-  - uid: 9082
-    components:
-    - type: Transform
-      parent: 1
-      pos: 48.5,-118.5
-- proto: DarkPackNoSmoothModularDeskRight
-  entities:
-  - uid: 9083
-    components:
-    - type: Transform
-      parent: 1
-      pos: 50.5,-118.5
 - proto: GoonBookcaseDirectional2
   entities:
   - uid: 9075
