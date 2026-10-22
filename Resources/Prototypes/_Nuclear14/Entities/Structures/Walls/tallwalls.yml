@@ -54,6 +54,8 @@
   id: N14WallBunkerTall
   suffix: tall
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -131,6 +133,8 @@
   id: N14WallVaultRustTall
   suffix: tall
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWallRust

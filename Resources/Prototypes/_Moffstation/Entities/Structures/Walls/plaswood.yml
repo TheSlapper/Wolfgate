@@ -20,6 +20,8 @@
   id: WallPlaswood
   suffix: pirate
   components:
+  - type: StaticPrice
+    price: 30
   - type: Construction
     graph: Barricade
     node: woodWall

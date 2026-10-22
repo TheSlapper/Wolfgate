@@ -18,6 +18,8 @@
   parent: BaseWallTierOne
   id: TgMineralBamboo
   components:
+  - type: StaticPrice
+    price: 30
   - type: Construction
     graph: Barricade
     node: woodWall
@@ -113,6 +115,8 @@
   parent: BaseWallTierOne
   id: TgMineralPlastitaniumRedpod
   components:
+  - type: StaticPrice
+    price: 110
   - type: Construction
     graph: Girder
     node: plastitaniumWall
@@ -156,6 +160,8 @@
   parent: BaseWallTierTwo
   id: TgRWall
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -175,6 +181,8 @@
   parent: BaseWallTierOne
   id: BubberMineralBamboo
   components:
+  - type: StaticPrice
+    price: 30
   - type: Construction
     graph: Barricade
     node: woodWall
@@ -308,6 +316,8 @@
   parent: BaseWallTierOne
   id: BubberMineralPlastitanium
   components:
+  - type: StaticPrice
+    price: 110
   - type: Construction
     graph: Girder
     node: plastitaniumWall
@@ -351,6 +361,8 @@
   parent: BaseWallTierOne
   id: BubberMineralTitanium
   components:
+  - type: StaticPrice
+    price: 125
   - type: Construction
     graph: Girder
     node: shuttleWall
@@ -389,6 +401,8 @@
   parent: BaseWallTierOne
   id: BubberMineralWood
   components:
+  - type: StaticPrice
+    price: 30
   - type: Construction
     graph: Barricade
     node: woodWall
@@ -408,6 +422,8 @@
   parent: BaseWallTierOne
   id: BubberMineralPlastitaniumDarkpod
   components:
+  - type: StaticPrice
+    price: 110
   - type: Construction
     graph: Girder
     node: plastitaniumWall
@@ -455,6 +471,8 @@
   parent: BaseWallTierTwo
   id: BubberRWall
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -513,6 +531,8 @@
   parent: BaseWallTierTwo
   id: MonkeRWall
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -650,6 +670,8 @@
   parent: BaseWallTierTwo
   id: YogRWallRust
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWallRust
@@ -688,6 +710,8 @@
   parent: BaseWallTierTwo
   id: CitRWallRust
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWallRust
@@ -746,6 +770,8 @@
   parent: BaseWallTierOne
   id: BeeMineralTitanium
   components:
+  - type: StaticPrice
+    price: 125
   - type: Construction
     graph: Girder
     node: shuttleWall
@@ -765,6 +791,8 @@
   parent: BaseWallTierTwo
   id: BeeRWall
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -785,6 +813,8 @@
   parent: BaseWallTierTwo
   id: BayRWallHullVox
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -824,6 +854,8 @@
   parent: BaseWallTierTwo
   id: BayRWallPrepaintedFleet
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -843,6 +875,8 @@
   parent: BaseWallTierTwo
   id: BayRWallPrepainted
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -948,6 +982,8 @@
   parent: BaseWallTierOne
   id: BayMaple
   components:
+  - type: StaticPrice
+    price: 30
   - type: Construction
     graph: Barricade
     node: woodWall
@@ -1024,6 +1060,8 @@
   parent: BaseWallTierTwo
   id: BayRWall
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -1078,6 +1116,8 @@
   parent: BaseWallTierOne
   id: BayWood
   components:
+  - type: StaticPrice
+    price: 30
   - type: Construction
     graph: Barricade
     node: woodWall
@@ -1154,6 +1194,8 @@
   parent: BaseWallTierTwo
   id: VoreBayRWallBlack
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -1173,6 +1215,8 @@
   parent: BaseWallTierTwo
   id: VoreBayRWallWhite
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -1192,6 +1236,8 @@
   parent: BaseWallTierOne
   id: VoreAcaciawood
   components:
+  - type: StaticPrice
+    price: 30
   - type: Construction
     graph: Barricade
     node: woodWall
@@ -1211,6 +1257,8 @@
   parent: BaseWallTierOne
   id: VoreBirchwood
   components:
+  - type: StaticPrice
+    price: 30
   - type: Construction
     graph: Barricade
     node: woodWall
@@ -1284,6 +1332,8 @@
   parent: BaseWallTierOne
   id: VorePinewood
   components:
+  - type: StaticPrice
+    price: 30
   - type: Construction
     graph: Barricade
     node: woodWall
@@ -1303,6 +1353,8 @@
   parent: BaseWallTierOne
   id: VoreRplastihull
   components:
+  - type: StaticPrice
+    price: 110
   - type: Construction
     graph: Girder
     node: plastitaniumWall
@@ -1318,6 +1370,8 @@
   parent: BaseWallTierOne
   id: VoreRplastitanium
   components:
+  - type: StaticPrice
+    price: 110
   - type: Construction
     graph: Girder
     node: plastitaniumWall
@@ -1350,6 +1404,8 @@
   parent: BaseWallTierOne
   id: NebulaDaubedPlasteredFramed
   components:
+  - type: StaticPrice
+    price: 30
   - type: Construction
     graph: Barricade
     node: woodWall
@@ -1551,6 +1607,8 @@
   parent: BaseWallTierOne
   id: PolarisLogSif
   components:
+  - type: StaticPrice
+    price: 30
   - type: Construction
     graph: Barricade
     node: woodWall
@@ -1586,6 +1644,8 @@
   parent: BaseWallTierTwo
   id: PolarisRWall
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -1671,6 +1731,8 @@
   parent: BaseWallTierOne
   id: PolarisSifwood
   components:
+  - type: StaticPrice
+    price: 30
   - type: Construction
     graph: Barricade
     node: woodWall
@@ -1721,6 +1783,8 @@
   parent: BaseWallTierOne
   id: PolarisWood
   components:
+  - type: StaticPrice
+    price: 30
   - type: Construction
     graph: Barricade
     node: woodWall
@@ -1740,6 +1804,8 @@
   parent: BaseWallTierOne
   id: AuroraBamboowood
   components:
+  - type: StaticPrice
+    price: 30
   - type: Construction
     graph: Barricade
     node: woodWall
@@ -1941,6 +2007,8 @@
   parent: BaseWallTierTwo
   id: ErisReinforced
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -1980,6 +2048,8 @@
   parent: BaseWallTierTwo
   id: CMAicoreWhiteReinforced
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -2110,6 +2180,8 @@
   parent: BaseWallTierTwo
   id: CMRWallResearch
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -2146,6 +2218,8 @@
   parent: BaseWallTierTwo
   id: CMUppShipReinforced
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -2215,6 +2289,8 @@
   parent: BaseWallTierTwo
   id: GoonAutoReinforcedGannets
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -2265,6 +2341,8 @@
   parent: BaseWallTierTwo
   id: GoonSupernornColoredCyan
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -2284,6 +2362,8 @@
   parent: BaseWallTierTwo
   id: GoonSupernornColoredGreen
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -2303,6 +2383,8 @@
   parent: BaseWallTierTwo
   id: GoonSupernornColoredPurple
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -2322,6 +2404,8 @@
   parent: BaseWallTierTwo
   id: GoonSupernornColoredRed
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -2341,6 +2425,8 @@
   parent: BaseWallTierTwo
   id: GoonSupernornColoredYellow
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -2361,6 +2447,8 @@
   parent: BaseWallTierTwo
   id: GoonReinforcedSupernornColored
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -2380,6 +2468,8 @@
   parent: BaseWallTierTwo
   id: GoonColoredYellowPlasmasteel
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -2418,6 +2508,8 @@
   parent: BaseWallTierTwo
   id: GoonAutoReinforcedOld
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -2437,6 +2529,8 @@
   parent: BaseWallTierTwo
   id: GoonAutoReinforcedSupernorn
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -2998,6 +3092,8 @@
   parent: [ BaseWallTierOne, BaseWallBitmask ]
   id: CoyoteF13CoyoteDarkwoodwall
   components:
+  - type: StaticPrice
+    price: 30
   - type: Construction
     graph: Barricade
     node: woodWall
@@ -3017,6 +3113,8 @@
   parent: [ BaseWallTierOne, BaseWallBitmask ]
   id: CoyoteF13CoyoteOldwood
   components:
+  - type: StaticPrice
+    price: 30
   - type: Construction
     graph: Barricade
     node: woodWall
@@ -3067,6 +3165,8 @@
   parent: [ BaseWallTierOne, BaseWallBitmask ]
   id: CoyoteF13Wood
   components:
+  - type: StaticPrice
+    price: 30
   - type: Construction
     graph: Barricade
     node: woodWall
@@ -3175,6 +3275,8 @@
   parent: [ BaseWallTierOne, BaseWallBitmask ]
   id: CoyoteMineralTitanium
   components:
+  - type: StaticPrice
+    price: 125
   - type: Construction
     graph: Girder
     node: shuttleWall
@@ -3194,6 +3296,8 @@
   parent: [ BaseWallTierTwo, BaseWallBitmask ]
   id: CoyoteRWallF13vaultrusted
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWallRust
@@ -3232,6 +3336,8 @@
   parent: [ BaseWallTierOne, BaseWallBitmask ]
   id: CoyoteF13WoodHouse
   components:
+  - type: StaticPrice
+    price: 30
   - type: Construction
     graph: Barricade
     node: woodWall
@@ -3291,6 +3397,8 @@
   parent: [ BaseWallTierTwo, BaseWallBitmask ]
   id: DarkPackVampwallMetalReinforced
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -3346,6 +3454,8 @@
   parent: [ BaseWallTierOne, BaseWallBitmask ]
   id: DarkPackVampwallDirtywood
   components:
+  - type: StaticPrice
+    price: 30
   - type: Construction
     graph: Barricade
     node: woodWall
@@ -3497,6 +3607,8 @@
   parent: [ BaseWallTierOne, BaseWallBitmask ]
   id: DarkPackVampwallWood
   components:
+  - type: StaticPrice
+    price: 30
   - type: Construction
     graph: Barricade
     node: woodWall
@@ -3617,6 +3729,8 @@
   parent: [ BaseWallTierOne, BaseWallBitmask ]
   id: ParaMineralPlastitanium
   components:
+  - type: StaticPrice
+    price: 110
   - type: Construction
     graph: Girder
     node: plastitaniumWall
@@ -3670,6 +3784,8 @@
   parent: [ BaseWallTierOne, BaseWallBitmask ]
   id: ParaMineralTitanium
   components:
+  - type: StaticPrice
+    price: 125
   - type: Construction
     graph: Girder
     node: shuttleWall
@@ -3710,6 +3826,8 @@
   parent: [ BaseWallTierOne, BaseWallBitmask ]
   id: ParaMineralWood
   components:
+  - type: StaticPrice
+    price: 30
   - type: Construction
     graph: Barricade
     node: woodWall
@@ -3750,6 +3868,8 @@
   parent: [ BaseWallTierOne, BaseWallBitmask ]
   id: ParaMineralTitaniumSurvival
   components:
+  - type: StaticPrice
+    price: 125
   - type: Construction
     graph: Girder
     node: shuttleWall
@@ -3891,6 +4011,8 @@
   parent: [ BaseWallTierOne, BaseWallBitmask ]
   id: ShiptestMineralPlastitanium
   components:
+  - type: StaticPrice
+    price: 110
   - type: Construction
     graph: Girder
     node: plastitaniumWall
@@ -3961,6 +4083,8 @@
   parent: [ BaseWallTierOne, BaseWallBitmask ]
   id: ShiptestMineralWood
   components:
+  - type: StaticPrice
+    price: 30
   - type: Construction
     graph: Barricade
     node: woodWall
@@ -3980,6 +4104,8 @@
   parent: [ BaseWallTierTwo, BaseWallBitmask ]
   id: ShiptestRWallRust
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWallRust
@@ -4037,6 +4163,8 @@
   parent: [ BaseWallTierTwo, BaseWallBitmask ]
   id: SkyratRWall
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -4091,6 +4219,8 @@
   parent: BaseWallTierTwo
   id: CoyoteRWallF13vault
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall
@@ -4131,6 +4261,8 @@
   parent: BaseWallTierTwo
   id: CoyoteRWallF13Vault
   components:
+  - type: StaticPrice
+    price: 115
   - type: Construction
     graph: Girder
     node: reinforcedWall

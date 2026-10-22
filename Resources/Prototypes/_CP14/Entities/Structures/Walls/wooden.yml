@@ -5,6 +5,8 @@
   - CP14BaseWall
   - CP14BaseFlammableSpreading
   components:
+  - type: StaticPrice
+    price: 30
   - type: Construction
     graph: Barricade
     node: woodWall

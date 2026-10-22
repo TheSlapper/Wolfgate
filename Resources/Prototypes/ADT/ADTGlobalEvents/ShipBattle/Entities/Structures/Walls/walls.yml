@@ -47,6 +47,8 @@
   id: ADTWallHeavyArmorKMT
   suffix: Space Battleships, KMT
   components:
+    - type: StaticPrice
+      price: 115
     - type: Construction
       graph: Girder
       node: reinforcedWall
