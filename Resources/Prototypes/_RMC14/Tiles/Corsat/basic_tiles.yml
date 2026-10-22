@@ -14,14 +14,4 @@
   parent: CMFloorCorsatBasicBase
   id: CMFloorCorsatBasicSpiralOffice
   sprite: /Textures/_RMC14/Tiles/corsat/spiraloffice.png
-
-- type: tile
-  parent: CMFloorCorsatBasicBase
-  id: CMFloorCorsatBasicSpiralPlate
-  sprite: /Textures/_RMC14/Tiles/corsat/spiralplate.png
-
-- type: tile
-  parent: CMFloorCorsatBasicBase
-  id: CMFloorCorsatBasicTan
-  sprite: /Textures/_RMC14/Tiles/corsat/sterileplate.png
 # WOLFGATE END

@@ -7,11 +7,6 @@
 
 - type: tile
   parent: RMCFloorResearchContainment
-  id: RMCFloorResearchContainmentNorth
-  sprite: /Textures/_RMC14/Tiles/almayer/containment_corner_1.png
-
-- type: tile
-  parent: RMCFloorResearchContainment
   id: RMCFloorResearchContainmentFloor2North
   sprite: /Textures/_RMC14/Tiles/almayer/containment_floor_2_1.png
 # WOLFGATE END
