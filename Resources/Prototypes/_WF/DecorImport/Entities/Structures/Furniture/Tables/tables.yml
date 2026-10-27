@@ -159,6 +159,10 @@
     base: state_
   - type: Damageable
     damageModifierSet: Wood
+  - type: MeleeSound
+    soundGroups:
+      Brute:
+        path: /Audio/_WF/DecorImport/nebula/hit_wood.ogg
   - type: Destructible
     thresholds:
     - trigger:
@@ -189,6 +193,10 @@
     base: state_
   - type: Damageable
     damageModifierSet: Wood
+  - type: MeleeSound
+    soundGroups:
+      Brute:
+        path: /Audio/_WF/DecorImport/nebula/hit_wood.ogg
   - type: Destructible
     thresholds:
     - trigger:
@@ -219,6 +227,10 @@
     base: state_
   - type: Damageable
     damageModifierSet: Wood
+  - type: MeleeSound
+    soundGroups:
+      Brute:
+        path: /Audio/_WF/DecorImport/nebula/hit_wood.ogg
   - type: Destructible
     thresholds:
     - trigger:
@@ -249,6 +261,10 @@
     base: state_
   - type: Damageable
     damageModifierSet: Wood
+  - type: MeleeSound
+    soundGroups:
+      Brute:
+        path: /Audio/_WF/DecorImport/nebula/hit_wood.ogg
   - type: Destructible
     thresholds:
     - trigger:
@@ -279,6 +295,10 @@
     base: state_
   - type: Damageable
     damageModifierSet: Wood
+  - type: MeleeSound
+    soundGroups:
+      Brute:
+        path: /Audio/_WF/DecorImport/nebula/hit_wood.ogg
   - type: Destructible
     thresholds:
     - trigger:
@@ -309,6 +329,10 @@
     base: state_
   - type: Damageable
     damageModifierSet: Wood
+  - type: MeleeSound
+    soundGroups:
+      Brute:
+        path: /Audio/_WF/DecorImport/nebula/hit_wood.ogg
   - type: Destructible
     thresholds:
     - trigger:
@@ -339,6 +363,10 @@
     base: state_
   - type: Damageable
     damageModifierSet: Wood
+  - type: MeleeSound
+    soundGroups:
+      Brute:
+        path: /Audio/_WF/DecorImport/nebula/hit_wood.ogg
   - type: Destructible
     thresholds:
     - trigger:
@@ -1231,6 +1259,10 @@
     base: state_
   - type: Damageable
     damageModifierSet: Metallic
+  - type: MeleeSound
+    soundGroups:
+      Brute:
+        path: /Audio/_WF/DecorImport/nebula/hit_wood.ogg
   - type: Destructible
     thresholds:
     - trigger:
@@ -1244,3 +1276,27 @@
   - type: Construction
     graph: DecorBuildNebulaTableGamblingtable
     node: built
+
+- type: entity
+  parent: TableBase
+  id: AuroraTableDiona
+  components:
+  - type: Sprite
+    sprite: _WF/DecorImport/Structures/Furniture/Tables/table_diona_aurora.rsi
+    snapCardinals: false
+  - type: Icon
+    sprite: _WF/DecorImport/Structures/Furniture/Tables/table_diona_aurora.rsi
+    state: full
+  - type: IconSmooth
+    key: AuroraTableDiona
+    base: biomass_
+  - type: Damageable
+    damageModifierSet: Wood
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 100
+      behaviors:
+      - !type:DoActsBehavior
+        acts: [ Destruction ]

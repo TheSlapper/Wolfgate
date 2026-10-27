@@ -761,6 +761,24 @@
   heatCapacity: 10000
 
 - type: tile
+  id: GoonFloorBluefloor
+  name: tiles-wf-goon-floor-bluefloor
+  sprite: /Textures/_WF/DecorImport/Tiles/goonstation/bluefloor.png
+  variants: 4
+  placementVariants:
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepFloor
+  itemDrop: FloorTileItemGoonFloorBluefloor
+  heatCapacity: 10000
+
+- type: tile
   id: GoonFloorTerrazzo
   name: tiles-wf-goon-floor-terrazzo
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/floor_terrazzo.png
@@ -4319,6 +4337,193 @@
   itemDrop: FloorTileItemCMFloorHybrisaWoodWhitewood
   heatCapacity: 10000
 
+- type: tile
+  id: CMFloorAncientFloor
+  name: tiles-wf-cm-floor-ancient-floor
+  sprite: /Textures/_WF/DecorImport/Tiles/cmss13/ancientfloor_floor.png
+  variants: 5
+  placementVariants:
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepTile
+  itemDrop: FloorTileItemCMFloorAncientFloor
+  heatCapacity: 10000
+
+- type: tile
+  id: CMFloorAncientDamaged
+  name: tiles-wf-cm-floor-ancient-damaged
+  sprite: /Textures/_WF/DecorImport/Tiles/cmss13/ancientfloor_damaged.png
+  variants: 7
+  placementVariants:
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepTile
+  itemDrop: FloorTileItemCMFloorAncientDamaged
+  heatCapacity: 10000
+
+- type: tile
+  id: CMFloorAncientBreach
+  name: tiles-wf-cm-floor-ancient-breach
+  sprite: /Textures/_WF/DecorImport/Tiles/cmss13/ancientfloor_floor_breach.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepTile
+  itemDrop: FloorTileItemCMFloorAncientBreach
+  heatCapacity: 10000
+  allowRotationMirror: true
+
+- type: tile
+  id: CMFloorAncientDeco
+  name: tiles-wf-cm-floor-ancient-deco
+  sprite: /Textures/_WF/DecorImport/Tiles/cmss13/ancientfloor_floor_deco.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepTile
+  itemDrop: FloorTileItemCMFloorAncientDeco
+  heatCapacity: 10000
+
+- type: tile
+  id: CMFloorAncientDeco0
+  name: tiles-wf-cm-floor-ancient-deco-0
+  sprite: /Textures/_WF/DecorImport/Tiles/cmss13/ancientfloor_floor_deco_0.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepTile
+  itemDrop: FloorTileItemCMFloorAncientDeco0
+  heatCapacity: 10000
+
+- type: tile
+  id: CMFloorAncientDeco1
+  name: tiles-wf-cm-floor-ancient-deco-1
+  sprite: /Textures/_WF/DecorImport/Tiles/cmss13/ancientfloor_floor_deco_1.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepTile
+  itemDrop: FloorTileItemCMFloorAncientDeco1
+  heatCapacity: 10000
+
+- type: tile
+  id: CMFloorAncientDeco2
+  name: tiles-wf-cm-floor-ancient-deco-2
+  sprite: /Textures/_WF/DecorImport/Tiles/cmss13/ancientfloor_floor_deco_2.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepTile
+  itemDrop: FloorTileItemCMFloorAncientDeco2
+  heatCapacity: 10000
+
+- type: tile
+  id: CMFloorAncientDecoAlt
+  name: tiles-wf-cm-floor-ancient-deco-alt
+  sprite: /Textures/_WF/DecorImport/Tiles/cmss13/ancientfloor_floor_deco_alt.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepTile
+  itemDrop: FloorTileItemCMFloorAncientDecoAlt
+  heatCapacity: 10000
+  allowRotationMirror: true
+
+- type: tile
+  id: CMFloorAncientDarkDeco
+  name: tiles-wf-cm-floor-ancient-dark-deco
+  sprite: /Textures/_WF/DecorImport/Tiles/cmss13/ancientfloor_floor_dark_deco.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepTile
+  itemDrop: FloorTileItemCMFloorAncientDarkDeco
+  heatCapacity: 10000
+
+- type: tile
+  id: CMFloorAncientDarkDeco1
+  name: tiles-wf-cm-floor-ancient-dark-deco-1
+  sprite: /Textures/_WF/DecorImport/Tiles/cmss13/ancientfloor_floor_dark_deco_1.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepTile
+  itemDrop: FloorTileItemCMFloorAncientDarkDeco1
+  heatCapacity: 10000
+
+- type: tile
+  id: CMFloorAncientDecoAltDark
+  name: tiles-wf-cm-floor-ancient-deco-alt-dark
+  sprite: /Textures/_WF/DecorImport/Tiles/cmss13/ancientfloor_floor_deco_alt_dark.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepTile
+  itemDrop: FloorTileItemCMFloorAncientDecoAltDark
+  heatCapacity: 10000
+  allowRotationMirror: true
+
+- type: tile
+  id: CMFloorHunterRed
+  name: tiles-wf-cm-floor-hunter-red
+  sprite: /Textures/_WF/DecorImport/Tiles/cmss13/hunter_floors_hunter_red.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepTile
+  itemDrop: FloorTileItemCMFloorHunterRed
+  heatCapacity: 10000
+
+- type: tile
+  id: CMFloorHunterRed2
+  name: tiles-wf-cm-floor-hunter-red-2
+  sprite: /Textures/_WF/DecorImport/Tiles/cmss13/hunter_floors_hunter_red_2.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepTile
+  itemDrop: FloorTileItemCMFloorHunterRed2
+  heatCapacity: 10000
+
+- type: tile
+  id: CMFloorHunterRed4
+  name: tiles-wf-cm-floor-hunter-red-4
+  sprite: /Textures/_WF/DecorImport/Tiles/cmss13/hunter_floors_hunter_red_4.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepTile
+  itemDrop: FloorTileItemCMFloorHunterRed4
+  heatCapacity: 10000
+
 # Coyote Bayou
 
 - type: tile
@@ -4411,6 +4616,58 @@
     collection: FootstepFloor
   itemDrop: FloorTileItemCoyoteFloorF13StoneRugged
   heatCapacity: 10000
+
+- type: tile
+  id: CoyoteFloorUltraMolten
+  name: tiles-wf-coyote-floor-ultra-molten
+  sprite: /Textures/_WF/DecorImport/Tiles/coyote/molten.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepWater
+  itemDrop: FloorTileItemCoyoteFloorUltraMolten
+  heatCapacity: 10000
+  weather: true
+
+- type: tile
+  id: CoyoteFloorUltraFissureLeft
+  name: tiles-wf-coyote-floor-ultra-fissure
+  sprite: /Textures/_WF/DecorImport/Tiles/coyote/fissurel.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepAsteroid
+  itemDrop: FloorTileItemCoyoteFloorUltraFissureLeft
+  heatCapacity: 10000
+  weather: true
+
+- type: tile
+  id: CoyoteFloorUltraFissureCenter
+  name: tiles-wf-coyote-floor-ultra-fissure
+  sprite: /Textures/_WF/DecorImport/Tiles/coyote/fissurec.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepAsteroid
+  itemDrop: FloorTileItemCoyoteFloorUltraFissureCenter
+  heatCapacity: 10000
+  weather: true
+
+- type: tile
+  id: CoyoteFloorUltraFissureRight
+  name: tiles-wf-coyote-floor-ultra-fissure
+  sprite: /Textures/_WF/DecorImport/Tiles/coyote/fissurer.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepAsteroid
+  itemDrop: FloorTileItemCoyoteFloorUltraFissureRight
+  heatCapacity: 10000
+  weather: true
 
 # DarkPack
 
@@ -4721,6 +4978,34 @@
     collection: FootstepFloor
   itemDrop: FloorTileItemParaFloorPlasteelReactorPoolLadder
   heatCapacity: 10000
+
+- type: tile
+  id: ParaFloorFlock
+  name: tiles-wf-para-floor-flock
+  sprite: /Textures/_WF/DecorImport/Tiles/paradise/flock_floor.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepFloor
+  itemDrop: FloorTileItemParaFloorFlock
+  heatCapacity: 10000
+
+- type: tile
+  id: ParaFloorFibrenet
+  name: tiles-wf-para-floor-fibrenet
+  sprite: /Textures/_WF/DecorImport/Tiles/paradise/fibrenet.png
+  baseTurf: Space
+  isSubfloor: true
+  deconstructTools: [ Cutting ]
+  footstepSounds:
+    collection: FootstepCatwalk
+  friction: 1.5
+  isSpace: true
+  itemDrop: PartRodMetal1
+  heatCapacity: 10000
+  transparent: true
+  mass: 200
 
 # Shiptest
 
@@ -5436,3 +5721,160 @@
     collection: FootstepFloor
   itemDrop: FloorTileItemYogFloorCatwalkFloorTitanium
   heatCapacity: 10000
+
+- type: tile
+  id: VoreFloorReinforced
+  name: tiles-wf-vore-floor-reinforced
+  sprite: /Textures/_WF/DecorImport/Tiles/vore/reinforced.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepPlating
+  itemDrop: FloorTileItemVoreFloorReinforced
+  heatCapacity: 10000
+
+- type: tile
+  id: VoreFloorAlienPlatingHalf
+  name: tiles-wf-vore-floor-alien-plating-half
+  sprite: /Textures/_WF/DecorImport/Tiles/vore/alienplatinghalf.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepPlating
+  itemDrop: FloorTileItemVoreFloorAlienPlatingHalf
+  heatCapacity: 10000
+  allowRotationMirror: true
+
+- type: tile
+  id: VoreFloorAlienPlating
+  name: tiles-wf-vore-floor-alien-plating
+  sprite: /Textures/_WF/DecorImport/Tiles/vore/alienplating.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepPlating
+  itemDrop: FloorTileItemVoreFloorAlienPlating
+  heatCapacity: 10000
+
+- type: tile
+  id: VoreFloorFlesh
+  name: tiles-wf-vore-floor-flesh
+  sprite: /Textures/_WF/DecorImport/Tiles/vore/flesh_floor.png
+  edgeSpritePriority: 1
+  edgeSprites:
+    South: /Textures/_WF/DecorImport/Tiles/vore/flesh_floor_edge_south.png
+    North: /Textures/_WF/DecorImport/Tiles/vore/flesh_floor_edge_north.png
+    East: /Textures/_WF/DecorImport/Tiles/vore/flesh_floor_edge_east.png
+    West: /Textures/_WF/DecorImport/Tiles/vore/flesh_floor_edge_west.png
+    SouthEast: /Textures/_WF/DecorImport/Tiles/vore/flesh_floor_edge_southeast.png
+    SouthWest: /Textures/_WF/DecorImport/Tiles/vore/flesh_floor_edge_southwest.png
+    NorthEast: /Textures/_WF/DecorImport/Tiles/vore/flesh_floor_edge_northeast.png
+    NorthWest: /Textures/_WF/DecorImport/Tiles/vore/flesh_floor_edge_northwest.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepFloor
+  itemDrop: FloorTileItemVoreFloorFlesh
+  heatCapacity: 10000
+  weather: true
+
+- type: tile
+  id: VoreFloorFleshColour
+  name: tiles-wf-vore-floor-flesh-colour
+  sprite: /Textures/_WF/DecorImport/Tiles/vore/c_flesh_floor.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepFloor
+  itemDrop: FloorTileItemVoreFloorFleshColour
+  heatCapacity: 10000
+  weather: true
+
+- type: tile
+  id: BayFloorFlesh
+  name: tiles-wf-bay-floor-flesh
+  sprite: /Textures/_WF/DecorImport/Tiles/baystation/flesh.png
+  variants: 4
+  placementVariants:
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepFloor
+  itemDrop: FloorTileItemBayFloorFlesh
+  heatCapacity: 10000
+  weather: true
+
+- type: tile
+  id: BeeFloorWaterRed
+  name: tiles-wf-bee-floor-water-red
+  sprite: /Textures/_WF/DecorImport/Tiles/beestation/abyssal_water.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepWater
+  itemDrop: FloorTileItemBeeFloorWaterRed
+  heatCapacity: 10000
+  weather: true
+
+- type: tile
+  id: GoonFloorMartian
+  name: tiles-wf-goon-floor-martian
+  sprite: /Textures/_WF/DecorImport/Tiles/goonstation/martian_floor.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepFloor
+  itemDrop: FloorTileItemGoonFloorMartian
+  heatCapacity: 10000
+  weather: true
+
+- type: tile
+  id: TgFloorNecropolis
+  name: tiles-wf-tg-floor-necropolis
+  sprite: /Textures/_WF/DecorImport/Tiles/tgstation/necropolis_1.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepFloor
+  itemDrop: FloorTileItemTgFloorNecropolis
+  heatCapacity: 10000
+  weather: true
+
+- type: tile
+  id: TgFloorNecropolis2
+  name: tiles-wf-tg-floor-necropolis
+  sprite: /Textures/_WF/DecorImport/Tiles/tgstation/necropolis_2.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepFloor
+  itemDrop: FloorTileItemTgFloorNecropolis
+  heatCapacity: 10000
+  weather: true
+
+- type: tile
+  id: TgFloorNecropolis3
+  name: tiles-wf-tg-floor-necropolis
+  sprite: /Textures/_WF/DecorImport/Tiles/tgstation/necropolis_3.png
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepFloor
+  itemDrop: FloorTileItemTgFloorNecropolis
+  heatCapacity: 10000
+  weather: true
