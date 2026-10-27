@@ -53,7 +53,6 @@
     closeSound:
       path: /Audio/_WF/DecorImport/cmss13/airlock.ogg
   - type: Damageable
-    damageContainer: StructuralInorganic
     damageModifierSet: StructuralMetallic
 
 - type: entity

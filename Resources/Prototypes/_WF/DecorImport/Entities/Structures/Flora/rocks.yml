@@ -801,7 +801,6 @@
   - type: Sprite
     state: outcrop-diamond
   - type: OreVein
-    oreChance: 1.0
     currentOre: OreDiamond
 
 - type: entity
@@ -812,7 +811,6 @@
   - type: Sprite
     state: outcrop-gold
   - type: OreVein
-    oreChance: 1.0
     currentOre: NFOreGold
 
 - type: entity
@@ -823,7 +821,6 @@
   - type: Sprite
     state: outcrop-iron
   - type: OreVein
-    oreChance: 1.0
     currentOre: NFOreSteel
 
 - type: entity
@@ -834,7 +831,6 @@
   - type: Sprite
     state: outcrop-phoron
   - type: OreVein
-    oreChance: 1.0
     currentOre: NFOrePlasma
 
 - type: entity
@@ -845,7 +841,6 @@
   - type: Sprite
     state: outcrop-silver
   - type: OreVein
-    oreChance: 1.0
     currentOre: NFOreSilver
 
 - type: entity
@@ -856,5 +851,4 @@
   - type: Sprite
     state: outcrop-uranium
   - type: OreVein
-    oreChance: 1.0
     currentOre: NFOreUranium

@@ -175,16 +175,11 @@
     state: fissurer
 
 - type: entity
-  parent: DecorAnimatedFloorBase
+  parent: CoyoteFloorUltraFissureLeftAnimated
   id: CoyoteFloorUltraMoltenAnimated
   components:
   - type: Sprite
-    sprite: _WF/DecorImport/Tiles/coyote/animated.rsi
     state: molten
-  - type: PointLight
-    radius: 1.5
-    energy: 0.8
-    color: "#c5df43"
 
 - type: entity
   parent: DecorAnimatedFloorBase
@@ -441,9 +436,8 @@
     state: necro2
 
 - type: entity
-  parent: DecorAnimatedFloorBase
+  parent: TgFloorNecropolis2Animated
   id: TgFloorNecropolis3Animated
   components:
   - type: Sprite
-    sprite: _WF/DecorImport/Tiles/tgstation/animated.rsi
     state: necro3

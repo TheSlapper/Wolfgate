@@ -19,5 +19,4 @@
     closeTimeOne: 0.4
     closeTimeTwo: 0.6
   - type: Damageable
-    damageContainer: StructuralInorganic
     damageModifierSet: StructuralMetallic

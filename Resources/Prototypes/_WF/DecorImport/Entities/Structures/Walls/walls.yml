@@ -2903,7 +2903,7 @@
     state: cave-dark
 
 - type: entity
-  parent: GoonCave
+  parent: [ GoonCave, BaseWallBitmask ]
   id: GoonAdventureIomoon
   components:
   - type: Sprite
@@ -2913,12 +2913,10 @@
     sprite: _WF/DecorImport/Structures/Walls/silicate_goon.rsi
     state: silicate-0
   - type: IconSmooth
-    key: walls
     base: silicate-
-    mode: Bitmask
 
 - type: entity
-  parent: GoonCave
+  parent: [ GoonCave, BaseWallBitmask ]
   id: GoonAdventureHospital
   components:
   - type: Sprite
@@ -2928,12 +2926,10 @@
     sprite: _WF/DecorImport/Structures/Walls/asteroid_dark_goon.rsi
     state: exterior-0
   - type: IconSmooth
-    key: walls
     base: exterior-
-    mode: Bitmask
 
 - type: entity
-  parent: GoonCave
+  parent: [ GoonCave, BaseWallBitmask ]
   id: GoonAdventureMars
   components:
   - type: Sprite
@@ -2943,12 +2939,10 @@
     sprite: _WF/DecorImport/Structures/Walls/mars_goon.rsi
     state: mars-0
   - type: IconSmooth
-    key: walls
     base: mars-
-    mode: Bitmask
 
 - type: entity
-  parent: GoonCave
+  parent: [ GoonCave, BaseWallBitmask ]
   id: GoonAdventureIcemoon
   components:
   - type: Sprite
@@ -2958,12 +2952,10 @@
     sprite: _WF/DecorImport/Structures/Walls/ice_goon.rsi
     state: ice-0
   - type: IconSmooth
-    key: walls
     base: ice-
-    mode: Bitmask
 
 - type: entity
-  parent: GoonCave
+  parent: [ GoonCave, BaseWallBitmask ]
   id: TGMCWallLava
   components:
   - type: Sprite
@@ -2973,9 +2965,7 @@
     sprite: _WF/DecorImport/Structures/Walls/lava_wall_tgmc.rsi
     state: lava_wall-0
   - type: IconSmooth
-    key: walls
     base: lava_wall-
-    mode: Bitmask
 
 - type: entity
   parent: BaseWallTierOne

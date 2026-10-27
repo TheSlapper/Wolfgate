@@ -1254,7 +1254,6 @@
     snapCardinals: false
   - type: Icon
     sprite: _WF/DecorImport/Structures/Furniture/Tables/table_diona_aurora.rsi
-    state: full
   - type: IconSmooth
     key: AuroraTableDiona
     base: biomass_

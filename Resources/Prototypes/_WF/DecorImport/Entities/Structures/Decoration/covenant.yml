@@ -52,8 +52,6 @@
   - type: IconSmooth
     key: InsurrectionTableCovenant
     mode: NoSprite
-  - type: Damageable
-    damageModifierSet: Metallic
 
 - type: entity
   parent: InsurrectionTableCovenant

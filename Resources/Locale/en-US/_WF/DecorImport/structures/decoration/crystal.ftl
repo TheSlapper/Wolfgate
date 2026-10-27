@@ -1,7 +1,7 @@
 ent-PolarisCrystal = crystal
     .desc = A shiny looking crystal formation.
-ent-PolarisCrystalPurple = crystal
-    .desc = A shiny looking crystal formation.
+ent-PolarisCrystalPurple = { ent-PolarisCrystal }
+    .desc = { ent-PolarisCrystal.desc }
 ent-PolarisCrystalIce = ice crystal
     .desc = A large crystalline ice formation.
 ent-PolarisCrystalMagma = magma crystal

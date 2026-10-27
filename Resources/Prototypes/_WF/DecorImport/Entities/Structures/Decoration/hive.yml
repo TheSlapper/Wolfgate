@@ -85,8 +85,6 @@
     mode: CardinalFlags
   - type: Occluder
     enabled: false
-  - type: Damageable
-    damageContainer: StructuralInorganic
   - type: MeleeSound
     soundGroups:
       Brute:
@@ -176,8 +174,6 @@
   - type: Icon
     sprite: _WF/DecorImport/Structures/Decoration/alien_eris.rsi
     state: resinwall
-  - type: Damageable
-    damageContainer: StructuralInorganic
   - type: MeleeSound
     soundGroups:
       Brute:

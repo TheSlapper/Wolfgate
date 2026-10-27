@@ -1,12 +1,9 @@
 - type: tile
   abstract: true
+  parent: DecorImportPlanetTileBase
   id: DecorImportPlatingTileBase
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepPlating
-  heatCapacity: 10000
   allowRotationMirror: true
 
 - type: tile
