@@ -123,6 +123,8 @@
   components:
   - type: Transform
     anchored: true
+  - type: Physics
+    bodyType: Static
   - type: Sprite
     sprite: _WF/DecorImport/Structures/Decoration/droppod_vore.rsi
     noRot: false
@@ -157,8 +159,6 @@
 - type: entity
   parent: BaseStructure
   id: TauCetiMoonwell
-  placement:
-    mode: SnapgridCenter
   components:
   - type: Sprite
     sprite: _WF/DecorImport/Structures/Decoration/moonwell_taucetistation.rsi
@@ -179,8 +179,6 @@
 - type: entity
   parent: BaseStructure
   id: TGMCXenoCell
-  placement:
-    mode: SnapgridCenter
   components:
   - type: Sprite
     sprite: _WF/DecorImport/Structures/Decoration/xenocryo_tgmc.rsi
@@ -279,8 +277,6 @@
 - type: entity
   parent: BaseStructure
   id: TGMCQueenSpecimenTank
-  placement:
-    mode: SnapgridCenter
   components:
   - type: Sprite
     sprite: _WF/DecorImport/Structures/Decoration/queencryo_tgmc.rsi

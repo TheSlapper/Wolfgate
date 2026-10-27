@@ -28,24 +28,11 @@
     state: mador_pillar
 
 - type: entity
-  parent: BaseStructure
+  parent: AuroraUnathiPillar
   id: AuroraUnathiStatue
   components:
   - type: Sprite
-    sprite: _WF/DecorImport/Structures/Decoration/unathi_ruins_aurora.rsi
     state: statue
-    noRot: true
-  - type: InteractionOutline
-  - type: Damageable
-    damageModifierSet: Rock
-  - type: Destructible
-    thresholds:
-    - trigger:
-        !type:DamageTrigger
-        damage: 150
-      behaviors:
-      - !type:DoActsBehavior
-        acts: [ Destruction ]
 
 - type: entity
   parent: AuroraUnathiStatue

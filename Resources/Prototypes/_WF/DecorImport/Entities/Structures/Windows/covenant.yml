@@ -3,7 +3,6 @@
   id: InsurrectionWindowCovenant
   components:
   - type: Sprite
-    drawdepth: WallTops
     sprite: _WF/DecorImport/Structures/Windows/covenant_insurrection.rsi
   - type: Icon
     sprite: _WF/DecorImport/Structures/Windows/covenant_insurrection.rsi

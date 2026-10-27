@@ -2,8 +2,6 @@
   abstract: true
   parent: BaseStructure
   id: DS13CorruptionBase
-  placement:
-    mode: SnapgridCenter
   components:
   - type: Sprite
     sprite: _WF/DecorImport/Structures/Decoration/corruption_ds13.rsi
@@ -133,8 +131,6 @@
 - type: entity
   parent: BaseStructure
   id: DS13Marker
-  placement:
-    mode: SnapgridCenter
   components:
   - type: Sprite
     sprite: _WF/DecorImport/Structures/Decoration/marker_ds13.rsi

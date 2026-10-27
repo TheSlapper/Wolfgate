@@ -1,116 +1,73 @@
 - type: tile
+  abstract: true
+  id: DecorImportPlatingTileBase
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepPlating
+  heatCapacity: 10000
+  allowRotationMirror: true
+
+- type: tile
+  parent: DecorImportPlatingTileBase
   id: PvEHaloFloorCovenantPattern
   name: tiles-wf-pvehalo-floor-covenant-pattern
   sprite: /Textures/_WF/DecorImport/Tiles/pvehalo/covenant_pattern.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepPlating
   itemDrop: FloorTileItemPvEHaloFloorCovenantPattern
-  heatCapacity: 10000
-  allowRotationMirror: true
 
 - type: tile
+  parent: DecorImportPlatingTileBase
   id: PvEHaloFloorCovenantSmoothPlating
   name: tiles-wf-pvehalo-floor-covenant-smooth-plating
   sprite: /Textures/_WF/DecorImport/Tiles/pvehalo/covenant_smooth_plating.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepPlating
   itemDrop: FloorTileItemPvEHaloFloorCovenantSmoothPlating
-  heatCapacity: 10000
-  allowRotationMirror: true
 
 - type: tile
+  parent: DecorImportPlatingTileBase
   id: PvEHaloFloorCovenantSmoothPlatingSides
   name: tiles-wf-pvehalo-floor-covenant-smooth-plating-sides
   sprite: /Textures/_WF/DecorImport/Tiles/pvehalo/covenant_smooth_plating_sides.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepPlating
   itemDrop: FloorTileItemPvEHaloFloorCovenantSmoothPlatingSides
-  heatCapacity: 10000
-  allowRotationMirror: true
 
 - type: tile
+  parent: DecorImportPlatingTileBase
   id: PvEHaloFloorCovenantPlating
   name: tiles-wf-pvehalo-floor-covenant-plating
   sprite: /Textures/_WF/DecorImport/Tiles/pvehalo/covenant_plating.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepPlating
   itemDrop: FloorTileItemPvEHaloFloorCovenantPlating
-  heatCapacity: 10000
-  allowRotationMirror: true
 
 - type: tile
+  parent: DecorImportPlatingTileBase
   id: PvEHaloFloorCovenantSmoothPlatingCorner
   name: tiles-wf-pvehalo-floor-covenant-smooth-plating-corner
   sprite: /Textures/_WF/DecorImport/Tiles/pvehalo/covenant_smooth_plating_corner.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepPlating
   itemDrop: FloorTileItemPvEHaloFloorCovenantSmoothPlatingCorner
-  heatCapacity: 10000
-  allowRotationMirror: true
 
 - type: tile
+  parent: DecorImportPlatingTileBase
   id: PvEHaloFloorCovenantSmoothPlatingOuterCorner
   name: tiles-wf-pvehalo-floor-covenant-smooth-plating-outer-corner
   sprite: /Textures/_WF/DecorImport/Tiles/pvehalo/covenant_smooth_plating_outer_corner.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepPlating
   itemDrop: FloorTileItemPvEHaloFloorCovenantSmoothPlatingOuterCorner
-  heatCapacity: 10000
-  allowRotationMirror: true
 
 - type: tile
+  parent: DecorImportPlatingTileBase
   id: PvEHaloFloorCovenantPaneling
   name: tiles-wf-pvehalo-floor-covenant-paneling
   sprite: /Textures/_WF/DecorImport/Tiles/pvehalo/covenant_paneling.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepPlating
   itemDrop: FloorTileItemPvEHaloFloorCovenantPaneling
-  heatCapacity: 10000
-  allowRotationMirror: true
 
 - type: tile
+  parent: DecorImportPlatingTileBase
   id: PvEHaloFloorCovenantSmoothPlatingLane
   name: tiles-wf-pvehalo-floor-covenant-smooth-plating-lane
   sprite: /Textures/_WF/DecorImport/Tiles/pvehalo/covenant_smooth_plating_lane.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepPlating
   itemDrop: FloorTileItemPvEHaloFloorCovenantSmoothPlatingLane
-  heatCapacity: 10000
-  allowRotationMirror: true
 
 - type: tile
+  parent: DecorImportPlatingTileBase
   id: PvEHaloFloorCovenantSmoothPlatingEndcap
   name: tiles-wf-pvehalo-floor-covenant-smooth-plating-endcap
   sprite: /Textures/_WF/DecorImport/Tiles/pvehalo/covenant_smooth_plating_endcap.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepPlating
   itemDrop: FloorTileItemPvEHaloFloorCovenantSmoothPlatingEndcap
-  heatCapacity: 10000
-  allowRotationMirror: true

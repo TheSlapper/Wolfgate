@@ -1,10 +1,7 @@
 - type: entity
-  parent: BaseMaterialDoorNavMap
+  parent: DecorImportMaterialDoorBase
   id: InsurrectionDoorCovenant
   components:
-  - type: IconSmooth
-    key: walls
-    mode: NoSprite
   - type: Sprite
     sprite: _WF/DecorImport/Structures/Doors/MaterialDoors/covenant_insurrection.rsi
     layers:

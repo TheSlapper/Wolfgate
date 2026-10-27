@@ -211,8 +211,9 @@
         rock_Uranium3: ""
 
 - type: entity
+  abstract: true
   parent: BaseWall
-  id: ErisRock
+  id: DecorImportAsteroidRockBase
   components:
   - type: Transform
     noRot: true
@@ -236,6 +237,11 @@
       - !type:DoActsBehavior
         acts: ["Destruction"]
   - type: MiningScannerViewable
+
+- type: entity
+  parent: DecorImportAsteroidRockBase
+  id: ErisRock
+  components:
   - type: Icon
     sprite: _WF/DecorImport/Structures/Walls/rock_eris.rsi
     state: rock0
@@ -252,7 +258,6 @@
         rock2: ""
         rock3: ""
         rock4: ""
-  - type: RequiresGrid
 
 - type: entity
   parent: ErisRock
@@ -271,31 +276,9 @@
       map: [ "enum.MiningScannerVisualLayers.Overlay" ]
 
 - type: entity
-  parent: BaseWall
+  parent: DecorImportAsteroidRockBase
   id: GoonAsteroid
   components:
-  - type: Transform
-    noRot: true
-  - type: SoundOnGather
-  - type: Gatherable
-    toolWhitelist:
-      tags:
-      - Pickaxe
-      components:
-      - MiningGatheringHard
-      - MiningGatheringSoft
-  - type: Damageable
-    damageContainer: StructuralInorganic
-    damageModifierSet: Metallic
-  - type: Destructible
-    thresholds:
-    - trigger:
-        !type:DamageTrigger
-        damage: 150
-      behaviors:
-      - !type:DoActsBehavior
-        acts: ["Destruction"]
-  - type: MiningScannerViewable
   - type: IconSmooth
     key: rockwalls
     base: asteroid-
@@ -308,7 +291,6 @@
     layers:
     - state: asteroid-0
       color: "#D1E6FF"
-  - type: RequiresGrid
 
 - type: entity
   parent: GoonAsteroid

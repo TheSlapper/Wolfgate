@@ -38,8 +38,6 @@
   parent: BaseStructure
   id: DecorImportAlienNestBase
   components:
-  - type: Physics
-    bodyType: Static
   - type: Fixtures
     fixtures:
       fix1:
@@ -251,13 +249,12 @@
         acts: [ "Destruction" ]
 
 - type: entity
-  abstract: true
   parent: BaseStructure
-  id: DecorImportCocoonBase
-  placement:
-    mode: SnapgridCenter
+  id: CitadelRPBlightCocoon
   components:
   - type: Sprite
+    sprite: _WF/DecorImport/Structures/Decoration/cocoon_blight_citadelrp.rsi
+    state: cocoon_full
     noRot: true
   - type: Damageable
     damageContainer: Biological
@@ -276,14 +273,6 @@
           collection: XenoResinBreak
       - !type:DoActsBehavior
         acts: [ "Destruction" ]
-
-- type: entity
-  parent: DecorImportCocoonBase
-  id: CitadelRPBlightCocoon
-  components:
-  - type: Sprite
-    sprite: _WF/DecorImport/Structures/Decoration/cocoon_blight_citadelrp.rsi
-    state: cocoon_full
 
 - type: entity
   parent: CitadelRPBlightCocoon

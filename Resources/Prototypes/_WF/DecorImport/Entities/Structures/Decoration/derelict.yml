@@ -1,19 +1,51 @@
 - type: entity
+  abstract: true
   parent: BaseStructure
-  id: CitadelRPDerelictJarShelf
+  id: CitadelRPDerelictPropBase
   components:
   - type: Sprite
     sprite: _WF/DecorImport/Structures/Decoration/derelict_props_citadelrp.rsi
-    state: jarshelf
-    noRot: true
   - type: InteractionOutline
 
 - type: entity
-  parent: BaseStructure
+  abstract: true
+  parent: CitadelRPDerelictPropBase
+  id: CitadelRPDerelictPodBase
+  components:
+  - type: Damageable
+    damageContainer: StructuralInorganic
+    damageModifierSet: Glass
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 50
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: GlassBreak
+      - !type:SpawnEntitiesBehavior
+        spawn:
+          CitadelRPDerelictPodBroken:
+            min: 1
+            max: 1
+        offset: 0
+      - !type:DoActsBehavior
+        acts: [ Destruction ]
+
+- type: entity
+  parent: CitadelRPDerelictPropBase
+  id: CitadelRPDerelictJarShelf
+  components:
+  - type: Sprite
+    state: jarshelf
+    noRot: true
+
+- type: entity
+  parent: CitadelRPDerelictPodBase
   id: CitadelRPDerelictPod
   components:
   - type: Sprite
-    sprite: _WF/DecorImport/Structures/Decoration/derelict_props_citadelrp.rsi
     layers:
     - state: active_pod
       map: [ "base" ]
@@ -25,138 +57,48 @@
         active_pod2: ""
     - base:
         active_pod3: ""
-  - type: InteractionOutline
-  - type: Damageable
-    damageContainer: StructuralInorganic
-    damageModifierSet: Glass
-  - type: Destructible
-    thresholds:
-    - trigger:
-        !type:DamageTrigger
-        damage: 50
-      behaviors:
-      - !type:PlaySoundBehavior
-        sound:
-          collection: GlassBreak
-      - !type:SpawnEntitiesBehavior
-        spawn:
-          CitadelRPDerelictPodBroken:
-            min: 1
-            max: 1
-        offset: 0
-      - !type:DoActsBehavior
-        acts: [ Destruction ]
   - type: PointLight
     radius: 1.5
     energy: 0.6
     color: "#9a7cff"
 
 - type: entity
-  parent: BaseStructure
+  parent: CitadelRPDerelictPodBase
   id: CitadelRPDerelictPodOvergrown
   components:
   - type: Sprite
-    sprite: _WF/DecorImport/Structures/Decoration/derelict_props_citadelrp.rsi
     state: overgrown_pod
-  - type: InteractionOutline
-  - type: Damageable
-    damageContainer: StructuralInorganic
-    damageModifierSet: Glass
-  - type: Destructible
-    thresholds:
-    - trigger:
-        !type:DamageTrigger
-        damage: 50
-      behaviors:
-      - !type:PlaySoundBehavior
-        sound:
-          collection: GlassBreak
-      - !type:SpawnEntitiesBehavior
-        spawn:
-          CitadelRPDerelictPodBroken:
-            min: 1
-            max: 1
-        offset: 0
-      - !type:DoActsBehavior
-        acts: [ Destruction ]
 
 - type: entity
-  parent: BaseStructure
+  parent: CitadelRPDerelictPodBase
   id: CitadelRPDerelictPodFlesh
   components:
   - type: Sprite
-    sprite: _WF/DecorImport/Structures/Decoration/derelict_props_citadelrp.rsi
     state: flesh_pod
-  - type: InteractionOutline
-  - type: Damageable
-    damageContainer: StructuralInorganic
-    damageModifierSet: Glass
-  - type: Destructible
-    thresholds:
-    - trigger:
-        !type:DamageTrigger
-        damage: 50
-      behaviors:
-      - !type:PlaySoundBehavior
-        sound:
-          collection: GlassBreak
-      - !type:SpawnEntitiesBehavior
-        spawn:
-          CitadelRPDerelictPodBroken:
-            min: 1
-            max: 1
-        offset: 0
-      - !type:DoActsBehavior
-        acts: [ Destruction ]
   - type: PointLight
     radius: 1.5
     energy: 0.6
     color: "#ff3020"
 
 - type: entity
-  parent: BaseStructure
+  parent: CitadelRPDerelictPodBase
   id: CitadelRPDerelictPodEmpty
   components:
   - type: Sprite
-    sprite: _WF/DecorImport/Structures/Decoration/derelict_props_citadelrp.rsi
     state: empty_pod
-  - type: InteractionOutline
-  - type: Damageable
-    damageContainer: StructuralInorganic
-    damageModifierSet: Glass
-  - type: Destructible
-    thresholds:
-    - trigger:
-        !type:DamageTrigger
-        damage: 50
-      behaviors:
-      - !type:PlaySoundBehavior
-        sound:
-          collection: GlassBreak
-      - !type:SpawnEntitiesBehavior
-        spawn:
-          CitadelRPDerelictPodBroken:
-            min: 1
-            max: 1
-        offset: 0
-      - !type:DoActsBehavior
-        acts: [ Destruction ]
 
 - type: entity
-  parent: BaseStructure
+  parent: CitadelRPDerelictPropBase
   id: CitadelRPDerelictPodBroken
   components:
   - type: Sprite
-    sprite: _WF/DecorImport/Structures/Decoration/derelict_props_citadelrp.rsi
     state: broken_pod
-  - type: InteractionOutline
 
 - type: entity
-  parent: BaseStructure
+  parent: CitadelRPDerelictPropBase
   id: CitadelRPDerelictTerminal
   components:
   - type: Sprite
-    sprite: _WF/DecorImport/Structures/Decoration/derelict_props_citadelrp.rsi
     layers:
     - state: terminal1
       map: [ "base" ]
@@ -175,52 +117,42 @@
         terminal5: ""
     - base:
         terminal6: ""
-  - type: InteractionOutline
 
 - type: entity
-  parent: BaseStructure
+  parent: CitadelRPDerelictPropBase
   id: CitadelRPDerelictMonitor
   components:
   - type: Sprite
-    sprite: _WF/DecorImport/Structures/Decoration/derelict_props_citadelrp.rsi
     state: monitor1
     noRot: true
-  - type: InteractionOutline
 
 - type: entity
-  parent: BaseStructure
+  parent: CitadelRPDerelictPropBase
   id: CitadelRPDerelictScreen
   components:
   - type: Sprite
-    sprite: _WF/DecorImport/Structures/Decoration/derelict_props_citadelrp.rsi
     state: monitor2
-  - type: InteractionOutline
 
 - type: entity
-  parent: BaseStructure
+  parent: CitadelRPDerelictPropBase
   id: CitadelRPDerelictScreenAlt
   components:
   - type: Sprite
-    sprite: _WF/DecorImport/Structures/Decoration/derelict_props_citadelrp.rsi
     state: monitor3
-  - type: InteractionOutline
 
 - type: entity
-  parent: BaseStructure
+  parent: CitadelRPDerelictPropBase
   id: CitadelRPDerelictMonitorBroken
   components:
   - type: Sprite
-    sprite: _WF/DecorImport/Structures/Decoration/derelict_props_citadelrp.rsi
     state: monitor_broken
     noRot: true
-  - type: InteractionOutline
 
 - type: entity
-  parent: BaseStructure
+  parent: CitadelRPDerelictPropBase
   id: CitadelRPDerelictProcessor
   components:
   - type: Sprite
-    sprite: _WF/DecorImport/Structures/Decoration/derelict_props_citadelrp.rsi
     layers:
     - state: processor1
       map: [ "base" ]
@@ -231,14 +163,12 @@
         processor1: ""
     - base:
         processor2: ""
-  - type: InteractionOutline
 
 - type: entity
-  parent: BaseStructure
+  parent: CitadelRPDerelictPropBase
   id: CitadelRPDerelictServer
   components:
   - type: Sprite
-    sprite: _WF/DecorImport/Structures/Decoration/derelict_props_citadelrp.rsi
     layers:
     - state: server1
       map: [ "base" ]
@@ -249,14 +179,12 @@
         server1: ""
     - base:
         server2: ""
-  - type: InteractionOutline
 
 - type: entity
-  parent: BaseStructure
+  parent: CitadelRPDerelictPropBase
   id: CitadelRPDerelictTube
   components:
   - type: Sprite
-    sprite: _WF/DecorImport/Structures/Decoration/derelict_props_citadelrp.rsi
     layers:
     - state: tube1
       map: [ "base" ]
@@ -267,14 +195,12 @@
         tube1: ""
     - base:
         tube2: ""
-  - type: InteractionOutline
 
 - type: entity
-  parent: BaseStructure
+  parent: CitadelRPDerelictPropBase
   id: CitadelRPDerelictMachine
   components:
   - type: Sprite
-    sprite: _WF/DecorImport/Structures/Decoration/derelict_props_citadelrp.rsi
     layers:
     - state: machine1
       map: [ "base" ]
@@ -285,33 +211,27 @@
         machine1: ""
     - base:
         machine2: ""
-  - type: InteractionOutline
 
 - type: entity
-  parent: BaseStructure
+  parent: CitadelRPDerelictPropBase
   id: CitadelRPDerelictHub
   components:
   - type: Sprite
-    sprite: _WF/DecorImport/Structures/Decoration/derelict_props_citadelrp.rsi
     state: hub1
     noRot: true
-  - type: InteractionOutline
 
 - type: entity
-  parent: BaseStructure
+  parent: CitadelRPDerelictPropBase
   id: CitadelRPDerelictCryoFeed
   components:
   - type: Sprite
-    sprite: _WF/DecorImport/Structures/Decoration/derelict_props_citadelrp.rsi
     state: cryofeed
-  - type: InteractionOutline
 
 - type: entity
-  parent: BaseStructure
+  parent: CitadelRPDerelictPropBase
   id: CitadelRPDerelictLamp
   components:
   - type: Sprite
-    sprite: _WF/DecorImport/Structures/Decoration/derelict_props_citadelrp.rsi
     layers:
     - state: light2
       map: [ "base" ]
@@ -322,7 +242,6 @@
         light2: ""
     - base:
         light3: ""
-  - type: InteractionOutline
   - type: PointLight
     radius: 3
     energy: 1

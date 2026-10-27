@@ -1,3 +1,11 @@
+- type: tile
+  abstract: true
+  id: DecorImportPlanetTileBase
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  heatCapacity: 10000
+
 # Ironsand
 
 - type: tile
@@ -300,6 +308,7 @@
   heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarslikeT2
   name: tiles-wf-goon-floor-marslike-t2
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/marslike_t2.png
@@ -320,16 +329,13 @@
     SouthWest: /Textures/_WF/DecorImport/Tiles/goonstation/marslike_t2_edge_southwest.png
     NorthEast: /Textures/_WF/DecorImport/Tiles/goonstation/marslike_t2_edge_northeast.png
     NorthWest: /Textures/_WF/DecorImport/Tiles/goonstation/marslike_t2_edge_northwest.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarslikeT2
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarslikeT3
   name: tiles-wf-goon-floor-marslike-t3
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/marslike_t3.png
@@ -343,16 +349,13 @@
     SouthWest: /Textures/_WF/DecorImport/Tiles/goonstation/marslike_t3_edge_southwest.png
     NorthEast: /Textures/_WF/DecorImport/Tiles/goonstation/marslike_t3_edge_northeast.png
     NorthWest: /Textures/_WF/DecorImport/Tiles/goonstation/marslike_t3_edge_northwest.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarslikeT3
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarslikeT4
   name: tiles-wf-goon-floor-marslike-t4
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/marslike_t4.png
@@ -372,16 +375,13 @@
     SouthWest: /Textures/_WF/DecorImport/Tiles/goonstation/marslike_t4_edge_southwest.png
     NorthEast: /Textures/_WF/DecorImport/Tiles/goonstation/marslike_t4_edge_northeast.png
     NorthWest: /Textures/_WF/DecorImport/Tiles/goonstation/marslike_t4_edge_northwest.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarslikeT4
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsRocks
   name: tiles-wf-goon-floor-mars-rocks
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_rocks.png
@@ -393,16 +393,13 @@
   - 1.0
   - 1.0
   - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsRocks
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMartianDust
   name: tiles-wf-goon-floor-martian-dust
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/martian_dust.png
@@ -411,539 +408,409 @@
   - 3.0
   - 1.0
   - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMartianDust
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsBase1
   name: tiles-wf-goon-floor-mars-base1
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_base1.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsBase1
-  heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsBase1North
   name: tiles-wf-goon-floor-mars-base1-north
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_base1_north.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsBase1North
-  heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsBase1East
   name: tiles-wf-goon-floor-mars-base1-east
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_base1_east.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsBase1East
-  heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsBase1West
   name: tiles-wf-goon-floor-mars-base1-west
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_base1_west.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsBase1West
-  heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsBase1SouthEast
   name: tiles-wf-goon-floor-mars-base1-south-east
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_base1_southeast.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsBase1SouthEast
-  heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsBase1SouthWest
   name: tiles-wf-goon-floor-mars-base1-south-west
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_base1_southwest.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsBase1SouthWest
-  heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsBase1NorthEast
   name: tiles-wf-goon-floor-mars-base1-north-east
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_base1_northeast.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsBase1NorthEast
-  heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsBase1NorthWest
   name: tiles-wf-goon-floor-mars-base1-north-west
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_base1_northwest.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsBase1NorthWest
-  heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsBase2
   name: tiles-wf-goon-floor-mars-base2
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_base2.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsBase2
-  heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsBase2North
   name: tiles-wf-goon-floor-mars-base2-north
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_base2_north.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsBase2North
-  heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsBase2East
   name: tiles-wf-goon-floor-mars-base2-east
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_base2_east.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsBase2East
-  heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsBase2West
   name: tiles-wf-goon-floor-mars-base2-west
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_base2_west.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsBase2West
-  heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsBase2SouthEast
   name: tiles-wf-goon-floor-mars-base2-south-east
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_base2_southeast.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsBase2SouthEast
-  heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsBase3
   name: tiles-wf-goon-floor-mars-base3
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_base3.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsBase3
-  heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsBase3North
   name: tiles-wf-goon-floor-mars-base3-north
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_base3_north.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsBase3North
-  heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsBase3East
   name: tiles-wf-goon-floor-mars-base3-east
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_base3_east.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsBase3East
-  heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsBase3West
   name: tiles-wf-goon-floor-mars-base3-west
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_base3_west.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsBase3West
-  heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsBase3SouthEast
   name: tiles-wf-goon-floor-mars-base3-south-east
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_base3_southeast.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsBase3SouthEast
-  heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsBase3SouthWest
   name: tiles-wf-goon-floor-mars-base3-south-west
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_base3_southwest.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsBase3SouthWest
-  heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsBase3NorthEast
   name: tiles-wf-goon-floor-mars-base3-north-east
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_base3_northeast.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsBase3NorthEast
-  heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsDirtroad1
   name: tiles-wf-goon-floor-mars-dirtroad1
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_dirtroad1.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsDirtroad1
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsDirtroad1North
   name: tiles-wf-goon-floor-mars-dirtroad1-north
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_dirtroad1_north.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsDirtroad1North
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsDirtroad1SouthEast
   name: tiles-wf-goon-floor-mars-dirtroad1-south-east
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_dirtroad1_southeast.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsDirtroad1SouthEast
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsDirtroad1SouthWest
   name: tiles-wf-goon-floor-mars-dirtroad1-south-west
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_dirtroad1_southwest.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsDirtroad1SouthWest
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsDirtroad1NorthEast
   name: tiles-wf-goon-floor-mars-dirtroad1-north-east
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_dirtroad1_northeast.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsDirtroad1NorthEast
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsDirtroad1NorthWest
   name: tiles-wf-goon-floor-mars-dirtroad1-north-west
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_dirtroad1_northwest.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsDirtroad1NorthWest
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsDirtroad2
   name: tiles-wf-goon-floor-mars-dirtroad2
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_dirtroad2.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsDirtroad2
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsDirtroad2North
   name: tiles-wf-goon-floor-mars-dirtroad2-north
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_dirtroad2_north.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsDirtroad2North
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsDirtroad2East
   name: tiles-wf-goon-floor-mars-dirtroad2-east
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_dirtroad2_east.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsDirtroad2East
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsDirtroad2West
   name: tiles-wf-goon-floor-mars-dirtroad2-west
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_dirtroad2_west.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsDirtroad2West
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsDirtroad2SouthEast
   name: tiles-wf-goon-floor-mars-dirtroad2-south-east
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_dirtroad2_southeast.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsDirtroad2SouthEast
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsDirtroad2SouthWest
   name: tiles-wf-goon-floor-mars-dirtroad2-south-west
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_dirtroad2_southwest.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsDirtroad2SouthWest
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsDirtroad2NorthEast
   name: tiles-wf-goon-floor-mars-dirtroad2-north-east
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_dirtroad2_northeast.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsDirtroad2NorthEast
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorMarsDirtroad2NorthWest
   name: tiles-wf-goon-floor-mars-dirtroad2-north-west
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/mars_dirtroad2_northwest.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemGoonFloorMarsDirtroad2NorthWest
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorSnowroughBorder
   name: tiles-wf-goon-floor-snowrough-border
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/snow_rough_border.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepSnow
   itemDrop: FloorTileItemGoonFloorSnowroughBorder
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorSnowroughBorderNorth
   name: tiles-wf-goon-floor-snowrough-border-north
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/snow_rough_border_north.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepSnow
   itemDrop: FloorTileItemGoonFloorSnowroughBorderNorth
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorSnowroughBorderEast
   name: tiles-wf-goon-floor-snowrough-border-east
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/snow_rough_border_east.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepSnow
   itemDrop: FloorTileItemGoonFloorSnowroughBorderEast
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorSnowroughBorderWest
   name: tiles-wf-goon-floor-snowrough-border-west
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/snow_rough_border_west.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepSnow
   itemDrop: FloorTileItemGoonFloorSnowroughBorderWest
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorSnowroughBorderSouthEast
   name: tiles-wf-goon-floor-snowrough-border-south-east
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/snow_rough_border_southeast.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepSnow
   itemDrop: FloorTileItemGoonFloorSnowroughBorderSouthEast
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorSnowroughBorderSouthWest
   name: tiles-wf-goon-floor-snowrough-border-south-west
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/snow_rough_border_southwest.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepSnow
   itemDrop: FloorTileItemGoonFloorSnowroughBorderSouthWest
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorSnowroughBorderNorthEast
   name: tiles-wf-goon-floor-snowrough-border-north-east
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/snow_rough_border_northeast.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepSnow
   itemDrop: FloorTileItemGoonFloorSnowroughBorderNorthEast
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: GoonFloorSnowroughBorderNorthWest
   name: tiles-wf-goon-floor-snowrough-border-north-west
   sprite: /Textures/_WF/DecorImport/Tiles/goonstation/snow_rough_border_northwest.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepSnow
   itemDrop: FloorTileItemGoonFloorSnowroughBorderNorthWest
-  heatCapacity: 10000
   weather: true
 
 # Aurora
@@ -1189,33 +1056,27 @@
   heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: AuroraFloorExoplanetIcyRock
   name: tiles-wf-aurora-floor-exoplanet-icy-rock
   sprite: /Textures/_WF/DecorImport/Tiles/aurora/icy_rock.png
   variants: 19
   placementVariants: [ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 ]
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: BayFootstepSand
   itemDrop: FloorTileItemAuroraFloorExoplanetIcyRock
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: AuroraFloorExoplanetBasalt
   name: tiles-wf-aurora-floor-exoplanet-basalt
   sprite: /Textures/_WF/DecorImport/Tiles/aurora/basalt.png
   variants: 14
   placementVariants: [ 52.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 ]
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemAuroraFloorExoplanetBasalt
-  heatCapacity: 10000
   weather: true
 
 # Citadel
@@ -1601,16 +1462,13 @@
   heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: PolarisFloorSandIcey
   name: tiles-wf-polaris-floor-sand-icey
   sprite: /Textures/_WF/DecorImport/Tiles/polaris/sand_icey.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: PolarisFootstepHeavySand
   itemDrop: FloorTileItemPolarisFloorSandIcey
-  heatCapacity: 10000
   weather: true
 
 # VOREStation
@@ -1652,19 +1510,17 @@
   heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: VoreFloorNanites
   name: tiles-wf-vore-floor-nanites
   sprite: /Textures/_WF/DecorImport/Tiles/vore/nanites.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepPlating
   itemDrop: FloorTileItemVoreFloorNanites
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: VoreFloorGrassWinter
   name: tiles-wf-vore-floor-grass-winter
   sprite: /Textures/_WF/DecorImport/Tiles/vore/grass_winter.png
@@ -1676,13 +1532,9 @@
     North: /Textures/_WF/DecorImport/Tiles/vore/grass_winter_edge.png
     East: /Textures/_WF/DecorImport/Tiles/vore/grass_winter_edge.png
     West: /Textures/_WF/DecorImport/Tiles/vore/grass_winter_edge.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepGrass
   itemDrop: FloorTileItemVoreFloorGrassWinter
-  heatCapacity: 10000
   weather: true
 
 # Baystation
@@ -1724,6 +1576,7 @@
   heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: BayFloorExoplanetChlorineSand
   name: tiles-wf-bay-floor-exoplanet-chlorine-sand
   sprite: /Textures/_WF/DecorImport/Tiles/baystation/chlorine_sand.png
@@ -1747,16 +1600,13 @@
     North: /Textures/_WF/DecorImport/Tiles/baystation/chlorine_sand_edge_north.png
     East: /Textures/_WF/DecorImport/Tiles/baystation/chlorine_sand_edge_east.png
     West: /Textures/_WF/DecorImport/Tiles/baystation/chlorine_sand_edge_west.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: BayFootstepSand
   itemDrop: FloorTileItemBayFloorExoplanetChlorineSand
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: BayFloorExoplanetVolcanic
   name: tiles-wf-bay-floor-exoplanet-volcanic
   sprite: /Textures/_WF/DecorImport/Tiles/baystation/lava_cold.png
@@ -1766,13 +1616,9 @@
     North: /Textures/_WF/DecorImport/Tiles/baystation/lava_cold_edge_north.png
     East: /Textures/_WF/DecorImport/Tiles/baystation/lava_cold_edge_east.png
     West: /Textures/_WF/DecorImport/Tiles/baystation/lava_cold_edge_west.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemBayFloorExoplanetVolcanic
-  heatCapacity: 10000
   weather: true
 
 # BeeStation
@@ -1802,18 +1648,15 @@
   heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: BeeFloorRedIce
   name: tiles-wf-bee-floor-red-ice
   sprite: /Textures/_WF/DecorImport/Tiles/beestation/red_ice.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   friction: 0.05
   mobAcceleration: 0.1
   footstepSounds:
     collection: FootstepFloor
   itemDrop: FloorTileItemBeeFloorRedIce
-  heatCapacity: 10000
   weather: true
 
 # CHOMPStation
@@ -1971,6 +1814,7 @@
   heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: ShiptestFloorShroudedSand
   name: tiles-wf-shiptest-floor-shrouded-sand
   sprite: /Textures/_WF/DecorImport/Tiles/shiptest/shrouded_sand.png
@@ -1992,70 +1836,55 @@
     SouthWest: /Textures/_WF/DecorImport/Tiles/shiptest/shrouded_sand_edge_southwest.png
     NorthEast: /Textures/_WF/DecorImport/Tiles/shiptest/shrouded_sand_edge_northeast.png
     NorthWest: /Textures/_WF/DecorImport/Tiles/shiptest/shrouded_sand_edge_northwest.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: BayFootstepSand
   itemDrop: FloorTileItemShiptestFloorShroudedSand
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: ShiptestFloorMoonCoarse
   name: tiles-wf-shiptest-floor-moon-coarse
   sprite: /Textures/_WF/DecorImport/Tiles/shiptest/moonsand_coarse.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemShiptestFloorMoonCoarse
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: ShiptestFloorMoonCoarseDark
   name: tiles-wf-shiptest-floor-moon-coarse-dark
   sprite: /Textures/_WF/DecorImport/Tiles/shiptest/moonsand_coarse_dark.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemShiptestFloorMoonCoarseDark
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: ShiptestFloorMoonDark
   name: tiles-wf-shiptest-floor-moon-dark
   sprite: /Textures/_WF/DecorImport/Tiles/shiptest/moonsand_dark.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: BayFootstepSand
   itemDrop: FloorTileItemShiptestFloorMoonDark
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: ShiptestFloorIceSheet
   name: tiles-wf-shiptest-floor-ice-sheet
   sprite: /Textures/_WF/DecorImport/Tiles/shiptest/dark_ice.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   friction: 0.05
   mobAcceleration: 0.1
   footstepSounds:
     collection: ShiptestFootstepIce
   itemDrop: FloorTileItemShiptestFloorIceSheet
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: ShiptestFloorIceberg
   name: tiles-wf-shiptest-floor-iceberg
   sprite: /Textures/_WF/DecorImport/Tiles/shiptest/iceberg.png
@@ -2065,16 +1894,13 @@
   - 1.0
   - 1.0
   - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: ShiptestFootstepIce
   itemDrop: FloorTileItemShiptestFloorIceberg
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: ShiptestFloorCrimsonGrass
   name: tiles-wf-shiptest-floor-crimson-grass
   sprite: /Textures/_WF/DecorImport/Tiles/shiptest/crimsongrass.png
@@ -2084,26 +1910,19 @@
     North: /Textures/_WF/DecorImport/Tiles/shiptest/crimsongrass_edge_north.png
     East: /Textures/_WF/DecorImport/Tiles/shiptest/crimsongrass_edge_east.png
     West: /Textures/_WF/DecorImport/Tiles/shiptest/crimsongrass_edge_west.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepGrass
   itemDrop: FloorTileItemShiptestFloorCrimsonGrass
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: ShiptestFloorObsidian
   name: tiles-wf-shiptest-floor-obsidian
   sprite: /Textures/_WF/DecorImport/Tiles/shiptest/obsidian.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: ShiptestFootstepConcrete
   itemDrop: FloorTileItemShiptestFloorObsidian
-  heatCapacity: 10000
   weather: true
 
 # /tg/station
@@ -2277,6 +2096,7 @@
   heatCapacity: 10000
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: TgFloorSiderite
   name: tiles-wf-tg-floor-siderite
   sprite: /Textures/_WF/DecorImport/Tiles/tgstation/siderite.png
@@ -2286,18 +2106,15 @@
     North: /Textures/_WF/DecorImport/Tiles/tgstation/siderite_edge_north.png
     East: /Textures/_WF/DecorImport/Tiles/tgstation/siderite_edge_east.png
     West: /Textures/_WF/DecorImport/Tiles/tgstation/siderite_edge_west.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemTgFloorSiderite
-  heatCapacity: 10000
   weather: true
 
 # Bubberstation
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: BubberFloorLunarSand
   name: tiles-wf-bubber-floor-lunar-sand
   sprite: /Textures/_WF/DecorImport/Tiles/bubber/lunar_sand.png
@@ -2307,16 +2124,13 @@
     1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
     1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
     1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 ]
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemBubberFloorLunarSand
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: BubberFloorLunarRock
   name: tiles-wf-bubber-floor-lunar-rock
   sprite: /Textures/_WF/DecorImport/Tiles/bubber/lunar_rock.png
@@ -2326,18 +2140,15 @@
     1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
     1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
     1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 ]
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepFloor
   itemDrop: FloorTileItemBubberFloorLunarRock
-  heatCapacity: 10000
   weather: true
 
 # CEV-Eris
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: ErisFloorAsteroid
   name: tiles-wf-eris-floor-asteroid
   sprite: /Textures/_WF/DecorImport/Tiles/eris/asteroid.png
@@ -2347,18 +2158,15 @@
   - 1.0
   - 1.0
   - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemErisFloorAsteroid
-  heatCapacity: 10000
   weather: true
 
 # Mojave Sun
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: MojaveFloorIce
   name: tiles-wf-mojave-floor-ice
   sprite: /Textures/_WF/DecorImport/Tiles/mojavesun/ice.png
@@ -2368,18 +2176,15 @@
     North: /Textures/_WF/DecorImport/Tiles/mojavesun/ice_edge_north.png
     East: /Textures/_WF/DecorImport/Tiles/mojavesun/ice_edge_east.png
     West: /Textures/_WF/DecorImport/Tiles/mojavesun/ice_edge_west.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   friction: 0.05
   mobAcceleration: 0.1
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemMojaveFloorIce
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: NovaFloorMushroom
   name: tiles-wf-nova-floor-mushroom
   sprite: /Textures/_WF/DecorImport/Tiles/nova/mushroom_floor.png
@@ -2389,16 +2194,13 @@
     North: /Textures/_WF/DecorImport/Tiles/nova/mushroom_floor_edge_north.png
     East: /Textures/_WF/DecorImport/Tiles/nova/mushroom_floor_edge_east.png
     West: /Textures/_WF/DecorImport/Tiles/nova/mushroom_floor_edge_west.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepGrass
   itemDrop: FloorTileItemNovaFloorMushroom
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: NovaFloorMushroomBlue
   name: tiles-wf-nova-floor-mushroom-blue
   sprite: /Textures/_WF/DecorImport/Tiles/nova/mushroom_blue_floor.png
@@ -2408,16 +2210,13 @@
     North: /Textures/_WF/DecorImport/Tiles/nova/mushroom_blue_floor_edge_north.png
     East: /Textures/_WF/DecorImport/Tiles/nova/mushroom_blue_floor_edge_east.png
     West: /Textures/_WF/DecorImport/Tiles/nova/mushroom_blue_floor_edge_west.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepGrass
   itemDrop: FloorTileItemNovaFloorMushroomBlue
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: NovaFloorMushroomGreen
   name: tiles-wf-nova-floor-mushroom-green
   sprite: /Textures/_WF/DecorImport/Tiles/nova/mushroom_green_floor.png
@@ -2427,94 +2226,73 @@
     North: /Textures/_WF/DecorImport/Tiles/nova/mushroom_green_floor_edge_north.png
     East: /Textures/_WF/DecorImport/Tiles/nova/mushroom_green_floor_edge_east.png
     West: /Textures/_WF/DecorImport/Tiles/nova/mushroom_green_floor_edge_west.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepGrass
   itemDrop: FloorTileItemNovaFloorMushroomGreen
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: CitadelRPFloorCave
   name: tiles-wf-citadel-rp-floor-cave
   sprite: /Textures/_WF/DecorImport/Tiles/citadelrp/cave_floor.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemCitadelRPFloorCave
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: VGFloorBloodrealm
   name: tiles-wf-vg-floor-bloodrealm
   sprite: /Textures/_WF/DecorImport/Tiles/vgstation/bloodrealm_floor.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepFloor
   itemDrop: FloorTileItemVGFloorBloodrealm
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: VGFloorBloodrealmAccent
   name: tiles-wf-vg-floor-bloodrealm-accent
   sprite: /Textures/_WF/DecorImport/Tiles/vgstation/bloodrealm_accent.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepFloor
   itemDrop: FloorTileItemVGFloorBloodrealmAccent
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: VGFloorBloodrealmAccentAlt
   name: tiles-wf-vg-floor-bloodrealm-accent-alt
   sprite: /Textures/_WF/DecorImport/Tiles/vgstation/bloodrealm_accent_alt.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepFloor
   itemDrop: FloorTileItemVGFloorBloodrealmAccentAlt
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: VGFloorBloodrealmGrease
   name: tiles-wf-vg-floor-bloodrealm-grease
   sprite: /Textures/_WF/DecorImport/Tiles/vgstation/bloodrealm_grease.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepFloor
   itemDrop: FloorTileItemVGFloorBloodrealmGrease
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: VGFloorBloodrealmGreaseGrey
   name: tiles-wf-vg-floor-bloodrealm-grease-grey
   sprite: /Textures/_WF/DecorImport/Tiles/vgstation/bloodrealm_grease_grey.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepFloor
   itemDrop: FloorTileItemVGFloorBloodrealmGreaseGrey
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: VGFloorBloodrealmClot
   name: tiles-wf-vg-floor-bloodrealm-clot
   sprite: /Textures/_WF/DecorImport/Tiles/vgstation/bloodrealm_clot.png
@@ -2528,29 +2306,23 @@
     SouthWest: /Textures/_WF/DecorImport/Tiles/vgstation/bloodrealm_clot_edge_southwest.png
     NorthEast: /Textures/_WF/DecorImport/Tiles/vgstation/bloodrealm_clot_edge_northeast.png
     NorthWest: /Textures/_WF/DecorImport/Tiles/vgstation/bloodrealm_clot_edge_northwest.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepFloor
   itemDrop: FloorTileItemVGFloorBloodrealmClot
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: VGFloorBloodrealmObsidian
   name: tiles-wf-vg-floor-bloodrealm-obsidian
   sprite: /Textures/_WF/DecorImport/Tiles/vgstation/bloodrealm_obsidian.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepAsteroid
   itemDrop: FloorTileItemVGFloorBloodrealmObsidian
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: TauCetiFloorMeatland
   name: tiles-wf-tau-ceti-floor-meatland
   sprite: /Textures/_WF/DecorImport/Tiles/taucetistation/meatland_floor.png
@@ -2559,18 +2331,15 @@
   - 1.0
   - 1.0
   - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepFloor
   itemDrop: FloorTileItemTauCetiFloorMeatland
-  heatCapacity: 10000
   weather: true
 
 # DS13
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: DS13FloorDryFirm
   name: tiles-wf-ds13-floor-dry-firm
   sprite: /Textures/_WF/DecorImport/Tiles/ds13/dry_firm.png
@@ -2580,16 +2349,13 @@
   - 1.0
   - 1.0
   - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: BayFootstepSand
   itemDrop: FloorTileItemDS13FloorDryFirm
-  heatCapacity: 10000
   weather: true
 
 - type: tile
+  parent: DecorImportPlanetTileBase
   id: DS13FloorDryCracked
   name: tiles-wf-ds13-floor-dry-cracked
   sprite: /Textures/_WF/DecorImport/Tiles/ds13/dry_cracked.png
@@ -2599,11 +2365,7 @@
   - 1.0
   - 1.0
   - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
   footstepSounds:
     collection: BayFootstepSand
   itemDrop: FloorTileItemDS13FloorDryCracked
-  heatCapacity: 10000
   weather: true

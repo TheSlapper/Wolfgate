@@ -159,10 +159,6 @@
     base: state_
   - type: Damageable
     damageModifierSet: Wood
-  - type: MeleeSound
-    soundGroups:
-      Brute:
-        path: /Audio/_WF/DecorImport/nebula/hit_wood.ogg
   - type: Destructible
     thresholds:
     - trigger:
@@ -193,10 +189,6 @@
     base: state_
   - type: Damageable
     damageModifierSet: Wood
-  - type: MeleeSound
-    soundGroups:
-      Brute:
-        path: /Audio/_WF/DecorImport/nebula/hit_wood.ogg
   - type: Destructible
     thresholds:
     - trigger:
@@ -227,10 +219,6 @@
     base: state_
   - type: Damageable
     damageModifierSet: Wood
-  - type: MeleeSound
-    soundGroups:
-      Brute:
-        path: /Audio/_WF/DecorImport/nebula/hit_wood.ogg
   - type: Destructible
     thresholds:
     - trigger:
@@ -261,10 +249,6 @@
     base: state_
   - type: Damageable
     damageModifierSet: Wood
-  - type: MeleeSound
-    soundGroups:
-      Brute:
-        path: /Audio/_WF/DecorImport/nebula/hit_wood.ogg
   - type: Destructible
     thresholds:
     - trigger:
@@ -295,10 +279,6 @@
     base: state_
   - type: Damageable
     damageModifierSet: Wood
-  - type: MeleeSound
-    soundGroups:
-      Brute:
-        path: /Audio/_WF/DecorImport/nebula/hit_wood.ogg
   - type: Destructible
     thresholds:
     - trigger:
@@ -329,10 +309,6 @@
     base: state_
   - type: Damageable
     damageModifierSet: Wood
-  - type: MeleeSound
-    soundGroups:
-      Brute:
-        path: /Audio/_WF/DecorImport/nebula/hit_wood.ogg
   - type: Destructible
     thresholds:
     - trigger:
@@ -363,10 +339,6 @@
     base: state_
   - type: Damageable
     damageModifierSet: Wood
-  - type: MeleeSound
-    soundGroups:
-      Brute:
-        path: /Audio/_WF/DecorImport/nebula/hit_wood.ogg
   - type: Destructible
     thresholds:
     - trigger:
@@ -1259,10 +1231,6 @@
     base: state_
   - type: Damageable
     damageModifierSet: Metallic
-  - type: MeleeSound
-    soundGroups:
-      Brute:
-        path: /Audio/_WF/DecorImport/nebula/hit_wood.ogg
   - type: Destructible
     thresholds:
     - trigger:
