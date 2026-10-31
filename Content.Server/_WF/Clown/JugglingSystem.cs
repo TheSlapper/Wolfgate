@@ -34,7 +34,7 @@ public sealed partial class JugglingSystem : EntitySystem
 
     private const string JuggleContainerId = "juggle";
     private const string NoGravityMsg = "juggling-no-gravity";
-    private const int MaxJuggledItems = 10;
+    private const int MaxJuggledItems = 3;
 
     public override void Initialize()
     {

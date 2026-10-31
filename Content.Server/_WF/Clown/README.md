@@ -1,6 +1,6 @@
 # Clown
 
-The Clown trait's abilities, ported from Wayfarer (`a7f18f6fa85`). A clown juggles two or more held items from an
+The Clown trait's abilities, ported from Wayfarer (`a7f18f6fa85`). A clown juggles two or three held items from an
 action button, twists a long balloon into a dog, clown, banana, cat or moth from the right-click menu, and speaks in
 Comic Neue. Boxes of long balloons come from the Contractor loadout's Trinkets and the Cuddly Critter vending machine.
 
