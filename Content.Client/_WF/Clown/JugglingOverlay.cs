@@ -27,6 +27,7 @@ public sealed class JugglingOverlay : Overlay
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
 
     private readonly EntityQuery<MetaDataComponent> _metaQuery;
+    private readonly EntityQuery<SpriteComponent> _spriteQuery;
 
     private const float Cycle = 1.4f;
     private const float ItemScale = 0.65f;
@@ -38,13 +39,15 @@ public sealed class JugglingOverlay : Overlay
         _timing = timing;
         _sprites = sprites;
         _metaQuery = entities.GetEntityQuery<MetaDataComponent>();
+        _spriteQuery = entities.GetEntityQuery<SpriteComponent>();
     }
 
     protected override void Draw(in OverlayDrawArgs args)
     {
         var handle = args.WorldHandle;
         var curTime = (float)_timing.CurTime.TotalSeconds;
-        var screenUp = -(args.Viewport.Eye?.Rotation ?? Angle.Zero);
+        var eyeRot = args.Viewport.Eye?.Rotation ?? Angle.Zero;
+        var screenUp = -eyeRot;
 
         var enumerator = _entities.EntityQueryEnumerator<JugglingActiveComponent, TransformComponent>();
         while (enumerator.MoveNext(out _, out var active, out var xform))
@@ -65,14 +68,23 @@ public sealed class JugglingOverlay : Overlay
                 if (!_entities.TryGetEntity(active.JuggledItems[i], out var itemEnt))
                     continue;
 
+                var spinDir = (i % 2 == 0) ? 1.0 : -1.0;
+                var spin = new Angle(elapsed * 1.5 * spinDir + i * 2.3);
+
+                if (_spriteQuery.TryGetComponent(itemEnt.Value, out var sprite))
+                {
+                    var scale = sprite.Scale;
+                    _sprites.SetScale((itemEnt.Value, sprite), scale * ItemScale);
+                    _sprites.RenderSprite((itemEnt.Value, sprite), handle, eyeRot, screenUp + spin, itemPos);
+                    _sprites.SetScale((itemEnt.Value, sprite), scale);
+                    continue;
+                }
+
                 if (!_metaQuery.TryGetComponent(itemEnt.Value, out var meta) || meta.EntityPrototype == null)
                     continue;
 
                 var texture = _sprites.Frame0(meta.EntityPrototype);
                 var halfSize = texture.Size / (2f * EyeManager.PixelsPerMeter) * ItemScale;
-
-                var spinDir = (i % 2 == 0) ? 1.0 : -1.0;
-                var spin = new Angle(elapsed * 1.5 * spinDir + i * 2.3);
 
                 var box = Box2.CenteredAround(itemPos, halfSize * 2);
                 handle.DrawTextureRect(texture, new Box2Rotated(box, spin, itemPos));

@@ -118,19 +118,17 @@ public sealed partial class JugglingSystem : EntitySystem
 
     private void StopJuggling(EntityUid uid)
     {
-        if (!HasComp<JugglingActiveComponent>(uid))
+        if (!RemComp<JugglingActiveComponent>(uid))
             return;
 
-        if (_containers.TryGetContainer(uid, JuggleContainerId, out var container))
-        {
-            foreach (var item in container.ContainedEntities.ToList())
-            {
-                _containers.Remove(item, container);
-                _hands.TryPickupAnyHand(uid, item);
-            }
-        }
+        if (!_containers.TryGetContainer(uid, JuggleContainerId, out var container))
+            return;
 
-        RemComp<JugglingActiveComponent>(uid);
+        foreach (var item in container.ContainedEntities.ToList())
+        {
+            _containers.Remove(item, container);
+            _hands.TryPickupAnyHand(uid, item);
+        }
     }
 
     private bool CanJuggle(EntityUid item)
