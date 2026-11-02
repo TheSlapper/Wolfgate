@@ -2,22 +2,43 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared._WF.Voice;
 
-/// <summary>The effect laid over a voice.</summary>
+/// <summary>A base voice with its own sound and way of speaking, which the sliders then adjust.</summary>
 [Serializable, NetSerializable]
-public enum SpeechVoiceFilter : byte
+public enum SpeechVoiceType : byte
+{
+    Human,
+    Canid,
+    Felid,
+    Avian,
+    Saurian,
+    Rodent,
+    Gelatinous,
+    Sylvan,
+    Arthropod,
+    Lepidopteran,
+    Synthetic,
+}
+
+/// <summary>The tune of the speech: how notes move between letters and across a sentence.</summary>
+[Serializable, NetSerializable]
+public enum SpeechVoiceMelody : byte
+{
+    Natural,
+    Flat,
+    Lively,
+    SingSong,
+    Questioning,
+    Dramatic,
+}
+
+/// <summary>A speaking habit layered over the voice.</summary>
+[Serializable, NetSerializable]
+public enum SpeechVoiceQuirk : byte
 {
     None,
-    Robot,
-    Alien,
-    Insect,
-    Ghost,
-    Dog,
-    Cat,
-    Bird,
-    Lizard,
-    Mouse,
-    Slime,
-    Plant,
+    TrailingMumble,
+    Giggle,
+    Sigh,
 }
 
 /// <summary>A character's voice, picked in the creator and played when they talk.</summary>
@@ -26,20 +47,15 @@ public sealed partial class SpeechVoice : IEquatable<SpeechVoice>
 {
     public const float MinPitch = 0.5f;
     public const float MaxPitch = 2f;
-    public const float MaxPitchVariance = 0.4f;
-    public const float MinSpeed = 0.04f;
-    public const float MaxSpeed = 0.14f;
-    public const float MaxIntonation = 0.5f;
-    public const float MaxVibratoDepth = 0.3f;
-    public const float MinVibratoRate = 1f;
-    public const float MaxVibratoRate = 12f;
-    public const float MaxTremolo = 1f;
+    public const float MinPace = 0.7f;
+    public const float MaxPace = 1.5f;
 
-    private const float DefaultPitch = 1f;
-    private const float DefaultPitchVariance = 0.1f;
-    private const float DefaultSpeed = 0.075f;
-    private const float DefaultIntonation = 0.2f;
-    private const float DefaultVibratoRate = 6f;
+    /// <summary>The top of the multiplier sliders, as a multiple of the voice's own value.</summary>
+    public const float MaxScale = 2f;
+
+    public const float MaxPitchVariance = 4f;
+    public const float MinSize = 0.6f;
+    public const float MaxSize = 1.6f;
 
     /// <summary>How far a spoken voice carries. Matches ChatSystem.VoiceRange.</summary>
     public const float VoiceRange = 10f;
@@ -54,41 +70,41 @@ public sealed partial class SpeechVoice : IEquatable<SpeechVoice>
     [DataField]
     public bool Enabled = true;
 
-    /// <summary>Voice pitch as a multiple of the base pitch. Formants rise with it, more slowly.</summary>
+    /// <summary>The base voice.</summary>
     [DataField]
-    public float Pitch = DefaultPitch;
+    public SpeechVoiceType Type = SpeechVoiceType.Human;
 
-    /// <summary>Random pitch change per word, as a fraction of the pitch.</summary>
+    /// <summary>The tune of the speech. Pitch variance and intonation scale it.</summary>
     [DataField]
-    public float PitchVariance = DefaultPitchVariance;
+    public SpeechVoiceMelody Melody = SpeechVoiceMelody.Natural;
 
-    /// <summary>Seconds per syllable, so lower is faster.</summary>
+    /// <summary>The speaking habit, if any.</summary>
     [DataField]
-    public float Speed = DefaultSpeed;
+    public SpeechVoiceQuirk Quirk = SpeechVoiceQuirk.None;
 
-    /// <summary>How far the pitch rises at the end of a question and falls at the end of a statement.</summary>
+    /// <summary>Pitch as a multiple of the voice's own pitch. Formants rise with it.</summary>
     [DataField]
-    public float Intonation = DefaultIntonation;
+    public float Pitch = 1f;
 
-    /// <summary>Vibrato depth as a fraction of the pitch.</summary>
+    /// <summary>Random pitch change per letter, as a multiple of the voice's own amount.</summary>
     [DataField]
-    public float VibratoDepth;
+    public float PitchVariance = 1f;
 
-    /// <summary>Vibrato cycles per second.</summary>
+    /// <summary>Speaking rate as a multiple of the voice's own, so higher is faster.</summary>
     [DataField]
-    public float VibratoRate = DefaultVibratoRate;
+    public float Pace = 1f;
 
-    /// <summary>How deep the loudness wobbles, 0 to 1.</summary>
+    /// <summary>How far questions rise and statements fall, as a multiple of the voice's own amount.</summary>
     [DataField]
-    public float Tremolo;
+    public float Intonation = 1f;
 
-    /// <summary>The species or effect filter.</summary>
+    /// <summary>Throat size as a multiple of the voice's own. Bigger lowers the resonances, not the pitch.</summary>
     [DataField]
-    public SpeechVoiceFilter Filter = SpeechVoiceFilter.None;
+    public float Size = 1f;
 
-    /// <summary>How strongly the filter shows, 0 to 1.</summary>
+    /// <summary>Breath in the voice as a multiple of the voice's own amount.</summary>
     [DataField]
-    public float FilterStrength = 1f;
+    public float Breathiness = 1f;
 
     /// <summary>A copy of this voice.</summary>
     public SpeechVoice Clone()
@@ -120,28 +136,33 @@ public sealed partial class SpeechVoice : IEquatable<SpeechVoice>
 
         return new SpeechVoice
         {
-            Pitch = Pick(0.7f, 1.5f, 0),
-            PitchVariance = Pick(0.05f, 0.2f, 8),
-            Speed = Pick(0.06f, 0.1f, 16),
-            Intonation = Pick(0.1f, 0.3f, 24),
+            Type = SpeechVoiceType.Human,
+            Pitch = Pick(0.8f, 1.25f, 1),
+            PitchVariance = Pick(0.7f, 1.3f, 8),
+            Pace = Pick(0.85f, 1.15f, 16),
+            Intonation = Pick(0.7f, 1.3f, 24),
         };
     }
 
-    /// <summary>A copy with every value inside its slider's range and an unknown filter turned off.</summary>
+    /// <summary>A copy with every value inside its slider's range and an unknown type set to Human.</summary>
     public SpeechVoice Clamped()
     {
         var voice = Clone();
-        voice.Pitch = Clamp(Pitch, MinPitch, MaxPitch, DefaultPitch);
-        voice.PitchVariance = Clamp(PitchVariance, 0f, MaxPitchVariance, DefaultPitchVariance);
-        voice.Speed = Clamp(Speed, MinSpeed, MaxSpeed, DefaultSpeed);
-        voice.Intonation = Clamp(Intonation, 0f, MaxIntonation, DefaultIntonation);
-        voice.VibratoDepth = Clamp(VibratoDepth, 0f, MaxVibratoDepth, 0f);
-        voice.VibratoRate = Clamp(VibratoRate, MinVibratoRate, MaxVibratoRate, DefaultVibratoRate);
-        voice.Tremolo = Clamp(Tremolo, 0f, MaxTremolo, 0f);
-        voice.FilterStrength = Clamp(FilterStrength, 0f, 1f, 1f);
+        voice.Pitch = Clamp(Pitch, MinPitch, MaxPitch, 1f);
+        voice.PitchVariance = Clamp(PitchVariance, 0f, MaxPitchVariance, 1f);
+        voice.Pace = Clamp(Pace, MinPace, MaxPace, 1f);
+        voice.Intonation = Clamp(Intonation, 0f, MaxScale, 1f);
+        voice.Size = Clamp(Size, MinSize, MaxSize, 1f);
+        voice.Breathiness = Clamp(Breathiness, 0f, MaxScale, 1f);
 
-        if (!Enum.IsDefined(Filter))
-            voice.Filter = SpeechVoiceFilter.None;
+        if (!Enum.IsDefined(Type))
+            voice.Type = SpeechVoiceType.Human;
+
+        if (!Enum.IsDefined(Melody))
+            voice.Melody = SpeechVoiceMelody.Natural;
+
+        if (!Enum.IsDefined(Quirk))
+            voice.Quirk = SpeechVoiceQuirk.None;
 
         return voice;
     }
@@ -159,15 +180,15 @@ public sealed partial class SpeechVoice : IEquatable<SpeechVoice>
             return false;
 
         return Enabled == other.Enabled
-               && Filter == other.Filter
+               && Type == other.Type
+               && Melody == other.Melody
+               && Quirk == other.Quirk
                && MathHelper.CloseTo(Pitch, other.Pitch)
                && MathHelper.CloseTo(PitchVariance, other.PitchVariance)
-               && MathHelper.CloseTo(Speed, other.Speed)
+               && MathHelper.CloseTo(Pace, other.Pace)
                && MathHelper.CloseTo(Intonation, other.Intonation)
-               && MathHelper.CloseTo(VibratoDepth, other.VibratoDepth)
-               && MathHelper.CloseTo(VibratoRate, other.VibratoRate)
-               && MathHelper.CloseTo(Tremolo, other.Tremolo)
-               && MathHelper.CloseTo(FilterStrength, other.FilterStrength);
+               && MathHelper.CloseTo(Size, other.Size)
+               && MathHelper.CloseTo(Breathiness, other.Breathiness);
     }
 
     public override bool Equals(object? obj)
@@ -175,9 +196,9 @@ public sealed partial class SpeechVoice : IEquatable<SpeechVoice>
         return obj is SpeechVoice other && Equals(other);
     }
 
-    /// <summary>Only the filter, since the floats compare with a tolerance.</summary>
+    /// <summary>Only the type, since the floats compare with a tolerance.</summary>
     public override int GetHashCode()
     {
-        return Filter.GetHashCode();
+        return Type.GetHashCode();
     }
 }

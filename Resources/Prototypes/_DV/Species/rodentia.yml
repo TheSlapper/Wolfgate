@@ -1,5 +1,7 @@
 - type: species
   id: Rodentia
+  # WOLFGATE(Voice): its own voice type
+  speechVoice: Rodent
   name: species-name-rodentia
   roundStart: true
   prototype: MobRodentia

@@ -1,5 +1,7 @@
 - type: species
   id: Tajaran
+  # WOLFGATE(Voice): its own voice type
+  speechVoice: Felid
   name: species-name-tajaran
   roundStart: true
   prototype: MobTajaran

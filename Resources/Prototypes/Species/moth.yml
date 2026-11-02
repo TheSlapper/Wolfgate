@@ -1,5 +1,7 @@
 - type: species
   id: Moth
+  # WOLFGATE(Voice): its own voice type
+  speechVoice: Lepidopteran
   name: species-name-moth
   roundStart: true
   prototype: MobMoth

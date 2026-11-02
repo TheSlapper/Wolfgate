@@ -1,5 +1,7 @@
 - type: species
   id: Vox
+  # WOLFGATE(Voice): its own voice type
+  speechVoice: Avian
   name: species-name-vox
   roundStart: true
   prototype: MobVox
