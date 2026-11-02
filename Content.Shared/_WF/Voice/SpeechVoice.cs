@@ -50,6 +50,10 @@ public sealed partial class SpeechVoice : IEquatable<SpeechVoice>
     /// <summary>How far a whisper stays clear, then it is muffled. Matches ChatSystem.WhisperClearRange.</summary>
     public const float WhisperClearRange = 2f;
 
+    /// <summary>Whether the character speaks with this voice. Off, they use the message sound instead.</summary>
+    [DataField]
+    public bool Enabled = true;
+
     /// <summary>Voice pitch as a multiple of the base pitch. Formants rise with it, more slowly.</summary>
     [DataField]
     public float Pitch = DefaultPitch;
@@ -154,7 +158,8 @@ public sealed partial class SpeechVoice : IEquatable<SpeechVoice>
         if (other is null)
             return false;
 
-        return Filter == other.Filter
+        return Enabled == other.Enabled
+               && Filter == other.Filter
                && MathHelper.CloseTo(Pitch, other.Pitch)
                && MathHelper.CloseTo(PitchVariance, other.PitchVariance)
                && MathHelper.CloseTo(Speed, other.Speed)

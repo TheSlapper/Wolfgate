@@ -4,9 +4,12 @@ using Robust.Client.UserInterface.Controls;
 
 namespace Content.Client._WF.Voice;
 
-/// <summary>Creator card with the voice's sliders, filter and a Test button.</summary>
+/// <summary>Creator card with the choice of voice or message sound, and the voice's sliders, filter and a Test button.</summary>
 public sealed partial class SpeechVoicePicker : PanelContainer
 {
+    private const int ModeVoice = 0;
+    private const int ModeSound = 1;
+
     private static readonly SpeechVoiceFilter[] Filters =
     {
         SpeechVoiceFilter.None,
@@ -32,6 +35,9 @@ public sealed partial class SpeechVoicePicker : PanelContainer
     private SpeechVoice _voice = new();
     private readonly List<Action> _refreshers = new();
 
+    private readonly OptionButton _mode;
+    private readonly Label _modeHint;
+    private readonly BoxContainer _settings;
     private readonly OptionButton _filter;
     private readonly LineEdit _testText;
 
@@ -47,21 +53,44 @@ public sealed partial class SpeechVoicePicker : PanelContainer
         };
         AddChild(box);
 
-        AddSlider(box, "speech-voice-pitch", SpeechVoice.MinPitch, SpeechVoice.MaxPitch,
+        var modeRow = NewRow("speech-voice-mode");
+        _mode = new OptionButton { MinWidth = 220 };
+        _mode.AddItem(Loc.GetString("speech-voice-mode-voice"), ModeVoice);
+        _mode.AddItem(Loc.GetString("speech-voice-mode-sound"), ModeSound);
+        _mode.OnItemSelected += args =>
+        {
+            _mode.SelectId(args.Id);
+            Change(v => v.Enabled = args.Id == ModeVoice);
+            UpdateMode();
+        };
+        modeRow.AddChild(_mode);
+        box.AddChild(modeRow);
+
+        _modeHint = new Label { Text = Loc.GetString("speech-voice-mode-sound-hint") };
+        box.AddChild(_modeHint);
+
+        _settings = new BoxContainer
+        {
+            Orientation = BoxContainer.LayoutOrientation.Vertical,
+            SeparationOverride = 6,
+        };
+        box.AddChild(_settings);
+
+        AddSlider(_settings, "speech-voice-pitch", SpeechVoice.MinPitch, SpeechVoice.MaxPitch,
             v => v.Pitch, (v, x) => v.Pitch = x);
-        AddSlider(box, "speech-voice-pitch-variance", 0f, SpeechVoice.MaxPitchVariance,
+        AddSlider(_settings, "speech-voice-pitch-variance", 0f, SpeechVoice.MaxPitchVariance,
             v => v.PitchVariance, (v, x) => v.PitchVariance = x);
         // Speed is seconds per syllable, so the slider runs backwards to put faster on the right.
-        AddSlider(box, "speech-voice-speed", SpeechVoice.MinSpeed, SpeechVoice.MaxSpeed,
+        AddSlider(_settings, "speech-voice-speed", SpeechVoice.MinSpeed, SpeechVoice.MaxSpeed,
             v => SpeechVoice.MinSpeed + SpeechVoice.MaxSpeed - v.Speed,
             (v, x) => v.Speed = SpeechVoice.MinSpeed + SpeechVoice.MaxSpeed - x);
-        AddSlider(box, "speech-voice-intonation", 0f, SpeechVoice.MaxIntonation,
+        AddSlider(_settings, "speech-voice-intonation", 0f, SpeechVoice.MaxIntonation,
             v => v.Intonation, (v, x) => v.Intonation = x);
-        AddSlider(box, "speech-voice-vibrato-depth", 0f, SpeechVoice.MaxVibratoDepth,
+        AddSlider(_settings, "speech-voice-vibrato-depth", 0f, SpeechVoice.MaxVibratoDepth,
             v => v.VibratoDepth, (v, x) => v.VibratoDepth = x);
-        AddSlider(box, "speech-voice-vibrato-rate", SpeechVoice.MinVibratoRate, SpeechVoice.MaxVibratoRate,
+        AddSlider(_settings, "speech-voice-vibrato-rate", SpeechVoice.MinVibratoRate, SpeechVoice.MaxVibratoRate,
             v => v.VibratoRate, (v, x) => v.VibratoRate = x);
-        AddSlider(box, "speech-voice-tremolo", 0f, SpeechVoice.MaxTremolo,
+        AddSlider(_settings, "speech-voice-tremolo", 0f, SpeechVoice.MaxTremolo,
             v => v.Tremolo, (v, x) => v.Tremolo = x);
 
         var filterRow = NewRow("speech-voice-filter");
@@ -77,9 +106,9 @@ public sealed partial class SpeechVoicePicker : PanelContainer
             Change(v => v.Filter = (SpeechVoiceFilter) args.Id);
         };
         filterRow.AddChild(_filter);
-        box.AddChild(filterRow);
+        _settings.AddChild(filterRow);
 
-        AddSlider(box, "speech-voice-filter-strength", 0f, 1f,
+        AddSlider(_settings, "speech-voice-filter-strength", 0f, 1f,
             v => v.FilterStrength, (v, x) => v.FilterStrength = x);
 
         var testRow = new BoxContainer
@@ -99,7 +128,7 @@ public sealed partial class SpeechVoicePicker : PanelContainer
             : _testText.Text);
         testRow.AddChild(_testText);
         testRow.AddChild(test);
-        box.AddChild(testRow);
+        _settings.AddChild(testRow);
     }
 
     /// <summary>Shows a profile's voice without raising <see cref="OnVoiceChanged"/>.</summary>
@@ -107,12 +136,21 @@ public sealed partial class SpeechVoicePicker : PanelContainer
     {
         _voice = voice;
 
+        _mode.SelectId(voice.Enabled ? ModeVoice : ModeSound);
+        UpdateMode();
         _filter.SelectId((int) voice.Filter);
 
         foreach (var refresh in _refreshers)
         {
             refresh();
         }
+    }
+
+    /// <summary>A character on the message sound has no use for the voice's settings.</summary>
+    private void UpdateMode()
+    {
+        _settings.Visible = _voice.Enabled;
+        _modeHint.Visible = !_voice.Enabled;
     }
 
     private void Change(Action<SpeechVoice> change)

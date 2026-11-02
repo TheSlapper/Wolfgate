@@ -57,6 +57,9 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
     private bool _enabled;
     private float _volume = 1f;
 
+    /// <summary>The message sound last played in place of a voice.</summary>
+    public ProtoId<SpeechSoundsPrototype>? LastMessageSound { get; private set; }
+
     /// <summary>Lines rendering or playing right now.</summary>
     public int ActiveLines => _rendering.Count + _playing.Count;
 
@@ -137,7 +140,7 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
 
         if (!_enabled)
         {
-            PlayMessageSound(source, ev.Message);
+            PlayMessageSound(source, ev.Message, ev.Sounds);
             return;
         }
 
@@ -146,10 +149,10 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
     }
 
     /// <summary>The speaker's chatter sound in place of the voice, picked as upstream does.</summary>
-    private void PlayMessageSound(EntityUid source, string message)
+    private void PlayMessageSound(EntityUid source, string message, ProtoId<SpeechSoundsPrototype>? id)
     {
-        if (!TryComp<SpeechComponent>(source, out var speech)
-            || speech.SpeechSounds is not { } id
+        if (message.Length == 0
+            || !TryComp<SpeechComponent>(source, out var speech)
             || !_prototype.TryIndex(id, out var sounds))
         {
             return;
@@ -161,6 +164,7 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
             return;
 
         _lastChatter[source] = now;
+        LastMessageSound = id;
 
         var upper = 0;
         foreach (var c in message)

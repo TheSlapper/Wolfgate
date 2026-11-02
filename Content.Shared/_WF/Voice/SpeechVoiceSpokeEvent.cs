@@ -1,3 +1,5 @@
+using Content.Shared.Speech;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared._WF.Voice;
@@ -18,11 +20,19 @@ public sealed class SpeechVoiceSpokeEvent : EntityEventArgs
     /// <summary>A voice that replaces the speaker's own, such as the one a voice mask gives.</summary>
     public readonly SpeechVoice? Voice;
 
-    public SpeechVoiceSpokeEvent(NetEntity source, string message, bool whisper, SpeechVoice? voice)
+    /// <summary>The speaker's message sound, for a listener with voices off. The client doesn't know it otherwise.</summary>
+    public readonly ProtoId<SpeechSoundsPrototype>? Sounds;
+
+    public SpeechVoiceSpokeEvent(NetEntity source,
+        string message,
+        bool whisper,
+        SpeechVoice? voice,
+        ProtoId<SpeechSoundsPrototype>? sounds = null)
     {
         Source = source;
         Message = message;
         Whisper = whisper;
         Voice = voice;
+        Sounds = sounds;
     }
 }

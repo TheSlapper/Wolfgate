@@ -12,8 +12,10 @@ using Content.Shared.Mind;
 using Content.Shared.Players;
 using Content.Shared.Power.EntitySystems;
 using Content.Shared.Radio;
+using Content.Shared.Speech;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
+using Robust.Shared.Prototypes;
 
 namespace Content.IntegrationTests.Tests._WF.Voice;
 
@@ -21,6 +23,8 @@ namespace Content.IntegrationTests.Tests._WF.Voice;
 [TestFixture]
 public sealed class SpeechVoiceLinesTest
 {
+    private static readonly ProtoId<SpeechSoundsPrototype> PickedSound = "WFMoth";
+
     private const string LongLine = "this line runs long enough to keep playing for the whole of the test";
 
     [TestPrototypes]
@@ -170,6 +174,80 @@ public sealed class SpeechVoiceLinesTest
         });
 
         await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A character on the message sound sends no voice, spoken or by radio.</summary>
+    [Test]
+    public async Task CharacterOnMessageSoundSendsNoVoice()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var chat = entMan.System<ChatSystem>();
+        var voices = pair.Client.EntMan.System<SpeechVoiceSystem>();
+        var map = await pair.CreateTestMap();
+        var talker = EntityUid.Invalid;
+        var on = EntityUid.Invalid;
+
+        await SpawnListener(pair, map.GridCoords);
+        await server.WaitPost(() =>
+        {
+            talker = SpawnTalker(pair, map.GridCoords.Offset(new Vector2(1f, 0f)));
+            on = entMan.SpawnEntity("WFTestVoiceSpeakerOn", map.GridCoords);
+            entMan.GetComponent<SpeechVoiceComponent>(talker).Voice.Enabled = false;
+        });
+        await pair.RunTicksSync(5);
+        var start = voices.ActiveLines;
+
+        await server.WaitPost(() =>
+        {
+            chat.TrySendInGameICMessage(talker, LongLine, InGameICChatType.Speak, false);
+            Receive(pair, on, talker, talker, "by radio" + LongLine);
+        });
+        await pair.RunTicksSync(5);
+        Assert.That(voices.ActiveLines, Is.EqualTo(start));
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A listener with voices off hears the message sound the speaker picked, which only the server knows.</summary>
+    [Test]
+    public async Task ListenerWithVoicesOffHearsPickedMessageSound()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var client = pair.Client;
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var voices = client.EntMan.System<SpeechVoiceSystem>();
+        var map = await pair.CreateTestMap();
+        var talker = EntityUid.Invalid;
+
+        await SpawnListener(pair, map.GridCoords);
+        await server.WaitPost(() =>
+        {
+            talker = SpawnTalker(pair, map.GridCoords.Offset(new Vector2(1f, 0f)));
+            entMan.GetComponent<SpeechComponent>(talker).SpeechSounds = PickedSound;
+        });
+        await pair.RunTicksSync(5);
+        await client.WaitPost(() => client.CfgMan.SetCVar(SpeechVoiceCVars.Enabled, false));
+        var start = voices.ActiveLines;
+
+        await server.WaitPost(() => entMan.System<ChatSystem>().TrySendInGameICMessage(talker, LongLine, InGameICChatType.Speak, false));
+        await pair.RunTicksSync(5);
+        Assert.That(voices.ActiveLines, Is.EqualTo(start), "no voice plays");
+        Assert.That(voices.LastMessageSound, Is.EqualTo(PickedSound), "the speaker's own pick plays, not the species' default");
+
+        await client.WaitPost(() => client.CfgMan.SetCVar(SpeechVoiceCVars.Enabled, SpeechVoiceCVars.Enabled.DefaultValue));
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>The choice survives the database, and rows saved before it existed keep the voice.</summary>
+    [Test]
+    public void ChoiceSurvivesStorage()
+    {
+        var stored = Content.Server._WF.Voice.SpeechVoiceJson.ToStored(new SpeechVoice { Enabled = false });
+        Assert.That(Content.Server._WF.Voice.SpeechVoiceJson.FromStored(stored).Enabled, Is.False);
+        Assert.That(Content.Server._WF.Voice.SpeechVoiceJson.FromStored(stored.Replace("\"Enabled\":false,", string.Empty)).Enabled, Is.True);
     }
 
     private static async Task<EntityUid> SpawnListener(TestPair pair, EntityCoordinates coords)

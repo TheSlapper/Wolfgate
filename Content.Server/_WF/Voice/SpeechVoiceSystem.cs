@@ -13,6 +13,7 @@ using Content.Shared.Ghost;
 using Content.Shared.Power.EntitySystems;
 using Content.Shared.Preferences;
 using Content.Shared.Radio.Components;
+using Content.Shared.Speech;
 using Robust.Server.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Player;
@@ -103,7 +104,7 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
 
     private void OnSpoke(Entity<SpeechVoiceComponent> ent, ref EntitySpokeEvent args)
     {
-        if (string.IsNullOrWhiteSpace(args.Message))
+        if (!ent.Comp.Voice.Enabled || string.IsNullOrWhiteSpace(args.Message))
             return;
 
         var line = LineFor((ent, FormattedMessage.EscapeText(args.Message)));
@@ -141,15 +142,16 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
         }
 
         var source = GetNetEntity(ent);
+        var sounds = CompOrNull<SpeechComponent>(ent)?.SpeechSounds;
         foreach (var (text, filter) in _groups)
         {
-            RaiseNetworkEvent(new SpeechVoiceSpokeEvent(source, text, args.IsWhisper, voice), filter);
+            RaiseNetworkEvent(new SpeechVoiceSpokeEvent(source, text, args.IsWhisper, voice, sounds), filter);
         }
     }
 
     private void OnRadioReceive(Entity<ActiveRadioComponent> ent, ref RadioReceiveEvent args)
     {
-        if (!HasComp<SpeechVoiceComponent>(args.MessageSource))
+        if (!TryComp<SpeechVoiceComponent>(args.MessageSource, out var talker) || !talker.Voice.Enabled)
             return;
 
         // The same loudspeakers RadioDeviceSystem keeps quiet.

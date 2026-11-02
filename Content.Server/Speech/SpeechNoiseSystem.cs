@@ -64,8 +64,8 @@ namespace Content.Server.Speech
             if (component.SpeechSounds == null)
                 return;
 
-            // WOLFGATE(Voice): the voice plays instead
-            if (HasComp<SpeechVoiceComponent>(uid))
+            // WOLFGATE(Voice): the voice plays instead, unless the character chose the message sound
+            if (TryComp<SpeechVoiceComponent>(uid, out var voice) && voice.Voice.Enabled)
                 return;
 
             var currentTime = _gameTiming.CurTime;

@@ -4,8 +4,11 @@ Character voices. Player characters speak their chat aloud as a babble generated
 
 Players set the voice on the character creator's Voice tab: pitch, pitch variance, speed, intonation, vibrato depth
 and speed, tremolo, filter and filter strength. Test plays a typed line. Filters are Dog, Cat, Bird, Lizard, Mouse,
-Slime, Plant, Robot, Alien, Insect and Ghost. Options, Audio, Play character voices turns other players' voices off
-and plays their species chatter instead.
+Slime, Plant, Robot, Alien, Insect and Ghost.
+
+The old message sounds stay available on both ends. Speak with, at the top of the Voice tab, puts one character on
+their message sound (the Voice card's pick, or their species' own), so nobody hears a voice from them. Options, Audio,
+Play character voices turns voices off for one listener, who hears each speaker's message sound instead.
 
 Range is 10 tiles, 5 for a whisper, muffled past 2. Radio lines play quieter with a radio filter. A voice mask uses
 the named character's voice. A listener who doesn't know the language hears the scrambled text, and a deaf one hears
@@ -70,7 +73,7 @@ most 8 at once, 4 of them radio and 2 from one source) and `SpeechVoiceSynth` (r
 - [`Content.Client/Options/UI/Tabs/AudioTab.xaml.cs`](../../../Content.Client/Options/UI/Tabs/AudioTab.xaml.cs)
 - [`Content.Server.Database/Model.cs`](../../../Content.Server.Database/Model.cs): the voice settings as JSON, null in rows saved before voices existed.
 - [`Content.Server/Database/ServerDbBase.cs`](../../Database/ServerDbBase.cs)
-- [`Content.Server/Speech/SpeechNoiseSystem.cs`](../../Speech/SpeechNoiseSystem.cs): the voice plays instead
+- [`Content.Server/Speech/SpeechNoiseSystem.cs`](../../Speech/SpeechNoiseSystem.cs): the voice plays instead, unless the character chose the message sound
 - [`Content.Shared/Preferences/HumanoidCharacterProfile.cs`](../../../Content.Shared/Preferences/HumanoidCharacterProfile.cs): out-of-range sliders come back inside their range; crafted network data can deliver null
 
 <!-- WOLFGATE-GENERATED END -->

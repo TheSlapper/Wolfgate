@@ -1,4 +1,8 @@
 speech-voice-tab = Voice
+speech-voice-mode = Speak with
+speech-voice-mode-voice = Character voice
+speech-voice-mode-sound = Message sound
+speech-voice-mode-sound-hint = You use the message sound from the Voice card on the Appearance tab.
 speech-voice-pitch = Pitch
 speech-voice-pitch-variance = Pitch variance
 speech-voice-speed = Speed
@@ -24,5 +28,5 @@ speech-voice-filter-alien = Alien
 speech-voice-filter-insect = Insect
 speech-voice-filter-ghost = Ghost
 
-ui-options-speech-voices = Play character voices
+ui-options-speech-voices = Play character voices (off: everyone uses message sounds)
 ui-options-speech-voices-volume = Character voices
