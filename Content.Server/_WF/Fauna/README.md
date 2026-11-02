@@ -1,0 +1,1008 @@
+# Fauna
+
+Creatures for the alien planets, converted from SS13 forks and ported from SS14 forks, with their abilities and sounds.
+Shared behaviour lives here: `FaunaFleeCompound` and `FaunaCorpseEaterCompound` (HTN), `FaunaGrowth`, `FaunaEnrage`, `FaunaGourmonger`, `FaunaAmbush`, `FaunaAggroCry`, and the abilities that
+`FaunaAbilities` fires at the NPC's target (`FaunaCharge`, `FaunaSlam`, `FaunaShout`, `FaunaRegenerate`, `FaunaDodge`, `FaunaFuse`).
+On the `Maps/_WF/Fauna/fauna_demo.yml` demo map, `FaunaDisplaySpawner` markers stand each mob still, and a
+`FaunaDisplayButton` wakes them all or puts them back.
+On `Maps/_WF/Fauna/fauna_arena.yml`, `FaunaArenaButton` buttons pick one mob for the arena, start the fight and
+restock the weapon, armour and medical tables.
+
+## Mob standard
+
+Mobs match the fauna Wolfgate already spawns (planet, cavern and expedition mobs):
+
+- Parent on `SimpleSpaceMobBase` (or `SimpleMobBase` for air breathers), not `BaseMobAsteroid`, so they bleed, burn,
+  give Wolfmed bite wounds, slow when hurt, rot and have a price. Robots leave out blood and the bite.
+- Damage through `MobDamageable`, not a fork's own damageable base.
+- 30-120 HP and 5-15 damage a hit. Big beasts up to about 300 HP, like `MobGoliath`. Mobs the source treats as
+  bosses keep the source's HP.
+- Factions `SimpleHostile`, `SimpleNeutral`, `Passive` or `Xeno`. Upstream HTN roots unless the mob has its own AI.
+- No `GhostRole` on wild fauna. It stops Monolith's mob cleanup.
+- Before a mob goes into expedition or salvage tables it needs `NFMobRestrictions` and the `NFMobFactionlessBase`
+  traits.
+
+## Left out of the DS13 necromorphs
+
+- The brute charge's speed build-up. Its frontal armour stops bullets and blades, not lasers.
+- Leaper gallop (its leap closes the same gap), table leap and tail sprite, and the twitcher's dodge shake.
+- Infector abilities (never coded in DS13), and the ubermorph's server-wide arrival and Sense tracking.
+
+## Left out of the OnyxBay, Voidcrew, /vg/, NuclearPhase and TauCeti mobs
+
+- Goliath tentacles drilling rock and needing asteroid floor.
+- The beholder's X-ray eye and its mindflayer, declone, dart, flash, flare and animate bolts.
+- The oceanborn hunters' bullet armour that grows with each hit.
+- Wendigo evolution, voice mimicry and fear of campfires. Its throw gets no longer when enraged.
+- The spider queen losing legs. Spiderlings leave a corpse instead of a remains decal.
+- The meatland creatures' stray respawn.
+
+## Left out of the Sojourn fauna
+
+- Chimera voice commands and breeding, and the hell diver's hunger meter and taming. The mukwah roar's own stats.
+- Roaches: taming, riding, eggs and rank fights. Spiders: perk scaling, genetics, walk animations, venom cut by armour
+  and the cave spider cocooning items.
+- Ameridian golems: crystal growth, spires and fields, ablative armour, the golem shake and shards embedding.
+  Termites: drill waves, termite meat and the smertnik's shot warning. The queen's burrows are ours.
+- Psi monsters: deep-maint binding, chaos level attacks, stat cuts (now MindbreakerToxin and Toxin), cult loot,
+  walking over tables, the flesh tower's shot warning and the unused second sprites. Light ignores brightness and
+  colour. The tail grapple's reel-in and Daskvey's unfinished Rune Chat.
+
+## Left out of the Shiptest fauna
+
+- The goliaths' grazing on ash flora and their tentacles drilling rock.
+- The desert basilisk's shell hit messages. The forgotten watcher eats any ore, not only diamonds.
+- Wolves don't avoid lava.
+- Antlions use the ADT antlion's sprite, which is the same art.
+- Hierophant: beacon, rock drilling, its purple flash, rage scaling, and the swarm and spam attacks. Its arena is a
+  plain wall ring that blocks it too. Wendigo: the exit portal, polar bear form and 8 hits a second. The fugu doesn't
+  flee between puffs. Kudzu doesn't grow flower buds. The mi-go is the StarLight one.
+
+## Left out of the Polaris Sif fauna
+
+- The frostfly's and moth's energy pool (a cooldown takes its place), vent crawling, hiding and the step aside
+  after each of their own shots. The chill from a freezing glob slows the target
+  but doesn't slow its attacks. Spore clouds disorient with a drunken wobble instead of blurred sight.
+- The berserk savik heals when its rage starts instead of gaining extra health, and isn't easier to hit.
+- The hooligan crab doesn't return home after a fight or shake the screen as it walks.
+- The kururaks' instinct score, pack leadership, rally call, evasion and sleeping sprite. The leader's flash doesn't
+  burn heads.
+- The grafadreka's sap reserve, fruit eating, sitting, harness, salve, dens and scarring. Its glow stays at full
+  brightness. Its spit slows instead of confusing, the toxic bite always applies and it heals any nearby grafadreka,
+  not players. Hatchlings don't hide.
+- Giant spider venoms are swapped for Wolfgate reagents (spidertoxin to mechanotoxin, serotrotium to happiness,
+  psilocybin to space drugs, phoron to plasma, stimm to stimulants). The tunneler erupts beside its prey instead of
+  tunnelling a line that stuns everything on the way, and doesn't get stuck when it hits a wall. The webslinger
+  throws its bola at random, not only at prey with free legs. Leaps don't pass over tables. Spiders don't nest, lay
+  eggs or spin webs as they walk, since the nurse that does isn't ported.
+- The Virgo broodmother uses the VG spider queen sprite (the same art). It births one broodling every 6 seconds up
+  to 8, in or out of a fight, and throws each one at its target instead of two at a time. Its broodlings are only
+  the five spider kinds ported here, and they leave a corpse. Cyanide became amatoxin.
+- Sakimm coins, hats and the thieving variant, and the blob spore's overmind and corpse infesting. Cryotoxin,
+  irritant and pyrotoxin venoms became frost oil, capsaicin oil and phlogiston.
+- The space worm's body slides along its path instead of stepping tile by tile, so its corner sprites go unused. It
+  doesn't swallow items as it moves or pass its stomach down the chain.
+
+## Left out of the Virgo and CHOMP mobs
+
+- The lunarmoth breaking glass, lights and firedoors. Shockchem became licoxide. The larva drains cables instead of
+  crawling into machines and vents.
+- The snowbull's health sprites. Its charge damages any structure alike instead of shattering windows, flipping
+  tables or opening closets. The startreader's pummeler and mech-tool loot.
+- Mimics keep one fixed disguise (no morph), floor mimics and mimic crates that open normally are out.
+- The ysbryd is faint to everyone, not invisible to all but one victim, and the blaidd doesn't freeze when watched.
+  Construct spells (beams, banishment, fortify, slam), deep wounds and the cardinal's stun immunity, bullet
+  fraction and shrapnel are out.
+- Tyr ants: the bronze haste aura, delayed bursts, nest building, the queen's idle laying and the fossiltank rex are
+  out. The solar ray's armour piercing works on all armour, not only energy armour.
+- Riding and vore on the giant rat, unicorn and crypt drake.
+- The large dragon's vore, riding, taming, style verbs and resting heal, moving during windups and its pellets
+  piercing. It always has curved horns.
+
+<!-- WOLFGATE-GENERATED START -->
+<!-- Generated by python Tools/_WF/Ci/modules.py --write. Don't edit by hand. -->
+
+## Files
+
+### Server
+
+- [`Content.Server/_WF/Fauna/FaunaAbilitiesComponent.cs`](FaunaAbilitiesComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaAbilitiesSystem.cs`](FaunaAbilitiesSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaAggroCryComponent.cs`](FaunaAggroCryComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaAggroCrySystem.cs`](FaunaAggroCrySystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaAirTemperatureComponent.cs`](FaunaAirTemperatureComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaAirTemperatureSystem.cs`](FaunaAirTemperatureSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaAmbushComponent.cs`](FaunaAmbushComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaAmbushSystem.cs`](FaunaAmbushSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaArenaButtonComponent.cs`](FaunaArenaButtonComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaArenaSpawnerComponent.cs`](FaunaArenaSpawnerComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaArenaSystem.cs`](FaunaArenaSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaAteEvent.cs`](FaunaAteEvent.cs)
+- [`Content.Server/_WF/Fauna/FaunaBlastCasterComponent.cs`](FaunaBlastCasterComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaBlastPatternComponent.cs`](FaunaBlastPatternComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaBlastSystem.cs`](FaunaBlastSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaBlastTileComponent.cs`](FaunaBlastTileComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaBlinkComponent.cs`](FaunaBlinkComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaBlinkSystem.cs`](FaunaBlinkSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaBreakableShellComponent.cs`](FaunaBreakableShellComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaBreakableShellSystem.cs`](FaunaBreakableShellSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaBurrowComponent.cs`](FaunaBurrowComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaBurrowSystem.cs`](FaunaBurrowSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaCanEatCon.cs`](FaunaCanEatCon.cs)
+- [`Content.Server/_WF/Fauna/FaunaChargeComponent.cs`](FaunaChargeComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaChargeSystem.cs`](FaunaChargeSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaChaserComponent.cs`](FaunaChaserComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaChaserSystem.cs`](FaunaChaserSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaCloudComponent.cs`](FaunaCloudComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaCloudSystem.cs`](FaunaCloudSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaCorpseEaterComponent.cs`](FaunaCorpseEaterComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaCorpseEaterSystem.cs`](FaunaCorpseEaterSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaDarknessComponent.cs`](FaunaDarknessComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaDarknessSystem.cs`](FaunaDarknessSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaDeathSpawnComponent.cs`](FaunaDeathSpawnComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaDeathSpawnSystem.cs`](FaunaDeathSpawnSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaDigAmbushComponent.cs`](FaunaDigAmbushComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaDigAmbushSystem.cs`](FaunaDigAmbushSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaDisplayButtonComponent.cs`](FaunaDisplayButtonComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaDisplaySpawnerComponent.cs`](FaunaDisplaySpawnerComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaDisplaySystem.cs`](FaunaDisplaySystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaDodgeComponent.cs`](FaunaDodgeComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaDodgeSystem.cs`](FaunaDodgeSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaEatCorpseOperator.cs`](FaunaEatCorpseOperator.cs)
+- [`Content.Server/_WF/Fauna/FaunaEmoteOperator.cs`](FaunaEmoteOperator.cs)
+- [`Content.Server/_WF/Fauna/FaunaEngulfComponent.cs`](FaunaEngulfComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaEngulfSystem.cs`](FaunaEngulfSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaEnrageComponent.cs`](FaunaEnrageComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaEnrageSystem.cs`](FaunaEnrageSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaFactionPassComponent.cs`](FaunaFactionPassComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaFactionPassSystem.cs`](FaunaFactionPassSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaFeedComponent.cs`](FaunaFeedComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaFeedSystem.cs`](FaunaFeedSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaFireTrailComponent.cs`](FaunaFireTrailComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaFireTrailSystem.cs`](FaunaFireTrailSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaFuseComponent.cs`](FaunaFuseComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaFuseSystem.cs`](FaunaFuseSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaGourmongerComponent.cs`](FaunaGourmongerComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaGourmongerSystem.cs`](FaunaGourmongerSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaGrabRetortComponent.cs`](FaunaGrabRetortComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaGrabRetortSystem.cs`](FaunaGrabRetortSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaGroupRetaliateComponent.cs`](FaunaGroupRetaliateComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaGroupRetaliateSystem.cs`](FaunaGroupRetaliateSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaGrowthComponent.cs`](FaunaGrowthComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaGrowthSystem.cs`](FaunaGrowthSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaGunOperator.cs`](FaunaGunOperator.cs)
+- [`Content.Server/_WF/Fauna/FaunaHealthBelowPrecondition.cs`](FaunaHealthBelowPrecondition.cs)
+- [`Content.Server/_WF/Fauna/FaunaHelperSystem.cs`](FaunaHelperSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaHitAndRunComponent.cs`](FaunaHitAndRunComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaHitAndRunSystem.cs`](FaunaHitAndRunSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaHungerDrainComponent.cs`](FaunaHungerDrainComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaHungerDrainSystem.cs`](FaunaHungerDrainSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaHurtComponent.cs`](FaunaHurtComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaHurtSystem.cs`](FaunaHurtSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaIdleSpeechComponent.cs`](FaunaIdleSpeechComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaIdleSpeechSystem.cs`](FaunaIdleSpeechSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaInflateComponent.cs`](FaunaInflateComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaInflatedPrecondition.cs`](FaunaInflatedPrecondition.cs)
+- [`Content.Server/_WF/Fauna/FaunaInflateSystem.cs`](FaunaInflateSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaLeashComponent.cs`](FaunaLeashComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaLeashSystem.cs`](FaunaLeashSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaLeechComponent.cs`](FaunaLeechComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaLeechSystem.cs`](FaunaLeechSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaLineAttackComponent.cs`](FaunaLineAttackComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaLineAttackSystem.cs`](FaunaLineAttackSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaMeleeEffectComponent.cs`](FaunaMeleeEffectComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaMeleeEffectSystem.cs`](FaunaMeleeEffectSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaMeleeProcComponent.cs`](FaunaMeleeProcComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaMeleeProcSystem.cs`](FaunaMeleeProcSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaPackHealComponent.cs`](FaunaPackHealComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaPackHealSystem.cs`](FaunaPackHealSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaPhaseSummonComponent.cs`](FaunaPhaseSummonComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaPhaseSummonSystem.cs`](FaunaPhaseSummonSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaPowerDrainComponent.cs`](FaunaPowerDrainComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaPowerDrainSystem.cs`](FaunaPowerDrainSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaProjectileBurstComponent.cs`](FaunaProjectileBurstComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaProjectileBurstSystem.cs`](FaunaProjectileBurstSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaProjectileEffectComponent.cs`](FaunaProjectileEffectComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaProjectileEffectSystem.cs`](FaunaProjectileEffectSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaRandomAmmoComponent.cs`](FaunaRandomAmmoComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaRandomAmmoSystem.cs`](FaunaRandomAmmoSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaRandomScaleComponent.cs`](FaunaRandomScaleComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaRandomScaleSystem.cs`](FaunaRandomScaleSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaRandomTintSystem.cs`](FaunaRandomTintSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaRegenerateComponent.cs`](FaunaRegenerateComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaRegenerateSystem.cs`](FaunaRegenerateSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaRockHideComponent.cs`](FaunaRockHideComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaRockHideSystem.cs`](FaunaRockHideSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaShellComponent.cs`](FaunaShellComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaShellSystem.cs`](FaunaShellSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaShoutComponent.cs`](FaunaShoutComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaShoutSystem.cs`](FaunaShoutSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaSlamComponent.cs`](FaunaSlamComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaSlamSystem.cs`](FaunaSlamSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaSnareReleaseSystem.cs`](FaunaSnareReleaseSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaStepSlamComponent.cs`](FaunaStepSlamComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaStepSlamSystem.cs`](FaunaStepSlamSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaSwarmBonusComponent.cs`](FaunaSwarmBonusComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaSwarmBonusSystem.cs`](FaunaSwarmBonusSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaTentacleCooldownComponent.cs`](FaunaTentacleCooldownComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaTentacleCooldownSystem.cs`](FaunaTentacleCooldownSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaTentacleFieldComponent.cs`](FaunaTentacleFieldComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaTentacleFieldSystem.cs`](FaunaTentacleFieldSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaThrowChanceComponent.cs`](FaunaThrowChanceComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaThrowChanceSystem.cs`](FaunaThrowChanceSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaVineComponent.cs`](FaunaVineComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaVineSystem.cs`](FaunaVineSystem.cs)
+- [`Content.Server/_WF/Fauna/FaunaWormComponent.cs`](FaunaWormComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaWormSegmentComponent.cs`](FaunaWormSegmentComponent.cs)
+- [`Content.Server/_WF/Fauna/FaunaWormSystem.cs`](FaunaWormSystem.cs)
+- [`Content.Server/_WF/Fauna/PickFleePointOperator.cs`](PickFleePointOperator.cs)
+
+### Shared
+
+- [`Content.Shared/_WF/Fauna/FaunaActionEvents.cs`](../../../Content.Shared/_WF/Fauna/FaunaActionEvents.cs)
+- [`Content.Shared/_WF/Fauna/FaunaBlinkFadeEvent.cs`](../../../Content.Shared/_WF/Fauna/FaunaBlinkFadeEvent.cs)
+- [`Content.Shared/_WF/Fauna/FaunaBurrowCloseDoAfterEvent.cs`](../../../Content.Shared/_WF/Fauna/FaunaBurrowCloseDoAfterEvent.cs)
+- [`Content.Shared/_WF/Fauna/FaunaChargeLookComponent.cs`](../../../Content.Shared/_WF/Fauna/FaunaChargeLookComponent.cs)
+- [`Content.Shared/_WF/Fauna/FaunaEatCorpseDoAfterEvent.cs`](../../../Content.Shared/_WF/Fauna/FaunaEatCorpseDoAfterEvent.cs)
+- [`Content.Shared/_WF/Fauna/FaunaRandomTintComponent.cs`](../../../Content.Shared/_WF/Fauna/FaunaRandomTintComponent.cs)
+- [`Content.Shared/_WF/Fauna/FaunaVisuals.cs`](../../../Content.Shared/_WF/Fauna/FaunaVisuals.cs)
+- [`Content.Shared/_WF/Fauna/FaunaWormVisualsComponent.cs`](../../../Content.Shared/_WF/Fauna/FaunaWormVisualsComponent.cs)
+
+### Client
+
+- [`Content.Client/_WF/Fauna/FaunaChargeLeanComponent.cs`](../../../Content.Client/_WF/Fauna/FaunaChargeLeanComponent.cs)
+- [`Content.Client/_WF/Fauna/FaunaChargeLookSystem.cs`](../../../Content.Client/_WF/Fauna/FaunaChargeLookSystem.cs)
+- [`Content.Client/_WF/Fauna/FaunaRandomTintSystem.cs`](../../../Content.Client/_WF/Fauna/FaunaRandomTintSystem.cs)
+- [`Content.Client/_WF/Fauna/FaunaWormVisualizerSystem.cs`](../../../Content.Client/_WF/Fauna/FaunaWormVisualizerSystem.cs)
+
+### Prototypes
+
+- [`Resources/Prototypes/_WF/Fauna/ai_factions.yml`](../../../Resources/Prototypes/_WF/Fauna/ai_factions.yml)
+- [`Resources/Prototypes/_WF/Fauna/damage_modifier_sets.yml`](../../../Resources/Prototypes/_WF/Fauna/damage_modifier_sets.yml)
+- [`Resources/Prototypes/_WF/Fauna/Entities/Markers/display.yml`](../../../Resources/Prototypes/_WF/Fauna/Entities/Markers/display.yml)
+- [`Resources/Prototypes/_WF/Fauna/Entities/Mobs/base.yml`](../../../Resources/Prototypes/_WF/Fauna/Entities/Mobs/base.yml)
+- [`Resources/Prototypes/_WF/Fauna/Entities/Mobs/chomp.yml`](../../../Resources/Prototypes/_WF/Fauna/Entities/Mobs/chomp.yml)
+- [`Resources/Prototypes/_WF/Fauna/Entities/Mobs/citadelrp_lavaland.yml`](../../../Resources/Prototypes/_WF/Fauna/Entities/Mobs/citadelrp_lavaland.yml)
+- [`Resources/Prototypes/_WF/Fauna/Entities/Mobs/citadelrp_monsters.yml`](../../../Resources/Prototypes/_WF/Fauna/Entities/Mobs/citadelrp_monsters.yml)
+- [`Resources/Prototypes/_WF/Fauna/Entities/Mobs/ds13.yml`](../../../Resources/Prototypes/_WF/Fauna/Entities/Mobs/ds13.yml)
+- [`Resources/Prototypes/_WF/Fauna/Entities/Mobs/nuclearphase.yml`](../../../Resources/Prototypes/_WF/Fauna/Entities/Mobs/nuclearphase.yml)
+- [`Resources/Prototypes/_WF/Fauna/Entities/Mobs/onyxbay.yml`](../../../Resources/Prototypes/_WF/Fauna/Entities/Mobs/onyxbay.yml)
+- [`Resources/Prototypes/_WF/Fauna/Entities/Mobs/polaris.yml`](../../../Resources/Prototypes/_WF/Fauna/Entities/Mobs/polaris.yml)
+- [`Resources/Prototypes/_WF/Fauna/Entities/Mobs/shiptest.yml`](../../../Resources/Prototypes/_WF/Fauna/Entities/Mobs/shiptest.yml)
+- [`Resources/Prototypes/_WF/Fauna/Entities/Mobs/sojourn.yml`](../../../Resources/Prototypes/_WF/Fauna/Entities/Mobs/sojourn.yml)
+- [`Resources/Prototypes/_WF/Fauna/Entities/Mobs/taucetistation_meatland.yml`](../../../Resources/Prototypes/_WF/Fauna/Entities/Mobs/taucetistation_meatland.yml)
+- [`Resources/Prototypes/_WF/Fauna/Entities/Mobs/vgstation.yml`](../../../Resources/Prototypes/_WF/Fauna/Entities/Mobs/vgstation.yml)
+- [`Resources/Prototypes/_WF/Fauna/Entities/Mobs/virgo.yml`](../../../Resources/Prototypes/_WF/Fauna/Entities/Mobs/virgo.yml)
+- [`Resources/Prototypes/_WF/Fauna/Entities/Mobs/voidcrew.yml`](../../../Resources/Prototypes/_WF/Fauna/Entities/Mobs/voidcrew.yml)
+- [`Resources/Prototypes/_WF/Fauna/Entities/Objects/chomp.yml`](../../../Resources/Prototypes/_WF/Fauna/Entities/Objects/chomp.yml)
+- [`Resources/Prototypes/_WF/Fauna/Entities/Objects/citadelrp.yml`](../../../Resources/Prototypes/_WF/Fauna/Entities/Objects/citadelrp.yml)
+- [`Resources/Prototypes/_WF/Fauna/Entities/Objects/nuclearphase.yml`](../../../Resources/Prototypes/_WF/Fauna/Entities/Objects/nuclearphase.yml)
+- [`Resources/Prototypes/_WF/Fauna/Entities/Objects/onyxbay.yml`](../../../Resources/Prototypes/_WF/Fauna/Entities/Objects/onyxbay.yml)
+- [`Resources/Prototypes/_WF/Fauna/Entities/Objects/polaris.yml`](../../../Resources/Prototypes/_WF/Fauna/Entities/Objects/polaris.yml)
+- [`Resources/Prototypes/_WF/Fauna/Entities/Objects/shiptest.yml`](../../../Resources/Prototypes/_WF/Fauna/Entities/Objects/shiptest.yml)
+- [`Resources/Prototypes/_WF/Fauna/Entities/Objects/sojourn.yml`](../../../Resources/Prototypes/_WF/Fauna/Entities/Objects/sojourn.yml)
+- [`Resources/Prototypes/_WF/Fauna/Entities/Objects/virgo.yml`](../../../Resources/Prototypes/_WF/Fauna/Entities/Objects/virgo.yml)
+- [`Resources/Prototypes/_WF/Fauna/NPCs/htn.yml`](../../../Resources/Prototypes/_WF/Fauna/NPCs/htn.yml)
+- [`Resources/Prototypes/_WF/Fauna/SoundCollections/ds13.yml`](../../../Resources/Prototypes/_WF/Fauna/SoundCollections/ds13.yml)
+- [`Resources/Prototypes/_WF/Fauna/SoundCollections/sojourn.yml`](../../../Resources/Prototypes/_WF/Fauna/SoundCollections/sojourn.yml)
+- [`Resources/Prototypes/_WF/Fauna/Voice/citadelrp.yml`](../../../Resources/Prototypes/_WF/Fauna/Voice/citadelrp.yml)
+- [`Resources/Prototypes/_WF/Fauna/Voice/ds13.yml`](../../../Resources/Prototypes/_WF/Fauna/Voice/ds13.yml)
+- [`Resources/Prototypes/_WF/Fauna/Voice/polaris.yml`](../../../Resources/Prototypes/_WF/Fauna/Voice/polaris.yml)
+- [`Resources/Prototypes/_WF/Fauna/Voice/sojourn.yml`](../../../Resources/Prototypes/_WF/Fauna/Voice/sojourn.yml)
+
+### Localization
+
+- [`Resources/Locale/en-US/_WF/Fauna/chomp.ftl`](../../../Resources/Locale/en-US/_WF/Fauna/chomp.ftl)
+- [`Resources/Locale/en-US/_WF/Fauna/citadelrp_monsters.ftl`](../../../Resources/Locale/en-US/_WF/Fauna/citadelrp_monsters.ftl)
+- [`Resources/Locale/en-US/_WF/Fauna/display.ftl`](../../../Resources/Locale/en-US/_WF/Fauna/display.ftl)
+- [`Resources/Locale/en-US/_WF/Fauna/ds13.ftl`](../../../Resources/Locale/en-US/_WF/Fauna/ds13.ftl)
+- [`Resources/Locale/en-US/_WF/Fauna/fauna_abilities.ftl`](../../../Resources/Locale/en-US/_WF/Fauna/fauna_abilities.ftl)
+- [`Resources/Locale/en-US/_WF/Fauna/lavaland.ftl`](../../../Resources/Locale/en-US/_WF/Fauna/lavaland.ftl)
+- [`Resources/Locale/en-US/_WF/Fauna/nuclearphase.ftl`](../../../Resources/Locale/en-US/_WF/Fauna/nuclearphase.ftl)
+- [`Resources/Locale/en-US/_WF/Fauna/nuclearphase_objects.ftl`](../../../Resources/Locale/en-US/_WF/Fauna/nuclearphase_objects.ftl)
+- [`Resources/Locale/en-US/_WF/Fauna/onyxbay.ftl`](../../../Resources/Locale/en-US/_WF/Fauna/onyxbay.ftl)
+- [`Resources/Locale/en-US/_WF/Fauna/polaris.ftl`](../../../Resources/Locale/en-US/_WF/Fauna/polaris.ftl)
+- [`Resources/Locale/en-US/_WF/Fauna/ported.ftl`](../../../Resources/Locale/en-US/_WF/Fauna/ported.ftl)
+- [`Resources/Locale/en-US/_WF/Fauna/shiptest.ftl`](../../../Resources/Locale/en-US/_WF/Fauna/shiptest.ftl)
+- [`Resources/Locale/en-US/_WF/Fauna/sojourn.ftl`](../../../Resources/Locale/en-US/_WF/Fauna/sojourn.ftl)
+- [`Resources/Locale/en-US/_WF/Fauna/sojourn_objects.ftl`](../../../Resources/Locale/en-US/_WF/Fauna/sojourn_objects.ftl)
+- [`Resources/Locale/en-US/_WF/Fauna/taucetistation_meatland.ftl`](../../../Resources/Locale/en-US/_WF/Fauna/taucetistation_meatland.ftl)
+- [`Resources/Locale/en-US/_WF/Fauna/vgstation.ftl`](../../../Resources/Locale/en-US/_WF/Fauna/vgstation.ftl)
+- [`Resources/Locale/en-US/_WF/Fauna/virgo.ftl`](../../../Resources/Locale/en-US/_WF/Fauna/virgo.ftl)
+- [`Resources/Locale/en-US/_WF/Fauna/voidcrew.ftl`](../../../Resources/Locale/en-US/_WF/Fauna/voidcrew.ftl)
+
+### Textures
+
+- [`Resources/Textures/_WF/Fauna/Mobs/CHOMP/space_critters.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/CHOMP/space_critters.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/CHOMP/tyr_ants.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/CHOMP/tyr_ants.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/CitadelRP/ambusher.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/CitadelRP/ambusher.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/CitadelRP/basilisk.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/CitadelRP/basilisk.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/CitadelRP/bulldrifter.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/CitadelRP/bulldrifter.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/CitadelRP/chameleon.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/CitadelRP/chameleon.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/CitadelRP/curseblob.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/CitadelRP/curseblob.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/CitadelRP/derelict_horror.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/CitadelRP/derelict_horror.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/CitadelRP/drifter.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/CitadelRP/drifter.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/CitadelRP/dwarf_legion.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/CitadelRP/dwarf_legion.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/CitadelRP/geist.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/CitadelRP/geist.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/CitadelRP/goldgrub.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/CitadelRP/goldgrub.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/CitadelRP/goliath_calf.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/CitadelRP/goliath_calf.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/CitadelRP/gutlunch.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/CitadelRP/gutlunch.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/CitadelRP/gutshank.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/CitadelRP/gutshank.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/CitadelRP/hallucination.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/CitadelRP/hallucination.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/CitadelRP/lavasnail.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/CitadelRP/lavasnail.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/CitadelRP/mole.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/CitadelRP/mole.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/CitadelRP/phantom.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/CitadelRP/phantom.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/CitadelRP/rak.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/CitadelRP/rak.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/CitadelRP/scavenger.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/CitadelRP/scavenger.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/CitadelRP/shank.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/CitadelRP/shank.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/CitadelRP/skallax.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/CitadelRP/skallax.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/CitadelRP/stormdrifter.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/CitadelRP/stormdrifter.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/CitadelRP/vortex.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/CitadelRP/vortex.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/CitadelRP/wriggler.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/CitadelRP/wriggler.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/DS13/acid.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/DS13/acid.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/DS13/brute.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/DS13/brute.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/DS13/brute_flesh.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/DS13/brute_flesh.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/DS13/exploder.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/DS13/exploder.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/DS13/infector.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/DS13/infector.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/DS13/leaper_enhanced.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/DS13/leaper_enhanced.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/DS13/lurker.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/DS13/lurker.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/DS13/lurker_spine.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/DS13/lurker_spine.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/DS13/puker.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/DS13/puker.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/DS13/twitcher.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/DS13/twitcher.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/DS13/ubermorph.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/DS13/ubermorph.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/NuclearPhase/burrow.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/NuclearPhase/burrow.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/NuclearPhase/oceanborn_hunter.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/NuclearPhase/oceanborn_hunter.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/NuclearPhase/oceanborn_scout.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/NuclearPhase/oceanborn_scout.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/OnyxBay/beholder.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/OnyxBay/beholder.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/OnyxBay/goliath.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/OnyxBay/goliath.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/OnyxBay/hoverhead.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/OnyxBay/hoverhead.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/OnyxBay/projectiles.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/OnyxBay/projectiles.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/OnyxBay/shockzard.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/OnyxBay/shockzard.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Polaris/blob_shot.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Polaris/blob_shot.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Polaris/blob_spore.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Polaris/blob_spore.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Polaris/cloud.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Polaris/cloud.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Polaris/effects.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Polaris/effects.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Polaris/elder_carp.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Polaris/elder_carp.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Polaris/giant_spider.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Polaris/giant_spider.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Polaris/grafadreka.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Polaris/grafadreka.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Polaris/grafadreka_hatchling.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Polaris/grafadreka_hatchling.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Polaris/great_white_carp.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Polaris/great_white_carp.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Polaris/hooligan_crab.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Polaris/hooligan_crab.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Polaris/kururak.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Polaris/kururak.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Polaris/sakimm.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Polaris/sakimm.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Polaris/savik.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Polaris/savik.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Polaris/sif_kiters.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Polaris/sif_kiters.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Polaris/siffet.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Polaris/siffet.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Polaris/space_worm.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Polaris/space_worm.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Polaris/web_ball.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Polaris/web_ball.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Shiptest/antlion_queen.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Shiptest/antlion_queen.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Shiptest/basilisk.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Shiptest/basilisk.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Shiptest/bear.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Shiptest/bear.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Shiptest/brimdemon.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Shiptest/brimdemon.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Shiptest/crystal.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Shiptest/crystal.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Shiptest/crystal_spire.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Shiptest/crystal_spire.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Shiptest/forgotten_watcher.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Shiptest/forgotten_watcher.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Shiptest/fugu.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Shiptest/fugu.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Shiptest/goliath.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Shiptest/goliath.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Shiptest/gruboid.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Shiptest/gruboid.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Shiptest/hierophant.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Shiptest/hierophant.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Shiptest/hierophant_effects.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Shiptest/hierophant_effects.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Shiptest/hierophant_telegraph.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Shiptest/hierophant_telegraph.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Shiptest/ice.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Shiptest/ice.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Shiptest/lavagrub.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Shiptest/lavagrub.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Shiptest/legate.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Shiptest/legate.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Shiptest/lobstrosity.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Shiptest/lobstrosity.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Shiptest/projectiles.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Shiptest/projectiles.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Shiptest/sand_splash.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Shiptest/sand_splash.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Shiptest/seedling.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Shiptest/seedling.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Shiptest/smoke.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Shiptest/smoke.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Shiptest/turf_fire.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Shiptest/turf_fire.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Shiptest/venus.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Shiptest/venus.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Shiptest/vines.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Shiptest/vines.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Shiptest/wendigo.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Shiptest/wendigo.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Shiptest/wolf.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Shiptest/wolf.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/ameridian.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/ameridian.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/ameridian_titan.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/ameridian_titan.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/attacks.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/attacks.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/bigcat.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/bigcat.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/chimera.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/chimera.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/croaker_lord.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/croaker_lord.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/diyaab.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/diyaab.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/dream_daemon.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/dream_daemon.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/fatshouter.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/fatshouter.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/giant_snake.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/giant_snake.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/hakhma.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/hakhma.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/hellpig.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/hellpig.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/koroleva.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/koroleva.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/mukwah.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/mukwah.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/nightmare.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/nightmare.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/panther.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/panther.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/psi.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/psi.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/psi_large.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/psi_large.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/radstag.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/radstag.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/rafama.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/rafama.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/render.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/render.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/roaches.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/roaches.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/samak.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/samak.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/shantak.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/shantak.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/shell_hound.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/shell_hound.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/slepnir.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/slepnir.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/spiders.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/spiders.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/termites.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/termites.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/tunneler.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/tunneler.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/viper.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/viper.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Sojourn/wendigo.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Sojourn/wendigo.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/TauCeti/meatland.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/TauCeti/meatland.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/VG/gingerbomination.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/VG/gingerbomination.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/VG/gingerbroodmother.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/VG/gingerbroodmother.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/VG/gingjelly.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/VG/gingjelly.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/VG/gourmonger.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/VG/gourmonger.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/VG/gourmonger_heart.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/VG/gourmonger_heart.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/VG/spider_effects.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/VG/spider_effects.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/VG/spider_queen.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/VG/spider_queen.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/VG/spiderling.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/VG/spiderling.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/VG/web_shot.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/VG/web_shot.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/VG/wendigo.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/VG/wendigo.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Virgo/blaidd.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Virgo/blaidd.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Virgo/crypt_drake.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Virgo/crypt_drake.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Virgo/faithless.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Virgo/faithless.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Virgo/giant_rat.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Virgo/giant_rat.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Virgo/grubs.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Virgo/grubs.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Virgo/jellyfish_core.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Virgo/jellyfish_core.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Virgo/large_dragon.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Virgo/large_dragon.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Virgo/mimic.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Virgo/mimic.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Virgo/purity.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Virgo/purity.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Virgo/rainbow_beam.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Virgo/rainbow_beam.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Virgo/ray.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Virgo/ray.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Virgo/shark.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Virgo/shark.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Virgo/snowbull.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Virgo/snowbull.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Virgo/solarmoth.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Virgo/solarmoth.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Virgo/space_ghost.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Virgo/space_ghost.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Virgo/space_jellyfish.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Virgo/space_jellyfish.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Virgo/startreader.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Virgo/startreader.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Virgo/unicorn.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Virgo/unicorn.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Virgo/ysbryd.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Virgo/ysbryd.rsi/)
+- [`Resources/Textures/_WF/Fauna/Mobs/Voidcrew/crystal_hivelord.rsi/`](../../../Resources/Textures/_WF/Fauna/Mobs/Voidcrew/crystal_hivelord.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/CHOMP/crafting.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/CHOMP/crafting.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/CHOMP/stacks.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/CHOMP/stacks.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/CHOMP/tribal_gear.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/CHOMP/tribal_gear.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/CitadelRP/lavaland.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/CitadelRP/lavaland.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/NuclearPhase/fish_skin.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/NuclearPhase/fish_skin.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/NuclearPhase/syntiflesh.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/NuclearPhase/syntiflesh.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/OnyxBay/goliath_helmet.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/OnyxBay/goliath_helmet.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/OnyxBay/mining.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/OnyxBay/mining.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Polaris/food.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Polaris/food.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Polaris/stacks.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Polaris/stacks.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Polaris/surgery.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Polaris/surgery.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Shiptest/artefacts.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Shiptest/artefacts.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Shiptest/ash_flora.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Shiptest/ash_flora.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Shiptest/elite_trophies.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Shiptest/elite_trophies.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Shiptest/gems.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Shiptest/gems.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Shiptest/items.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Shiptest/items.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Shiptest/mining.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Shiptest/mining.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Shiptest/surgery.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Shiptest/surgery.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Sojourn/cannibal_tooth.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Sojourn/cannibal_tooth.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Sojourn/chimera_fang.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Sojourn/chimera_fang.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Sojourn/croaker_tongue.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Sojourn/croaker_tongue.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Sojourn/hell_hide.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Sojourn/hell_hide.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Sojourn/helldiver_tooth.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Sojourn/helldiver_tooth.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Sojourn/human_remains.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Sojourn/human_remains.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Sojourn/leather.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Sojourn/leather.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Sojourn/pork.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Sojourn/pork.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Sojourn/primal_meat.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Sojourn/primal_meat.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Sojourn/render_claw.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Sojourn/render_claw.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Sojourn/roach_meat.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Sojourn/roach_meat.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Sojourn/slepnir_hoof.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Sojourn/slepnir_hoof.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Sojourn/stalker_chitin.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Sojourn/stalker_chitin.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Sojourn/stalker_spur.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Sojourn/stalker_spur.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Sojourn/tahca_antler.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Sojourn/tahca_antler.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Sojourn/wolf_tooth.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Sojourn/wolf_tooth.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Virgo/egg.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Virgo/egg.rsi/)
+- [`Resources/Textures/_WF/Fauna/Objects/Virgo/food.rsi/`](../../../Resources/Textures/_WF/Fauna/Objects/Virgo/food.rsi/)
+
+### Audio
+
+- [`Resources/Audio/_WF/Fauna/CitadelRP/attributions.yml`](../../../Resources/Audio/_WF/Fauna/CitadelRP/attributions.yml)
+- [`Resources/Audio/_WF/Fauna/CitadelRP/curse1.ogg`](../../../Resources/Audio/_WF/Fauna/CitadelRP/curse1.ogg)
+- [`Resources/Audio/_WF/Fauna/CitadelRP/curseattack.ogg`](../../../Resources/Audio/_WF/Fauna/CitadelRP/curseattack.ogg)
+- [`Resources/Audio/_WF/Fauna/CitadelRP/drone_attack.ogg`](../../../Resources/Audio/_WF/Fauna/CitadelRP/drone_attack.ogg)
+- [`Resources/Audio/_WF/Fauna/CitadelRP/growl1.ogg`](../../../Resources/Audio/_WF/Fauna/CitadelRP/growl1.ogg)
+- [`Resources/Audio/_WF/Fauna/CitadelRP/pulse3.ogg`](../../../Resources/Audio/_WF/Fauna/CitadelRP/pulse3.ogg)
+- [`Resources/Audio/_WF/Fauna/CitadelRP/slice.ogg`](../../../Resources/Audio/_WF/Fauna/CitadelRP/slice.ogg)
+- [`Resources/Audio/_WF/Fauna/CitadelRP/stealthoff.ogg`](../../../Resources/Audio/_WF/Fauna/CitadelRP/stealthoff.ogg)
+- [`Resources/Audio/_WF/Fauna/CitadelRP/towelwhip.ogg`](../../../Resources/Audio/_WF/Fauna/CitadelRP/towelwhip.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/brute/attributions.yml`](../../../Resources/Audio/_WF/Fauna/DS13/brute/attributions.yml)
+- [`Resources/Audio/_WF/Fauna/DS13/brute/brute_attack_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/brute/brute_attack_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/brute/brute_attack_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/brute/brute_attack_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/brute/brute_attack_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/brute/brute_attack_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/brute/brute_death.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/brute/brute_death.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/brute/brute_pain_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/brute/brute_pain_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/brute/brute_pain_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/brute/brute_pain_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/brute/brute_pain_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/brute/brute_pain_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/brute/brute_pain_extreme.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/brute/brute_pain_extreme.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/brute/brute_shout_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/brute/brute_shout_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/brute/brute_shout_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/brute/brute_shout_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/brute/brute_shout_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/brute/brute_shout_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/brute/brute_shout_long.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/brute/brute_shout_long.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/brute/brute_step_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/brute/brute_step_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/brute/brute_step_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/brute/brute_step_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/brute/brute_step_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/brute/brute_step_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/brute/brute_step_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/brute/brute_step_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/brute/brute_step_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/brute/brute_step_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/brute/brute_step_6.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/brute/brute_step_6.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/attributions.yml`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/attributions.yml)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_attack_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_attack_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_attack_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_attack_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_attack_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_attack_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_attack_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_attack_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_attack_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_attack_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_blast_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_blast_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_blast_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_blast_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_blast_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_blast_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_blast_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_blast_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_blast_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_blast_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_death_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_death_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_death_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_death_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_death_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_death_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_footstep_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_footstep_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_footstep_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_footstep_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_footstep_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_footstep_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_footstep_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_footstep_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_footstep_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_footstep_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_footstep_6.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_footstep_6.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_footstep_7.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_footstep_7.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_pain_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_pain_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_pain_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_pain_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_pain_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_pain_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_pain_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_pain_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_pain_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_pain_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_shout_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_shout_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_shout_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_shout_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_shout_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_shout_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_shout_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_shout_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_shout_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_shout_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_shout_6.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_shout_6.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_shout_7.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_shout_7.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_shout_long_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_shout_long_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_shout_long_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_shout_long_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_shout_long_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_shout_long_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_shout_long_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_shout_long_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_shout_long_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_shout_long_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_speech_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_speech_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_speech_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_speech_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_speech_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_speech_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_speech_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_speech_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_speech_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_speech_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_speech_6.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_speech_6.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/exploder/exploder_speech_7.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/exploder/exploder_speech_7.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/infector/attributions.yml`](../../../Resources/Audio/_WF/Fauna/DS13/infector/attributions.yml)
+- [`Resources/Audio/_WF/Fauna/DS13/infector/infector_attack_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/infector/infector_attack_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/infector/infector_attack_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/infector/infector_attack_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/infector/infector_attack_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/infector/infector_attack_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/infector/infector_attack_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/infector/infector_attack_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/infector/infector_attack_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/infector/infector_attack_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/infector/infector_death_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/infector/infector_death_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/infector/infector_death_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/infector/infector_death_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/infector/infector_death_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/infector/infector_death_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/infector/infector_death_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/infector/infector_death_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/infector/infector_footstep_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/infector/infector_footstep_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/infector/infector_footstep_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/infector/infector_footstep_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/infector/infector_footstep_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/infector/infector_footstep_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/infector/infector_footstep_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/infector/infector_footstep_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/infector/infector_pain_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/infector/infector_pain_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/infector/infector_pain_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/infector/infector_pain_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/infector/infector_pain_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/infector/infector_pain_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/infector/infector_pain_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/infector/infector_pain_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/infector/infector_shout_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/infector/infector_shout_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/infector/infector_shout_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/infector/infector_shout_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/infector/infector_shout_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/infector/infector_shout_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/infector/infector_shout_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/infector/infector_shout_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/infector/infector_shout_long_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/infector/infector_shout_long_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/infector/infector_shout_long_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/infector/infector_shout_long_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/infector/infector_shout_long_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/infector/infector_shout_long_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/attributions.yml`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/attributions.yml)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_attack_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_attack_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_attack_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_attack_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_attack_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_attack_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_attack_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_attack_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_attack_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_attack_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_attack_6.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_attack_6.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_attack_7.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_attack_7.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_death_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_death_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_death_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_death_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_death_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_death_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_footstep_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_footstep_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_footstep_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_footstep_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_footstep_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_footstep_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_footstep_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_footstep_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_footstep_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_footstep_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_pain_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_pain_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_pain_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_pain_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_pain_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_pain_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_pain_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_pain_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_pain_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_pain_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_pain_6.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_pain_6.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_pain_7.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_pain_7.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_shout_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_shout_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_shout_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_shout_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_shout_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_shout_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_shout_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_shout_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_shout_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_shout_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_shout_6.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_shout_6.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_shout_long_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_shout_long_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_shout_long_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_shout_long_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_shout_long_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_shout_long_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_shout_long_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_shout_long_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_shout_long_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_shout_long_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_speech_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_speech_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_speech_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_speech_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_speech_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_speech_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_speech_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_speech_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_tailswing_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_tailswing_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_tailswing_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_tailswing_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_tailswing_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_tailswing_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/leaper_tailswing_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/leaper_tailswing_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/wall_climb_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/wall_climb_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/wall_climb_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/wall_climb_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/wall_climb_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/wall_climb_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/wall_climb_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/wall_climb_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/wall_climb_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/wall_climb_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/leaper/wall_climb_6.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/leaper/wall_climb_6.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/attributions.yml`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/attributions.yml)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_attack_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_attack_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_attack_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_attack_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_attack_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_attack_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_attack_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_attack_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_attack_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_attack_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_attack_6.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_attack_6.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_attack_7.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_attack_7.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_attack_8.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_attack_8.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_attack_9.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_attack_9.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_death_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_death_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_death_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_death_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_death_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_death_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_footstep_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_footstep_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_footstep_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_footstep_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_footstep_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_footstep_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_footstep_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_footstep_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_footstep_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_footstep_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_footstep_6.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_footstep_6.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_footstep_7.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_footstep_7.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_pain_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_pain_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_pain_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_pain_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_pain_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_pain_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_pain_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_pain_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_pain_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_pain_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_pain_6.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_pain_6.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_pain_7.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_pain_7.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_shout_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_shout_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_shout_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_shout_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_shout_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_shout_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_shout_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_shout_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_shout_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_shout_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_shout_6.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_shout_6.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_shout_7.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_shout_7.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_shout_long_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_shout_long_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_shout_long_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_shout_long_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_shout_long_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_shout_long_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_speech_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_speech_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_speech_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_speech_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_speech_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_speech_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/lurker_speech_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/lurker_speech_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/spine_fire_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/spine_fire_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/spine_fire_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/spine_fire_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/lurker/spine_fire_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/lurker/spine_fire_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/attributions.yml`](../../../Resources/Audio/_WF/Fauna/DS13/puker/attributions.yml)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_attack_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_attack_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_attack_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_attack_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_attack_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_attack_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_attack_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_attack_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_attack_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_attack_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_death_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_death_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_death_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_death_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_death_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_death_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_footstep_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_footstep_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_footstep_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_footstep_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_footstep_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_footstep_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_footstep_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_footstep_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_footstep_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_footstep_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_footstep_6.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_footstep_6.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_footstep_7.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_footstep_7.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_footstep_8.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_footstep_8.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_footstep_9.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_footstep_9.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_pain_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_pain_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_pain_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_pain_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_pain_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_pain_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_pain_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_pain_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_pain_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_pain_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_pain_6.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_pain_6.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_pain_7.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_pain_7.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_shout_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_shout_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_shout_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_shout_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_shout_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_shout_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_shout_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_shout_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_shout_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_shout_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_shout_6.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_shout_6.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_shout_long_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_shout_long_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_shout_long_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_shout_long_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_shout_long_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_shout_long_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_shout_long_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_shout_long_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_speech_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_speech_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_speech_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_speech_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/puker/puker_speech_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/puker/puker_speech_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/slasher/attributions.yml`](../../../Resources/Audio/_WF/Fauna/DS13/slasher/attributions.yml)
+- [`Resources/Audio/_WF/Fauna/DS13/slasher/slasher_pain_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/slasher/slasher_pain_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/slasher/slasher_pain_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/slasher/slasher_pain_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/slasher/slasher_pain_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/slasher/slasher_pain_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/slasher/slasher_pain_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/slasher/slasher_pain_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/slasher/slasher_pain_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/slasher/slasher_pain_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/slasher/slasher_pain_6.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/slasher/slasher_pain_6.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/slasher/slasher_shout_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/slasher/slasher_shout_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/slasher/slasher_shout_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/slasher/slasher_shout_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/slasher/slasher_shout_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/slasher/slasher_shout_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/slasher/slasher_shout_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/slasher/slasher_shout_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/slasher/slasher_shout_long_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/slasher/slasher_shout_long_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/slasher/slasher_shout_long_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/slasher/slasher_shout_long_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/slasher/slasher_shout_long_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/slasher/slasher_shout_long_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/slasher/slasher_shout_long_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/slasher/slasher_shout_long_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/slasher/slasher_speech_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/slasher/slasher_speech_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/slasher/slasher_speech_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/slasher/slasher_speech_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/attributions.yml`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/attributions.yml)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_attack_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_attack_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_attack_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_attack_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_attack_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_attack_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_attack_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_attack_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_attack_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_attack_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_attack_6.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_attack_6.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_attack_7.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_attack_7.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_attack_8.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_attack_8.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_death_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_death_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_death_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_death_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_death_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_death_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_death_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_death_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_pain_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_pain_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_pain_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_pain_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_pain_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_pain_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_pain_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_pain_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_pain_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_pain_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_pain_6.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_pain_6.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_pain_7.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_pain_7.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_pain_8.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_pain_8.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_pain_9.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_pain_9.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_pain_extreme.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_pain_extreme.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_shout_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_shout_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_shout_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_shout_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_shout_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_shout_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_shout_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_shout_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_shout_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_shout_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_shout_long_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_shout_long_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_shout_long_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_shout_long_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_shout_long_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_shout_long_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_shout_long_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_shout_long_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_shout_long_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_shout_long_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_speech_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_speech_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_speech_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_speech_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_speech_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_speech_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_speech_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_speech_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_speech_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/twitcher/twitcher_speech_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/attributions.yml`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/attributions.yml)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_attack_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_attack_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_attack_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_attack_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_attack_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_attack_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_attack_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_attack_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_attack_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_attack_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_attack_6.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_attack_6.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_attack_7.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_attack_7.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_attack_8.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_attack_8.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_footstep_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_footstep_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_footstep_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_footstep_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_footstep_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_footstep_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_footstep_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_footstep_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_pain_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_pain_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_pain_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_pain_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_pain_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_pain_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_pain_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_pain_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_pain_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_pain_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_pain_6.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_pain_6.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_pain_7.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_pain_7.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_pain_8.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_pain_8.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_regen_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_regen_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_regen_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_regen_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_shout_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_shout_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_shout_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_shout_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_shout_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_shout_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_shout_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_shout_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_shout_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_shout_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_shout_6.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_shout_6.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_shout_7.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_shout_7.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_shout_8.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_shout_8.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_shout_long_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_shout_long_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_shout_long_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_shout_long_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_shout_long_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_shout_long_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_shout_long_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_shout_long_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/Ubermorph_spawn_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/Ubermorph_spawn_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/Ubermorph_spawn_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/Ubermorph_spawn_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/Ubermorph_spawn_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/Ubermorph_spawn_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/Ubermorph_spawn_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/Ubermorph_spawn_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_speech_1.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_speech_1.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_speech_2.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_speech_2.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_speech_3.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_speech_3.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_speech_4.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_speech_4.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_speech_5.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_speech_5.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_speech_6.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_speech_6.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_speech_7.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_speech_7.ogg)
+- [`Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_speech_8.ogg`](../../../Resources/Audio/_WF/Fauna/DS13/ubermorph/ubermorph_speech_8.ogg)
+- [`Resources/Audio/_WF/Fauna/NuclearPhase/attributions.yml`](../../../Resources/Audio/_WF/Fauna/NuclearPhase/attributions.yml)
+- [`Resources/Audio/_WF/Fauna/NuclearPhase/lizard.ogg`](../../../Resources/Audio/_WF/Fauna/NuclearPhase/lizard.ogg)
+- [`Resources/Audio/_WF/Fauna/OnyxBay/attributions.yml`](../../../Resources/Audio/_WF/Fauna/OnyxBay/attributions.yml)
+- [`Resources/Audio/_WF/Fauna/OnyxBay/pulse3.ogg`](../../../Resources/Audio/_WF/Fauna/OnyxBay/pulse3.ogg)
+- [`Resources/Audio/_WF/Fauna/Polaris/attributions.yml`](../../../Resources/Audio/_WF/Fauna/Polaris/attributions.yml)
+- [`Resources/Audio/_WF/Fauna/Polaris/break_stone.ogg`](../../../Resources/Audio/_WF/Fauna/Polaris/break_stone.ogg)
+- [`Resources/Audio/_WF/Fauna/Polaris/drake_grumble.ogg`](../../../Resources/Audio/_WF/Fauna/Polaris/drake_grumble.ogg)
+- [`Resources/Audio/_WF/Fauna/Polaris/drake_huff.ogg`](../../../Resources/Audio/_WF/Fauna/Polaris/drake_huff.ogg)
+- [`Resources/Audio/_WF/Fauna/Polaris/drake_rattle.ogg`](../../../Resources/Audio/_WF/Fauna/Polaris/drake_rattle.ogg)
+- [`Resources/Audio/_WF/Fauna/Polaris/drake_roar.ogg`](../../../Resources/Audio/_WF/Fauna/Polaris/drake_roar.ogg)
+- [`Resources/Audio/_WF/Fauna/Polaris/drake_rumble.ogg`](../../../Resources/Audio/_WF/Fauna/Polaris/drake_rumble.ogg)
+- [`Resources/Audio/_WF/Fauna/Polaris/drake_sneeze.ogg`](../../../Resources/Audio/_WF/Fauna/Polaris/drake_sneeze.ogg)
+- [`Resources/Audio/_WF/Fauna/Polaris/drake_spit.ogg`](../../../Resources/Audio/_WF/Fauna/Polaris/drake_spit.ogg)
+- [`Resources/Audio/_WF/Fauna/Polaris/drake_warn.ogg`](../../../Resources/Audio/_WF/Fauna/Polaris/drake_warn.ogg)
+- [`Resources/Audio/_WF/Fauna/Polaris/hatchling_growl.ogg`](../../../Resources/Audio/_WF/Fauna/Polaris/hatchling_growl.ogg)
+- [`Resources/Audio/_WF/Fauna/Polaris/hatchling_spit.ogg`](../../../Resources/Audio/_WF/Fauna/Polaris/hatchling_spit.ogg)
+- [`Resources/Audio/_WF/Fauna/Polaris/hatchling_warn.ogg`](../../../Resources/Audio/_WF/Fauna/Polaris/hatchling_warn.ogg)
+- [`Resources/Audio/_WF/Fauna/Polaris/hatchling_whine.ogg`](../../../Resources/Audio/_WF/Fauna/Polaris/hatchling_whine.ogg)
+- [`Resources/Audio/_WF/Fauna/Polaris/hatchling_yelp.ogg`](../../../Resources/Audio/_WF/Fauna/Polaris/hatchling_yelp.ogg)
+- [`Resources/Audio/_WF/Fauna/Polaris/ointment.ogg`](../../../Resources/Audio/_WF/Fauna/Polaris/ointment.ogg)
+- [`Resources/Audio/_WF/Fauna/Polaris/slime_squish.ogg`](../../../Resources/Audio/_WF/Fauna/Polaris/slime_squish.ogg)
+- [`Resources/Audio/_WF/Fauna/Polaris/spider_loop.ogg`](../../../Resources/Audio/_WF/Fauna/Polaris/spider_loop.ogg)
+- [`Resources/Audio/_WF/Fauna/Shiptest/attributions.yml`](../../../Resources/Audio/_WF/Fauna/Shiptest/attributions.yml)
+- [`Resources/Audio/_WF/Fauna/Shiptest/bin_close.ogg`](../../../Resources/Audio/_WF/Fauna/Shiptest/bin_close.ogg)
+- [`Resources/Audio/_WF/Fauna/Shiptest/blind.ogg`](../../../Resources/Audio/_WF/Fauna/Shiptest/blind.ogg)
+- [`Resources/Audio/_WF/Fauna/Shiptest/brimdemon.ogg`](../../../Resources/Audio/_WF/Fauna/Shiptest/brimdemon.ogg)
+- [`Resources/Audio/_WF/Fauna/Shiptest/crystal_bamf.ogg`](../../../Resources/Audio/_WF/Fauna/Shiptest/crystal_bamf.ogg)
+- [`Resources/Audio/_WF/Fauna/Shiptest/crystal_charge.ogg`](../../../Resources/Audio/_WF/Fauna/Shiptest/crystal_charge.ogg)
+- [`Resources/Audio/_WF/Fauna/Shiptest/crystal_magic.ogg`](../../../Resources/Audio/_WF/Fauna/Shiptest/crystal_magic.ogg)
+- [`Resources/Audio/_WF/Fauna/Shiptest/gravhit.ogg`](../../../Resources/Audio/_WF/Fauna/Shiptest/gravhit.ogg)
+- [`Resources/Audio/_WF/Fauna/Shiptest/mechmove04.ogg`](../../../Resources/Audio/_WF/Fauna/Shiptest/mechmove04.ogg)
+- [`Resources/Audio/_WF/Fauna/Shiptest/repulse.ogg`](../../../Resources/Audio/_WF/Fauna/Shiptest/repulse.ogg)
+- [`Resources/Audio/_WF/Fauna/Shiptest/sear.ogg`](../../../Resources/Audio/_WF/Fauna/Shiptest/sear.ogg)
+- [`Resources/Audio/_WF/Fauna/Shiptest/sonic_jackhammer.ogg`](../../../Resources/Audio/_WF/Fauna/Shiptest/sonic_jackhammer.ogg)
+- [`Resources/Audio/_WF/Fauna/Shiptest/wand_teleport.ogg`](../../../Resources/Audio/_WF/Fauna/Shiptest/wand_teleport.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/acid_spit.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/acid_spit.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/attributions.yml`](../../../Resources/Audio/_WF/Fauna/Sojourn/attributions.yml)
+- [`Resources/Audio/_WF/Fauna/Sojourn/behind_you1.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/behind_you1.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/crumble1.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/crumble1.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/crumble2.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/crumble2.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/crumble3.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/crumble3.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/crumble4.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/crumble4.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/crumble5.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/crumble5.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/deathclaw_roar.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/deathclaw_roar.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/deathclawattack.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/deathclawattack.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/growl1.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/growl1.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/growl2.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/growl2.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/growl3.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/growl3.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/hell_screech.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/hell_screech.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/hiss4.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/hiss4.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/i_see_you2.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/i_see_you2.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/im_here1.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/im_here1.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/insect_battle_bite.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/insect_battle_bite.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/insect_battle_screeching.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/insect_battle_screeching.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/maul.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/maul.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/over_here3.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/over_here3.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/robot_talk_heavy4.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/robot_talk_heavy4.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/robot_talk_light1.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/robot_talk_light1.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/robot_talk_light2.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/robot_talk_light2.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/shriek1.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/shriek1.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/splat.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/splat.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/turn_around1.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/turn_around1.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/unknown_spacegun_burn.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/unknown_spacegun_burn.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/unknown_spacegun_incinerate.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/unknown_spacegun_incinerate.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/unknown_spacegun_melt.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/unknown_spacegun_melt.ogg)
+- [`Resources/Audio/_WF/Fauna/Sojourn/unknown_spacegun_vaporize.ogg`](../../../Resources/Audio/_WF/Fauna/Sojourn/unknown_spacegun_vaporize.ogg)
+- [`Resources/Audio/_WF/Fauna/VG/attributions.yml`](../../../Resources/Audio/_WF/Fauna/VG/attributions.yml)
+- [`Resources/Audio/_WF/Fauna/VG/heavysmash.ogg`](../../../Resources/Audio/_WF/Fauna/VG/heavysmash.ogg)
+- [`Resources/Audio/_WF/Fauna/VG/hivehand_empty.ogg`](../../../Resources/Audio/_WF/Fauna/VG/hivehand_empty.ogg)
+- [`Resources/Audio/_WF/Fauna/VG/spiderlunge.ogg`](../../../Resources/Audio/_WF/Fauna/VG/spiderlunge.ogg)
+- [`Resources/Audio/_WF/Fauna/VG/stone_crumble.ogg`](../../../Resources/Audio/_WF/Fauna/VG/stone_crumble.ogg)
+- [`Resources/Audio/_WF/Fauna/Virgo/attributions.yml`](../../../Resources/Audio/_WF/Fauna/Virgo/attributions.yml)
+- [`Resources/Audio/_WF/Fauna/Virgo/fireball.ogg`](../../../Resources/Audio/_WF/Fauna/Virgo/fireball.ogg)
+- [`Resources/Audio/_WF/Fauna/Virgo/mouse_squeak_loud.ogg`](../../../Resources/Audio/_WF/Fauna/Virgo/mouse_squeak_loud.ogg)
+- [`Resources/Audio/_WF/Fauna/Virgo/rapidslice.ogg`](../../../Resources/Audio/_WF/Fauna/Virgo/rapidslice.ogg)
+- [`Resources/Audio/_WF/Fauna/Virgo/snowbull_charge.ogg`](../../../Resources/Audio/_WF/Fauna/Virgo/snowbull_charge.ogg)
+- [`Resources/Audio/_WF/Fauna/Virgo/sparkle.ogg`](../../../Resources/Audio/_WF/Fauna/Virgo/sparkle.ogg)
+- [`Resources/Audio/_WF/Fauna/Virgo/splat.ogg`](../../../Resources/Audio/_WF/Fauna/Virgo/splat.ogg)
+- [`Resources/Audio/_WF/Fauna/Virgo/tap.ogg`](../../../Resources/Audio/_WF/Fauna/Virgo/tap.ogg)
+
+### Maps
+
+- [`Resources/Maps/_WF/Fauna/fauna_arena.yml`](../../../Resources/Maps/_WF/Fauna/fauna_arena.yml)
+- [`Resources/Maps/_WF/Fauna/fauna_demo.yml`](../../../Resources/Maps/_WF/Fauna/fauna_demo.yml)
+
+## Non-modular edits
+
+- [`Content.Client/Weapons/Melee/MeleeWeaponSystem.Effects.cs`](../../../Content.Client/Weapons/Melee/MeleeWeaponSystem.Effects.cs): the user can be deleted or leave PVS mid-swing
+- [`Content.Server/NPC/Systems/NPCUtilitySystem.cs`](../../NPC/Systems/NPCUtilitySystem.cs): fauna pick items their corpse eater accepts, such as ore
+- [`Content.Shared/Abilities/Goliath/GoliathTentacleSystem.cs`](../../../Content.Shared/Abilities/Goliath/GoliathTentacleSystem.cs): honour ExtraSpawns and offset diagonals by a whole tile
+- [`Resources/Audio/_CP14/Animals/`](../../../Resources/Audio/_CP14/Animals/): Dinosaur calls, ported from CrystallEdge.
+- [`Resources/Audio/_CP14/Animals/attributions.yml`](../../../Resources/Audio/_CP14/Animals/attributions.yml): ported from CrystallEdge
+- [`Resources/Audio/_Goobstation/Animals/attributions.yml`](../../../Resources/Audio/_Goobstation/Animals/attributions.yml): ported from Goob Station
+- [`Resources/Audio/_Goobstation/Animals/breath1.ogg`](../../../Resources/Audio/_Goobstation/Animals/breath1.ogg): Abyss crawler breathing, ported from Goob Station.
+- [`Resources/Audio/_Goobstation/Wraith/`](../../../Resources/Audio/_Goobstation/Wraith/): Mechanical monstrosity laugh and hit sounds, ported from Goob Station.
+- [`Resources/Audio/_Goobstation/Wraith/Attack/attributions.yml`](../../../Resources/Audio/_Goobstation/Wraith/Attack/attributions.yml): ported from Goob Station
+- [`Resources/Audio/_Goobstation/Wraith/Mobs/attributions.yml`](../../../Resources/Audio/_Goobstation/Wraith/Mobs/attributions.yml): ported from Goob Station
+- [`Resources/Audio/_Impstation/Animals/attributions.yml`](../../../Resources/Audio/_Impstation/Animals/attributions.yml): ported from Impstation
+- [`Resources/Audio/_Impstation/Animals/vrex_roar.ogg`](../../../Resources/Audio/_Impstation/Animals/vrex_roar.ogg): V-rex roar, ported from Impstation.
+- [`Resources/Audio/_Impstation/Magic/attributions.yml`](../../../Resources/Audio/_Impstation/Magic/attributions.yml): ported from Impstation
+- [`Resources/Audio/_Impstation/Magic/cursespawn.ogg`](../../../Resources/Audio/_Impstation/Magic/cursespawn.ogg): Bad omen spawn sound, ported from Impstation.
+- [`Resources/Audio/_Impstation/Voice/Dino/`](../../../Resources/Audio/_Impstation/Voice/Dino/): Dinosaur voice sounds, ported from Impstation.
+- [`Resources/Audio/_Impstation/Voice/Dino/attributions.yml`](../../../Resources/Audio/_Impstation/Voice/Dino/attributions.yml): ported from Impstation
+- [`Resources/Prototypes/_CP14/Damage/modifier_sets.yml`](../../../Resources/Prototypes/_CP14/Damage/modifier_sets.yml): ported from CrystallEdge
+- [`Resources/Prototypes/_CP14/Entities/Mobs/base.yml`](../../../Resources/Prototypes/_CP14/Entities/Mobs/base.yml): ported from CrystallEdge
+- [`Resources/Prototypes/_CP14/Entities/Mobs/NPC/base.yml`](../../../Resources/Prototypes/_CP14/Entities/Mobs/NPC/base.yml): ported from CrystallEdge
+- [`Resources/Prototypes/_CP14/Entities/Mobs/NPC/cackle.yml`](../../../Resources/Prototypes/_CP14/Entities/Mobs/NPC/cackle.yml): ported from CrystallEdge
+- [`Resources/Prototypes/_CP14/Entities/Mobs/NPC/dinosaurs.yml`](../../../Resources/Prototypes/_CP14/Entities/Mobs/NPC/dinosaurs.yml): ported from CrystallEdge
+- [`Resources/Prototypes/_CP14/Entities/Mobs/NPC/myconide.yml`](../../../Resources/Prototypes/_CP14/Entities/Mobs/NPC/myconide.yml): ported from CrystallEdge
+- [`Resources/Prototypes/_CP14/Entities/Objects/Weapons/Ranged/Ammunition/spike.yml`](../../../Resources/Prototypes/_CP14/Entities/Objects/Weapons/Ranged/Ammunition/spike.yml): ported from CrystallEdge
+- [`Resources/Prototypes/_CP14/NPCs/monster.yml`](../../../Resources/Prototypes/_CP14/NPCs/monster.yml): ported from CrystallEdge
+- [`Resources/Prototypes/_CP14/Reagents/monster_toxins.yml`](../../../Resources/Prototypes/_CP14/Reagents/monster_toxins.yml): ported from CrystallEdge
+- [`Resources/Prototypes/_CP14/SoundCollections/animals.yml`](../../../Resources/Prototypes/_CP14/SoundCollections/animals.yml): ported from CrystallEdge
+- [`Resources/Prototypes/_EinsteinEngines/Body/Prototypes/Specific/squackroach.yml`](../../../Resources/Prototypes/_EinsteinEngines/Body/Prototypes/Specific/squackroach.yml): ported from Einstein Engines
+- [`Resources/Prototypes/_EinsteinEngines/Entities/Mobs/NPCs/animals.yml`](../../../Resources/Prototypes/_EinsteinEngines/Entities/Mobs/NPCs/animals.yml): ported from Einstein Engines
+- [`Resources/Prototypes/_Funkystation/Entities/Mobs/NPCs/animals.yml`](../../../Resources/Prototypes/_Funkystation/Entities/Mobs/NPCs/animals.yml): ported from Starlight (Funkystation)
+- [`Resources/Prototypes/_Funkystation/Entities/Mobs/NPCs/zleeb.yml`](../../../Resources/Prototypes/_Funkystation/Entities/Mobs/NPCs/zleeb.yml): ported from Starlight (Funkystation)
+- [`Resources/Prototypes/_Funkystation/Voice/speech_verbs.yml`](../../../Resources/Prototypes/_Funkystation/Voice/speech_verbs.yml): ported from Starlight (Funkystation)
+- [`Resources/Prototypes/_Goobstation/Audio/goonstation_hit_collection.yml`](../../../Resources/Prototypes/_Goobstation/Audio/goonstation_hit_collection.yml): ported from Goob Station
+- [`Resources/Prototypes/_Goobstation/Entities/Mobs/NPCs/demons.yml`](../../../Resources/Prototypes/_Goobstation/Entities/Mobs/NPCs/demons.yml): ported from Goob Station
+- [`Resources/Prototypes/_Goobstation/Wizard/Mobs/misc.yml`](../../../Resources/Prototypes/_Goobstation/Wizard/Mobs/misc.yml): ported from Goob Station
+- [`Resources/Prototypes/_Goobstation/Wraith/Mobs/mobs.yml`](../../../Resources/Prototypes/_Goobstation/Wraith/Mobs/mobs.yml): ported from Goob Station
+- [`Resources/Prototypes/_Impstation/Accents/full_replacements.yml`](../../../Resources/Prototypes/_Impstation/Accents/full_replacements.yml): ported from Impstation
+- [`Resources/Prototypes/_Impstation/Damage/modifier_sets.yml`](../../../Resources/Prototypes/_Impstation/Damage/modifier_sets.yml): ported from Impstation
+- [`Resources/Prototypes/_Impstation/Entities/Clothing/OuterClothing/coats.yml`](../../../Resources/Prototypes/_Impstation/Entities/Clothing/OuterClothing/coats.yml): ported from Impstation, the v-rex butcher drop
+- [`Resources/Prototypes/_Impstation/Entities/Mobs/Animals/magic.yml`](../../../Resources/Prototypes/_Impstation/Entities/Mobs/Animals/magic.yml): ported from Impstation
+- [`Resources/Prototypes/_Impstation/Entities/Mobs/NPCs/animals.yml`](../../../Resources/Prototypes/_Impstation/Entities/Mobs/NPCs/animals.yml): ported from Impstation
+- [`Resources/Prototypes/_Impstation/Entities/Mobs/NPCs/carp.yml`](../../../Resources/Prototypes/_Impstation/Entities/Mobs/NPCs/carp.yml): ported from Impstation
+- [`Resources/Prototypes/_Impstation/Entities/Mobs/NPCs/vrex.yml`](../../../Resources/Prototypes/_Impstation/Entities/Mobs/NPCs/vrex.yml): ported from Impstation
+- [`Resources/Prototypes/_Impstation/Magic/curse.yml`](../../../Resources/Prototypes/_Impstation/Magic/curse.yml): ported from Impstation
+- [`Resources/Prototypes/_Impstation/NPCs/mob.yml`](../../../Resources/Prototypes/_Impstation/NPCs/mob.yml): ported from Impstation NPCs/mob.yml
+- [`Resources/Prototypes/_Impstation/SoundCollections/dino.yml`](../../../Resources/Prototypes/_Impstation/SoundCollections/dino.yml): ported from Impstation
+- [`Resources/Prototypes/_Impstation/Voice/dino.yml`](../../../Resources/Prototypes/_Impstation/Voice/dino.yml): ported from Impstation
+- [`Resources/Prototypes/_Impstation/Voice/speech_verbs.yml`](../../../Resources/Prototypes/_Impstation/Voice/speech_verbs.yml): ported from Impstation
+- [`Resources/Prototypes/_Impstation/Voice/vrex.yml`](../../../Resources/Prototypes/_Impstation/Voice/vrex.yml): ported from Impstation
+- [`Resources/Prototypes/_Lavaland/Damage/modifier_sets.yml`](../../../Resources/Prototypes/_Lavaland/Damage/modifier_sets.yml): ported from Goob Station
+- [`Resources/Prototypes/_Lavaland/Entities/Mobs/goliath.yml`](../../../Resources/Prototypes/_Lavaland/Entities/Mobs/goliath.yml): ported from Goob Station
+- [`Resources/Prototypes/_Lavaland/Entities/Mobs/legion.yml`](../../../Resources/Prototypes/_Lavaland/Entities/Mobs/legion.yml): ported from Goob Station
+- [`Resources/Prototypes/_Lavaland/Entities/Mobs/mobs.yml`](../../../Resources/Prototypes/_Lavaland/Entities/Mobs/mobs.yml): ported from Goob Station
+- [`Resources/Prototypes/_Nuclear14/Damage/modifier_sets.yml`](../../../Resources/Prototypes/_Nuclear14/Damage/modifier_sets.yml): ported from Nuclear 14
+- [`Resources/Prototypes/_Nuclear14/Entities/Mobs/NPCs/basemob.yml`](../../../Resources/Prototypes/_Nuclear14/Entities/Mobs/NPCs/basemob.yml): ported from Nuclear 14
+- [`Resources/Prototypes/_Nuclear14/Entities/Mobs/NPCs/insects.yml`](../../../Resources/Prototypes/_Nuclear14/Entities/Mobs/NPCs/insects.yml): ported from Nuclear 14
+- [`Resources/Prototypes/_Nuclear14/Entities/Mobs/NPCs/plants.yml`](../../../Resources/Prototypes/_Nuclear14/Entities/Mobs/NPCs/plants.yml): ported from Nuclear 14
+- [`Resources/Prototypes/_Nuclear14/NPCs/Combat/gun.yml`](../../../Resources/Prototypes/_Nuclear14/NPCs/Combat/gun.yml): ported from Nuclear 14
+- [`Resources/Prototypes/_Nuclear14/NPCs/Combat/melee.yml`](../../../Resources/Prototypes/_Nuclear14/NPCs/Combat/melee.yml): ported from Nuclear 14
+- [`Resources/Prototypes/_Nuclear14/NPCs/root.yml`](../../../Resources/Prototypes/_Nuclear14/NPCs/root.yml): ported from Nuclear 14
+- [`Resources/Prototypes/_Nuclear14/Reagents/toxins.yml`](../../../Resources/Prototypes/_Nuclear14/Reagents/toxins.yml): ported from Nuclear 14
+- [`Resources/Prototypes/_StarLight/Entities/Mobs/NPCs/abyss.yml`](../../../Resources/Prototypes/_StarLight/Entities/Mobs/NPCs/abyss.yml): ported from Starlight
+- [`Resources/Prototypes/_StarLight/Entities/Mobs/NPCs/hellmobs.yml`](../../../Resources/Prototypes/_StarLight/Entities/Mobs/NPCs/hellmobs.yml): ported from Starlight
+- [`Resources/Prototypes/ADT/Damage/modifier_sets.yml`](../../../Resources/Prototypes/ADT/Damage/modifier_sets.yml): ported from ADT
+- [`Resources/Prototypes/ADT/Entities/Mobs/NPCs/animals.yml`](../../../Resources/Prototypes/ADT/Entities/Mobs/NPCs/animals.yml): ported from ADT
+- [`Resources/Prototypes/ADT/Entities/Mobs/NPCs/space_emperor.yml`](../../../Resources/Prototypes/ADT/Entities/Mobs/NPCs/space_emperor.yml): ported from ADT
+- [`Resources/Prototypes/ai_factions.yml`](../../../Resources/Prototypes/ai_factions.yml): per-species fauna factions ignore other fauna
+- [`Resources/Prototypes/Entities/Mobs/NPCs/hivebot.yml`](../../../Resources/Prototypes/Entities/Mobs/NPCs/hivebot.yml): ported from Space Wizards
+- [`Resources/Textures/_EinsteinEngines/Mobs/Animals/squackroach.rsi/`](../../../Resources/Textures/_EinsteinEngines/Mobs/Animals/squackroach.rsi/): Squackroach sprite, ported from Einstein Engines.
+- [`Resources/Textures/_Funkystation/Mobs/`](../../../Resources/Textures/_Funkystation/Mobs/): Meowl and zleeb sprites, ported from Starlight.
+- [`Resources/Textures/_Goobstation/Mobs/Animals/`](../../../Resources/Textures/_Goobstation/Mobs/Animals/): Abyss crawler sprite, ported from Goob Station.
+- [`Resources/Textures/_Goobstation/Wizard/Mobs/`](../../../Resources/Textures/_Goobstation/Wizard/Mobs/): Otherthing sprite, ported from Goob Station.
+- [`Resources/Textures/_Goobstation/Wraith/Mobs/`](../../../Resources/Textures/_Goobstation/Wraith/Mobs/): Mechanical monstrosity sprites, ported from Goob Station.
+- [`Resources/Textures/_Impstation/Clothing/OuterClothing/Coats/vrex_fur_coat.rsi/`](../../../Resources/Textures/_Impstation/Clothing/OuterClothing/Coats/vrex_fur_coat.rsi/): V-rex fur coat sprite, the v-rex butcher drop, ported from Impstation.
+- [`Resources/Textures/_Impstation/Magic/curse.rsi/`](../../../Resources/Textures/_Impstation/Magic/curse.rsi/): Augury tentacle sprites, ported from Impstation.
+- [`Resources/Textures/_Impstation/Mobs/Aliens/bigfish.rsi/`](../../../Resources/Textures/_Impstation/Mobs/Aliens/bigfish.rsi/): Fiend-fish sprite, ported from Impstation.
+- [`Resources/Textures/_Impstation/Mobs/Aliens/vrex.rsi/`](../../../Resources/Textures/_Impstation/Mobs/Aliens/vrex.rsi/): V-rex sprite, ported from Impstation.
+- [`Resources/Textures/_Impstation/Mobs/Aliens/weirdshrimp.rsi/`](../../../Resources/Textures/_Impstation/Mobs/Aliens/weirdshrimp.rsi/): Weird shrimp sprite, ported from Impstation.
+- [`Resources/Textures/_Impstation/Mobs/Animals/Magic/curse.rsi/`](../../../Resources/Textures/_Impstation/Mobs/Animals/Magic/curse.rsi/): Bad omen and augury sprites, ported from Impstation.
+- [`Resources/Textures/_Lavaland/Mobs/`](../../../Resources/Textures/_Lavaland/Mobs/): Lavaland mob sprites, ported from Goob Station.
+- [`Resources/Textures/_Nuclear14/Mobs/`](../../../Resources/Textures/_Nuclear14/Mobs/): Sporeplant and cazador sprites, ported from Nuclear 14.
+- [`Resources/Textures/_Starlight/Mobs/Abyss/`](../../../Resources/Textures/_Starlight/Mobs/Abyss/): Elder and abyss worm sprites, ported from Starlight.
+- [`Resources/Textures/_Starlight/Mobs/Animals/Hellmobs/`](../../../Resources/Textures/_Starlight/Mobs/Animals/Hellmobs/): Mi-go sprite, ported from Starlight.
+- [`Resources/Textures/ADT/Interface/Actions/space_emperor.rsi/`](../../../Resources/Textures/ADT/Interface/Actions/space_emperor.rsi/): Space emperor light action icons, ported from ADT.
+- [`Resources/Textures/ADT/Mobs/Aliens/`](../../../Resources/Textures/ADT/Mobs/Aliens/): Spitter and space emperor sprites, ported from ADT.
+- [`Resources/Textures/Mobs/Aliens/hivebot.rsi/`](../../../Resources/Textures/Mobs/Aliens/hivebot.rsi/): Hivebot sprite, ported from Space Wizards.
+
+<!-- WOLFGATE-GENERATED END -->
