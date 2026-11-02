@@ -1,5 +1,7 @@
 - type: species
   id: Kobold
+  # WOLFGATE(Voice): its own voice type
+  speechVoice: Saurian
   name: species-name-kobold
   roundStart: false # sad...
   prototype: MobKobold

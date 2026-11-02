@@ -2,9 +2,11 @@
 
 Character voices. Player characters speak their chat aloud as a babble generated in code, with no recordings.
 
-Players set the voice on the character creator's Voice tab: pitch, pitch variance, speed, intonation, vibrato depth
-and speed, tremolo, filter and filter strength. Test plays a typed line. Filters are Dog, Cat, Bird, Lizard, Mouse,
-Slime, Plant, Robot, Alien, Insect and Ghost.
+Players pick a base voice on the character creator's Voice tab, then adjust its pitch, speed, pitch variance,
+intonation, size and breathiness, each with hover text. They also pick a melody (Natural, Flat, Lively, Sing-song, Questioning, Dramatic) and one quirk (Trailing
+mumble, Giggly ending, Sigh). Test plays a typed line. Voices are Human, Canid, Felid, Avian,
+Saurian, Rodent, Gelatinous, Sylvan, Arthropod, Lepidopteran and Synthetic. Changing species picks that species'
+voice type, set by `speechVoice` on its prototype.
 
 The old message sounds stay available on both ends. Speak with, at the top of the Voice tab, puts one character on
 their message sound (the Voice card's pick, or their species' own), so nobody hears a voice from them. Options, Audio,
@@ -32,6 +34,7 @@ most 8 at once, 4 of them radio and 2 from one source) and `SpeechVoiceSynth` (r
 ### Shared
 
 - [`Content.Shared/_WF/Voice/HumanoidCharacterProfile.SpeechVoice.cs`](../../../Content.Shared/_WF/Voice/HumanoidCharacterProfile.SpeechVoice.cs)
+- [`Content.Shared/_WF/Voice/SpeciesPrototype.SpeechVoice.cs`](../../../Content.Shared/_WF/Voice/SpeciesPrototype.SpeechVoice.cs)
 - [`Content.Shared/_WF/Voice/SpeechVoice.cs`](../../../Content.Shared/_WF/Voice/SpeechVoice.cs)
 - [`Content.Shared/_WF/Voice/SpeechVoiceComponent.cs`](../../../Content.Shared/_WF/Voice/SpeechVoiceComponent.cs)
 - [`Content.Shared/_WF/Voice/SpeechVoiceCVars.cs`](../../../Content.Shared/_WF/Voice/SpeechVoiceCVars.cs)
@@ -46,6 +49,8 @@ most 8 at once, 4 of them radio and 2 from one source) and `SpeechVoiceSynth` (r
 - [`Content.Client/_WF/Voice/SpeechVoicePicker.cs`](../../../Content.Client/_WF/Voice/SpeechVoicePicker.cs)
 - [`Content.Client/_WF/Voice/SpeechVoiceSynth.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceSynth.cs)
 - [`Content.Client/_WF/Voice/SpeechVoiceSynth.Effects.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceSynth.Effects.cs)
+- [`Content.Client/_WF/Voice/SpeechVoiceSynth.Melody.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceSynth.Melody.cs)
+- [`Content.Client/_WF/Voice/SpeechVoiceSynth.Quirks.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceSynth.Quirks.cs)
 - [`Content.Client/_WF/Voice/SpeechVoiceSynth.Sounds.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceSynth.Sounds.cs)
 - [`Content.Client/_WF/Voice/SpeechVoiceSynth.Species.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceSynth.Species.cs)
 - [`Content.Client/_WF/Voice/SpeechVoiceSynth.Text.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceSynth.Text.cs)
@@ -66,7 +71,7 @@ most 8 at once, 4 of them radio and 2 from one source) and `SpeechVoiceSynth` (r
 ## Non-modular edits
 
 - [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml): voice tab, filled in by HumanoidProfileEditor.SpeechVoice.cs
-- [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs)
+- [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs): a new species starts on its own voice type
 - [`Content.Client/Options/UI/Tabs/AudioTab.xaml`](../../../Content.Client/Options/UI/Tabs/AudioTab.xaml)
   - volume for character voices
   - toggle for character voices
@@ -75,5 +80,25 @@ most 8 at once, 4 of them radio and 2 from one source) and `SpeechVoiceSynth` (r
 - [`Content.Server/Database/ServerDbBase.cs`](../../Database/ServerDbBase.cs)
 - [`Content.Server/Speech/SpeechNoiseSystem.cs`](../../Speech/SpeechNoiseSystem.cs): the voice plays instead, unless the character chose the message sound
 - [`Content.Shared/Preferences/HumanoidCharacterProfile.cs`](../../../Content.Shared/Preferences/HumanoidCharacterProfile.cs): out-of-range sliders come back inside their range; crafted network data can deliver null
+- [`Resources/Prototypes/_DV/Species/avali.yml`](../../../Resources/Prototypes/_DV/Species/avali.yml): its own voice type
+- [`Resources/Prototypes/_DV/Species/chitinid.yml`](../../../Resources/Prototypes/_DV/Species/chitinid.yml): its own voice type
+- [`Resources/Prototypes/_DV/Species/harpy.yml`](../../../Resources/Prototypes/_DV/Species/harpy.yml): its own voice type
+- [`Resources/Prototypes/_DV/Species/rodentia.yml`](../../../Resources/Prototypes/_DV/Species/rodentia.yml): its own voice type
+- [`Resources/Prototypes/_DV/Species/vulpkanin.yml`](../../../Resources/Prototypes/_DV/Species/vulpkanin.yml): its own voice type
+- [`Resources/Prototypes/_EinsteinEngines/Species/ipc.yml`](../../../Resources/Prototypes/_EinsteinEngines/Species/ipc.yml): its own voice type
+- [`Resources/Prototypes/_Goobstation/Species/tajaran.yml`](../../../Resources/Prototypes/_Goobstation/Species/tajaran.yml): its own voice type
+- [`Resources/Prototypes/_HL/Species/synth.yml`](../../../Resources/Prototypes/_HL/Species/synth.yml): its own voice type
+- [`Resources/Prototypes/_Moffstation/Species/resomi.yml`](../../../Resources/Prototypes/_Moffstation/Species/resomi.yml): its own voice type
+- [`Resources/Prototypes/_Mono/Species/protogen.yml`](../../../Resources/Prototypes/_Mono/Species/protogen.yml): its own voice type
+- [`Resources/Prototypes/_Obelisk/Species/hydrakin.yml`](../../../Resources/Prototypes/_Obelisk/Species/hydrakin.yml): its own voice type
+- [`Resources/Prototypes/_Shitmed/Species/kobold.yml`](../../../Resources/Prototypes/_Shitmed/Species/kobold.yml): its own voice type
+- [`Resources/Prototypes/_StarLight/Species/felionoid.yml`](../../../Resources/Prototypes/_StarLight/Species/felionoid.yml): its own voice type
+- [`Resources/Prototypes/Nyanotrasen/Species/felinid.yml`](../../../Resources/Prototypes/Nyanotrasen/Species/felinid.yml): its own voice type
+- [`Resources/Prototypes/Species/arachnid.yml`](../../../Resources/Prototypes/Species/arachnid.yml): its own voice type
+- [`Resources/Prototypes/Species/diona.yml`](../../../Resources/Prototypes/Species/diona.yml): its own voice type
+- [`Resources/Prototypes/Species/moth.yml`](../../../Resources/Prototypes/Species/moth.yml): its own voice type
+- [`Resources/Prototypes/Species/reptilian.yml`](../../../Resources/Prototypes/Species/reptilian.yml): its own voice type
+- [`Resources/Prototypes/Species/slime.yml`](../../../Resources/Prototypes/Species/slime.yml): its own voice type
+- [`Resources/Prototypes/Species/vox.yml`](../../../Resources/Prototypes/Species/vox.yml): its own voice type
 
 <!-- WOLFGATE-GENERATED END -->

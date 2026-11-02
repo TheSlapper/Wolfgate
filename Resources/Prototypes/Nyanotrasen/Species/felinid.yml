@@ -1,5 +1,7 @@
 - type: species
   id: Felinid
+  # WOLFGATE(Voice): its own voice type
+  speechVoice: Felid
   name: species-name-felinid
   roundStart: true # WOLFGATE: mrrow
   prototype: MobFelinid

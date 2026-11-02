@@ -1,5 +1,7 @@
 - type: species
   id: Resomi
+  # WOLFGATE(Voice): its own voice type
+  speechVoice: Avian
   name: species-name-resomi
   roundStart: true
   prototype: MobResomi

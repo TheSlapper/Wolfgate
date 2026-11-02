@@ -3,6 +3,7 @@
 # marking budget - is Vulpkanin's (vulpkanin.yml beside this file).
 - type: species
   id: WFCanine
+  speechVoice: Canid
   name: species-name-canine
   roundStart: true
   prototype: WFMobCanine

@@ -1,5 +1,7 @@
 - type: species
   id: SlimePerson
+  # WOLFGATE(Voice): its own voice type
+  speechVoice: Gelatinous
   name: species-name-slime
   roundStart: true
   prototype: MobSlimePerson

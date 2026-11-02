@@ -1,5 +1,7 @@
 - type: species
   id: IPC
+  # WOLFGATE(Voice): its own voice type
+  speechVoice: Synthetic
   name: species-name-ipc
   roundStart: true
   prototype: MobIPC

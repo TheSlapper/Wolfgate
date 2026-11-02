@@ -1,5 +1,7 @@
 - type: species
   id: Protogen
+  # WOLFGATE(Voice): its own voice type
+  speechVoice: Synthetic
   name: species-name-protogen
   roundStart: true # WOLFGATE(Species): was false, so the base species is selectable in the creator
   prototype: MobProtogen

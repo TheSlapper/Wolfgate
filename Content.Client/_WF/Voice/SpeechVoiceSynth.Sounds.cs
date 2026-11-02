@@ -92,6 +92,9 @@ public sealed partial class SpeechVoiceSynth
     private static readonly Consonant F = Make(SoundKind.Fricative, 400, 1100, 2400, 7000, 4000, 0.2f);
     private static readonly Consonant V = Make(SoundKind.Fricative, 400, 1100, 2400, 7000, 4000, 0.12f, true);
     private static readonly Consonant Th = Make(SoundKind.Fricative, 400, 1400, 2600, 5000, 4000, 0.4f);
+    private static readonly Consonant Sh = Make(SoundKind.Fricative, 300, 1840, 2750, 3000, 2000, 0.6f);
+    private static readonly Consonant Ch = Make(SoundKind.Affricate, 300, 2000, 2700, 2800, 1500, 0.5f);
+    private static readonly Consonant Ng = Make(SoundKind.Nasal, 250, 2000, 2600);
     private static readonly Consonant H = Make(SoundKind.Aspirate, 640, 1190, 2390);
     private static readonly Consonant M = Make(SoundKind.Nasal, 250, 1000, 2300);
     private static readonly Consonant N = Make(SoundKind.Nasal, 250, 1700, 2600);
@@ -133,6 +136,20 @@ public sealed partial class SpeechVoiceSynth
             'j' => Stop(J),
             'x' => Syllable(Loud(K), Uh, Uh, S),
             _ => Stop(K),
+        };
+    }
+
+    /// <summary>The one blip for a lower-case letter pair that spells a single sound, or null.</summary>
+    private static Blip? Pair(char first, char second)
+    {
+        return (first, second) switch
+        {
+            ('s', 'h') => Held(Sh),
+            ('c', 'h') => Stop(Ch),
+            ('t', 'h') => Held(Th),
+            ('p', 'h') => Held(F),
+            ('n', 'g') => Held(Ng),
+            _ => null,
         };
     }
 

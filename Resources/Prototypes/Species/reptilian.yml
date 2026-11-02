@@ -1,5 +1,7 @@
 - type: species
   id: Reptilian
+  # WOLFGATE(Voice): its own voice type
+  speechVoice: Saurian
   name: species-name-reptilian
   roundStart: true
   prototype: MobReptilian

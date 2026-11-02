@@ -1,5 +1,7 @@
 - type: species
   id: Synth
+  # WOLFGATE(Voice): its own voice type
+  speechVoice: Synthetic
   name: species-name-synth
   roundStart: true
   prototype: MobSynth

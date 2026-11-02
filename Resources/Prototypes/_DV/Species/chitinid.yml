@@ -1,5 +1,7 @@
 - type: species
   id: Chitinid
+  # WOLFGATE(Voice): its own voice type
+  speechVoice: Arthropod
   name: species-name-chitinid
   roundStart: true
   prototype: MobChitinid

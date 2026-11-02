@@ -11,15 +11,13 @@ public sealed partial class SpeechVoiceSynth
     /// <summary>Output samples per second.</summary>
     public const int SampleRate = 32000;
 
-    /// <summary>The most samples a line can take: the four second cap and the Ghost filter's tail.</summary>
-    public const int MaxSamples = (int) (MaxSeconds * SampleRate) + GhostTail;
+    /// <summary>The most samples a line can take, four seconds.</summary>
+    public const int MaxSamples = (int) (MaxSeconds * SampleRate);
 
     private const int MaxBlips = 64;
     private const float MaxSeconds = 4f;
-    private const int GhostTail = SampleRate / 2;
     private const float BaseF0 = 220f;
     private const float BaseFormantScale = 1.35f;
-    private const float TremoloRate = 7f;
     private const int Block = 32;
     private const int MaxHarmonics = 64;
     private const float MaxFrequency = 0.45f * SampleRate;
@@ -29,8 +27,13 @@ public sealed partial class SpeechVoiceSynth
     private const float PhraseDeclination = 0.08f;
     private const float Coarticulation = 0.4f;
 
-    /// <summary>Letter slot against the Speed setting, so letters run short and chopped.</summary>
-    private const float LetterScale = 0.5f;
+    /// <summary>Intonation at which a question's last letter gets its full lift.</summary>
+    private const float FullIntonation = 0.5f;
+
+    /// <summary>Loudness every line is levelled to, as an RMS before the peak limit.</summary>
+    private const float TargetRms = 0.16f;
+
+    private const float BuzzRate = 125f;
 
     /// <summary>Loudness of a pop against the voiced part.</summary>
     private const float PopLevel = 0.25f;
@@ -41,6 +44,13 @@ public sealed partial class SpeechVoiceSynth
     private const float FricationLevel = 1.2f;
     private const float AspirationLevel = 0.5f;
     private const float BreathLevel = 0.6f;
+    private const float WhisperLevel = 9f;
+
+    /// <summary>Silence added after a line for the room echo to ring out.</summary>
+    private const float RoomTail = 0.12f;
+
+    /// <summary>Extra weight above 1.5 kHz when levelling, about 4 dB.</summary>
+    private const float ShelfBoost = 0.58f;
 
     private NoiseSource _noise;
 
@@ -48,7 +58,7 @@ public sealed partial class SpeechVoiceSynth
     /// Renders a message into <see cref="SpeechVoiceBuffers.Pcm"/>, capped at four seconds, and returns how many
     /// samples it wrote. Zero when it has no letters or digits.
     /// </summary>
-    /// <param name="radio">Plays it as heard through a radio, on top of any filter.</param>
+    /// <param name="radio">Plays it as heard through a radio, on top of the voice.</param>
     public int Render(string text, SpeechVoice voice, bool radio, SpeechVoiceBuffers buffers)
     {
         var blips = Blips(text);
@@ -57,10 +67,10 @@ public sealed partial class SpeechVoiceSynth
 
         // Seeded from the text, so every listener renders the same line the same way.
         _noise = new NoiseSource((int) SpeechVoice.Hash(text));
-        var style = Style.For(voice.Filter, voice.FilterStrength);
+        var style = Style.For(voice.Type);
 
-        var wordOnset = WordOnsetFor(voice.Filter);
-        if (wordOnset.Kind != SoundKind.None && voice.FilterStrength >= 0.5f)
+        var wordOnset = WordOnsetFor(voice.Type);
+        if (wordOnset.Kind != SoundKind.None)
         {
             var previousWord = -1;
             for (var i = 0; i < blips.Count; i++)
@@ -92,16 +102,19 @@ public sealed partial class SpeechVoiceSynth
             }
         }
 
-        var slot = (int) (voice.Speed * style.SlotScale * LetterScale * SampleRate);
+        ApplyQuirk(blips, voice.Quirk);
+
+        var slot = style.LetterSeconds / (voice.Pace * Melody.For(voice.Melody).Pace) * SampleRate;
         var starts = new int[blips.Count + 1];
         for (var i = 0; i < blips.Count; i++)
         {
-            starts[i + 1] = starts[i] + (int) (slot * blips[i].Length);
+            var slots = blips[i].Gap ? blips[i].Length * style.GapScale : blips[i].Length;
+            starts[i + 1] = starts[i] + (int) (slot * slots);
         }
 
-        var tail = voice.Filter == SpeechVoiceFilter.Ghost ? GhostTail : 0;
-        var length = Math.Min(starts[^1], (int) (MaxSeconds * SampleRate));
-        var buffer = buffers.Samples.AsSpan(0, length + tail);
+        var tail = radio ? 0 : (int) (RoomTail * SampleRate);
+        var length = Math.Min(starts[^1] + tail, MaxSamples);
+        var buffer = buffers.Samples.AsSpan(0, length);
         buffer.Clear();
 
         Speak(buffer, length, blips, starts, voice, style);
@@ -130,20 +143,14 @@ public sealed partial class SpeechVoiceSynth
             }
         }
 
-        if (voice.Tremolo > 0f)
-        {
-            for (var i = 0; i < buffer.Length; i++)
-            {
-                var wobble = 0.5f * (1f + MathF.Sin(MathF.Tau * TremoloRate * i / SampleRate));
-                buffer[i] *= 1f - voice.Tremolo * wobble;
-            }
-        }
-
-        if (voice.FilterStrength > 0f)
-            ApplyEffect(buffer, voice.Filter, voice.FilterStrength, buffers);
+        ApplyEffect(buffer, style.Effect);
+        LowPass(buffer, style.LowPass);
+        HighPass(buffer, 80f);
 
         if (radio)
             Radio(buffer);
+        else
+            Room(buffer);
 
         ToPcm(buffer, buffers.Pcm);
         return buffer.Length;
@@ -157,34 +164,44 @@ public sealed partial class SpeechVoiceSynth
         SpeechVoice voice,
         Style style)
     {
-        var filter = voice.Filter;
-        var s = voice.FilterStrength;
+        var type = voice.Type;
+        var melody = Melody.For(voice.Melody);
+        var intonation = style.Intonation * voice.Intonation * melody.Intonation;
         var pitch = voice.Pitch * style.F0Scale;
-        var formantScale = BaseFormantScale * voice.Pitch * style.FormantScale;
+        var formantScale = BaseFormantScale * voice.Pitch * style.FormantScale / voice.Size;
+        // Breathiness runs from a pressed, bright voice at 0 to a soft, half-whispered one at the top.
+        var rd = style.Rd * (0.6f + 0.4f * voice.Breathiness);
+        var extraBreath = MathF.Max(0f, voice.Breathiness - 1f);
+        var whisperAmount = MathF.Min(1f, style.Whisper + 0.35f * extraBreath);
 
         var tilt = new float[MaxHarmonics + 1];
         var shoutTilt = new float[MaxHarmonics + 1];
         for (var k = 1; k <= MaxHarmonics; k++)
         {
-            tilt[k] = LfHarmonic(k, style.Rd) * MathF.Pow(k, 1f - style.Tilt);
-            shoutTilt[k] = LfHarmonic(k, style.Rd * 0.7f) * MathF.Pow(k, 1f - style.Tilt);
+            tilt[k] = LfHarmonic(k, rd) * MathF.Pow(k, 1f - style.Tilt);
+            shoutTilt[k] = LfHarmonic(k, rd * 0.7f) * MathF.Pow(k, 1f - style.Tilt);
         }
 
         var ampFrom = new float[MaxHarmonics + 1];
         var ampTo = new float[MaxHarmonics + 1];
         var harmonics = 0;
 
-        var f0Glide = Smoothing(0.008f);
+        // Pitch glides over about 20 ms, near the fastest a person can move between notes (Xu and Sun 2002).
+        var f0Glide = Smoothing(0.02f);
         var gainGlide = Smoothing(0.0015f);
-        var formantGlide = 1f - MathF.Exp(-Block / (0.008f * SampleRate));
-        var attack = 0.003f * SampleRate;
-        var fade = 0.004f * SampleRate;
+        var formantGlide = 1f - MathF.Exp(-Block / (0.012f * SampleRate));
+        var attack = 0.005f * SampleRate;
+        var fade = 0.012f * SampleRate;
 
         var formants = Eh * formantScale;
         var f0 = BaseF0 * pitch;
         var f0Target = f0;
         var frication = new NoiseBand();
         var breath = new NoiseBand();
+        var whisper1 = new NoiseBand();
+        var whisper2 = new NoiseBand();
+        var whisper3 = new NoiseBand();
+        var driveNorm = style.Drive > 1f ? 1f / MathF.Tanh(style.Drive) : 1f;
 
         var voiceGain = 0f;
         var fricationGain = 0f;
@@ -194,8 +211,8 @@ public sealed partial class SpeechVoiceSynth
         var periodAmp = 1f;
         var alternate = false;
         var jitter = 0f;
-        var vibrato = 0f;
-        var vibratoStep = MathF.Tau * voice.VibratoRate / SampleRate;
+        var shake = 0f;
+        var shakeStep = MathF.Tau * style.VibratoRate / SampleRate;
         var wobblePhase = 0f;
 
         var words = 0;
@@ -227,7 +244,10 @@ public sealed partial class SpeechVoiceSynth
         // A slow pitch and loudness swing, each cycle 0.33 to 0.47 s long.
         var swingPhase = 0f;
         var swingStep = MathF.Tau / (0.4f * SampleRate);
-        var swingDepth = 0.03f + 0.08f * voice.Intonation;
+        var swingDepth = (0.03f + 0.08f * intonation) * melody.Swing;
+        var currentWord = -1;
+        var wordUp = false;
+        var wordPitch = 1f;
 
         for (var b = 0; b < blips.Count; b++)
         {
@@ -248,9 +268,15 @@ public sealed partial class SpeechVoiceSynth
             var blipTilt = blip.Shout ? shoutTilt : tilt;
 
             // Each letter gets its own note, kept a step away from the last one.
-            var spread = 0.7f * voice.PitchVariance * style.PitchSpread;
+            var spread = 0.7f * style.PitchVariance * voice.PitchVariance * style.PitchSpread * melody.Spread;
+            if (blip.Word != currentWord)
+            {
+                currentWord = blip.Word;
+                wordPitch = melody.WordPitch(blip, ref wordUp, _noise.Next());
+            }
+
             var note = 1f + spread * _noise.Next();
-            var step = 0.02f * style.PitchSpread;
+            var step = spread > 0f ? 0.02f * style.PitchSpread * MathF.Min(1f, voice.PitchVariance) : 0f;
             if (MathF.Abs(note - letterPitch) < step)
                 note = letterPitch + (note >= letterPitch ? step : -step);
             letterPitch = note;
@@ -258,11 +284,11 @@ public sealed partial class SpeechVoiceSynth
             var blipGain = blip.Gain;
             var lastLift = 1f;
             if (blip.Last && blip.Ending == '?')
-                lastLift = 1.13f + 0.17f * MathF.Min(1f, voice.Intonation / SpeechVoice.MaxIntonation);
+                lastLift = 1.13f + 0.17f * MathF.Min(1f, intonation / FullIntonation);
             if (blip.Last && blip.Ending == '!')
                 blipGain *= 1.25f;
 
-            var blipF0 = BaseF0 * pitch * letterPitch * Contour(blip, voice.Intonation) * blip.Lift * lastLift;
+            var blipF0 = BaseF0 * pitch * letterPitch * wordPitch * Contour(blip, intonation, melody.Uptalk) * blip.Lift * lastLift;
             var blipFormants = 1f + 0.03f * _noise.Next();
             var slotSeconds = slotLength / (float) SampleRate;
 
@@ -279,7 +305,7 @@ public sealed partial class SpeechVoiceSynth
             var hasCoda = blip.Coda.Kind != SoundKind.None;
             var codaStart = hasCoda ? 0.5f : 1f;
             var noiseInCoda = false;
-            var snap = true;
+            var snap = b == 0 || blips[b - 1].Gap;
             var endsWord = b + 1 >= blips.Count || blips[b + 1].Gap;
             var wordFade = MathF.Min(WordFadeSeconds * SampleRate, 0.5f * slotLength);
             wobblePhase = MathF.Tau * (0.5f + 0.5f * _noise.Next());
@@ -340,8 +366,9 @@ public sealed partial class SpeechVoiceSynth
                     }
                 }
 
-                // Cut off at the end of the slot with a short fade, so letters run back to back.
-                var envelope = MathF.Min(1f, MathF.Min((i - start) / attack, (start + slotLength - i) / fade));
+                // Eases out at the end of the slot, so letters run back to back without a click.
+                var cut = MathF.Min(1f, (start + slotLength - i) / fade);
+                var envelope = MathF.Min(MathF.Min(1f, (i - start) / attack), cut * cut * (3f - 2f * cut));
 
                 // The last letter of a word has silence after it, where a sharp cut clicks, so it eases out for longer.
                 if (endsWord)
@@ -356,7 +383,7 @@ public sealed partial class SpeechVoiceSynth
                 if (i % Block == 0)
                 {
                     var wordT = Math.Clamp((i - wordStart) / wordLength, 0f, 1f);
-                    var shape = ShapeFor(filter, s, t, wordT);
+                    var shape = ShapeFor(type, t, wordT);
                     var mouth = Vector3.Lerp(target, shape.Formants, shape.Pull) * (formantScale * blipFormants);
                     if (style.Wobble > 0f)
                     {
@@ -369,18 +396,25 @@ public sealed partial class SpeechVoiceSynth
                     mouth.X *= shape.F1;
                     mouth.Y *= shape.F2;
 
-                    // A new letter starts on its own mouth shape, so neighbours don't blur.
+                    // A word's first letter starts on its own mouth shape, later letters glide from the one before.
                     formants = snap ? mouth : formants + (mouth - formants) * formantGlide;
                     snap = false;
                     Array.Copy(ampTo, ampFrom, ampTo.Length);
-                    harmonics = Harmonics(ampTo, blipTilt, f0, formants, formantScale);
+                    harmonics = Harmonics(ampTo, blipTilt, f0, formants, formantScale, style);
                     breath.Tune(MathF.Min(formants.Z, MaxFrequency), 3000f * formantScale, SampleRate);
+                    if (whisperAmount > 0f)
+                    {
+                        var width = formantScale * style.Bandwidth;
+                        whisper1.Tune(MathF.Min(formants.X, MaxFrequency), 150f * width, SampleRate);
+                        whisper2.Tune(MathF.Min(formants.Y, MaxFrequency), 200f * width, SampleRate);
+                        whisper3.Tune(MathF.Min(formants.Z, MaxFrequency), 300f * width, SampleRate);
+                    }
                     var sinceVowel = MathF.Max(0f, t - onsetEnd) * slotSeconds;
                     f0Target = blipF0 * shape.F0 * (1f + bump * MathF.Exp(-sinceVowel / 0.03f));
                 }
 
                 f0 += (f0Target - f0) * f0Glide;
-                vibrato += vibratoStep;
+                shake += shakeStep;
                 swingPhase += swingStep;
                 if (swingPhase >= MathF.Tau)
                 {
@@ -390,8 +424,8 @@ public sealed partial class SpeechVoiceSynth
 
                 var swing = swingDepth * MathF.Sin(swingPhase);
                 var currentF0 = f0 * (1f + swing);
-                if (voice.VibratoDepth > 0f)
-                    currentF0 *= 1f + voice.VibratoDepth * MathF.Sin(vibrato);
+                if (style.VibratoDepth > 0f)
+                    currentF0 *= 1f + style.VibratoDepth * MathF.Sin(shake);
                 var growl = style.Growl > 0f ? MathF.Sin(MathF.Tau * 40f * i / SampleRate) : 0f;
                 if (style.Growl > 0f)
                     currentF0 *= 1f + 0.04f * style.Growl * growl;
@@ -435,11 +469,18 @@ public sealed partial class SpeechVoiceSynth
 
                 // Breath rides on the open phase of each glottal cycle (Klatt and Klatt 1990).
                 var open = phase < 0.6f ? MathF.Sin(MathF.PI * phase / 0.6f) : 0.15f;
-                var breathAmount = style.Breath;
+                var breathAmount = style.Breath * voice.Breathiness + 0.25f * extraBreath;
                 if (style.BreathGust > 0f)
                 {
                     var gust = 0.5f + 0.5f * MathF.Sin(MathF.Tau * 2.5f * i / SampleRate);
                     breathAmount += 0.35f * style.BreathGust * gust;
+                }
+
+                if (whisperAmount > 0f)
+                {
+                    var whispered = whisper1.Process(noise) + 0.7f * whisper2.Process(noise)
+                                    + 0.4f * whisper3.Process(noise);
+                    harmonic = harmonic * (1f - whisperAmount) + whispered * whisperAmount * WhisperLevel;
                 }
 
                 var voicedPart = voiceGain * periodAmp
@@ -460,6 +501,18 @@ public sealed partial class SpeechVoiceSynth
                 // Runs across word gaps, so a short letter still gets whole purr cycles.
                 if (style.Purr > 0f)
                     sample *= 1f - 0.3f * style.Purr * (0.5f + 0.5f * MathF.Sin(MathF.Tau * 25f * i / SampleRate));
+
+                if (style.Flutter > 0f)
+                {
+                    var beat = 0.5f + 0.5f * MathF.Sin(MathF.Tau * style.FlutterRate * i / SampleRate);
+                    sample *= 1f - style.Flutter * beat * beat;
+                }
+
+                if (style.Buzz > 0f)
+                    sample *= 1f - style.Buzz * (0.5f + 0.5f * MathF.Sin(MathF.Tau * BuzzRate * i / SampleRate));
+
+                if (style.Drive > 1f)
+                    sample = MathF.Tanh(style.Drive * sample) * driveNorm;
 
                 for (var k = 0; k < popCount; k++)
                 {
@@ -495,7 +548,12 @@ public sealed partial class SpeechVoiceSynth
 
     /// <summary>Fills harmonic amplitudes, normalised to unit power, and returns how many fit under Nyquist.</summary>
     // Amplitudes come from the glottal tilt and the formant curves at each harmonic, so every vowel is about as loud.
-    private static int Harmonics(float[] amps, float[] tilt, float f0, Vector3 formants, float formantScale)
+    private static int Harmonics(float[] amps,
+        float[] tilt,
+        float f0,
+        Vector3 formants,
+        float formantScale,
+        in Style style)
     {
         // Harmonics well above F4 add almost nothing, so stop there.
         var f4 = formants.Z + 1000f * formantScale;
@@ -505,15 +563,27 @@ public sealed partial class SpeechVoiceSynth
 
         // Wider formants at high pitch, so widely spaced harmonics still sound each vowel evenly.
         var widen = 0.2f * f0;
+        var width = style.Bandwidth;
+
+        // A nasal resonance and anti-resonance. Equal at 0 they cancel, then the anti-resonance moves up.
+        var nasalPole = 250f * formantScale;
+        var nasalZero = nasalPole * (1f + style.Nasal);
+        var nasalWidth = 100f * formantScale;
+
+        var whistle = style.Whistle > 0f ? (int) MathF.Round(1800f * formantScale / MathF.Max(f0, 1f)) : 0;
 
         for (var k = 1; k <= count; k++)
         {
             var f = k * f0;
             var a = tilt[k]
-                    * Resonance(f, formants.X, 80f * formantScale + widen)
-                    * Resonance(f, formants.Y, 100f * formantScale + widen)
-                    * Resonance(f, formants.Z, 140f * formantScale + widen)
-                    * Resonance(f, f4, 250f * formantScale + widen);
+                    * Resonance(f, formants.X, (80f * formantScale + widen) * width)
+                    * Resonance(f, formants.Y, (100f * formantScale + widen) * width)
+                    * Resonance(f, formants.Z, (140f * formantScale + widen) * width)
+                    * Resonance(f, f4, (250f * formantScale + widen) * width);
+            if (style.Nasal > 0f)
+                a *= Resonance(f, nasalPole, nasalWidth) / Resonance(f, nasalZero, nasalWidth);
+            if (k == whistle)
+                a *= 1f + 3f * style.Whistle;
             amps[k] = a;
             power += a * a;
         }
@@ -562,7 +632,8 @@ public sealed partial class SpeechVoiceSynth
     }
 
     /// <summary>Pitch through a phrase: a gentle fall, then a tune from the punctuation that ends it.</summary>
-    private static float Contour(in Blip blip, float intonation)
+    /// <param name="uptalk">Statements end rising instead of falling.</param>
+    private static float Contour(in Blip blip, float intonation, bool uptalk)
     {
         var t = blip.PhrasePosition;
         var ending = Math.Max(0f, (t - 0.6f) / 0.4f);
@@ -571,22 +642,39 @@ public sealed partial class SpeechVoiceSynth
             '?' => 1f + intonation * 0.5f * ending,
             '!' => 1f + intonation * 0.6f * (1f - t),
             ',' => 1f + intonation * 0.2f * ending,
+            _ when uptalk => 1f + intonation * 0.6f * Math.Max(0f, (t - 0.4f) / 0.6f),
             _ => 1f - intonation * 0.5f * ending,
         };
 
         return (1f - PhraseDeclination * t) * tune;
     }
 
-    /// <summary>16-bit samples, scaled so the loudest one sits at the same level for every voice.</summary>
+    /// <summary>16-bit samples levelled by loudness, so one loud burst doesn't make the whole line quiet.</summary>
+    // RMS is taken over the voiced part only, then the gain is capped so the peak stays under TargetPeak.
     private static void ToPcm(ReadOnlySpan<float> buffer, short[] pcm)
     {
         var peak = 0f;
+        var power = 0.0;
+        var counted = 0;
+
+        // Loudness is weighted toward the treble, as ears hear it, so bright voices aren't levelled louder.
+        var shelf = OnePole(1500f);
+        var low = 0f;
         foreach (var sample in buffer)
         {
-            peak = Math.Max(peak, Math.Abs(sample));
+            low += (sample - low) * shelf;
+            var level = Math.Abs(sample);
+            peak = Math.Max(peak, level);
+            if (level <= 1e-4f)
+                continue;
+
+            var weighted = sample + ShelfBoost * (sample - low);
+            power += weighted * weighted;
+            counted++;
         }
 
-        var gain = peak > 0f ? TargetPeak / peak : 0f;
+        var rms = counted > 0 ? (float) Math.Sqrt(power / counted) : 0f;
+        var gain = peak > 0f ? MathF.Min(TargetRms / rms, TargetPeak / peak) : 0f;
 
         for (var i = 0; i < buffer.Length; i++)
         {

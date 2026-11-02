@@ -1,30 +1,15 @@
+using System.Linq;
 using Content.Client._WF.Stylesheets;
 using Content.Shared._WF.Voice;
 using Robust.Client.UserInterface.Controls;
 
 namespace Content.Client._WF.Voice;
 
-/// <summary>Creator card with the choice of voice or message sound, and the voice's sliders, filter and a Test button.</summary>
+/// <summary>Creator card with the choice of voice or message sound, the base voice, its sliders and a Test button.</summary>
 public sealed partial class SpeechVoicePicker : PanelContainer
 {
     private const int ModeVoice = 0;
     private const int ModeSound = 1;
-
-    private static readonly SpeechVoiceFilter[] Filters =
-    {
-        SpeechVoiceFilter.None,
-        SpeechVoiceFilter.Dog,
-        SpeechVoiceFilter.Cat,
-        SpeechVoiceFilter.Bird,
-        SpeechVoiceFilter.Lizard,
-        SpeechVoiceFilter.Mouse,
-        SpeechVoiceFilter.Slime,
-        SpeechVoiceFilter.Plant,
-        SpeechVoiceFilter.Robot,
-        SpeechVoiceFilter.Alien,
-        SpeechVoiceFilter.Insect,
-        SpeechVoiceFilter.Ghost,
-    };
 
     /// <summary>Any setting changed. The voice passed is a new copy.</summary>
     public event Action<SpeechVoice>? OnVoiceChanged;
@@ -38,7 +23,9 @@ public sealed partial class SpeechVoicePicker : PanelContainer
     private readonly OptionButton _mode;
     private readonly Label _modeHint;
     private readonly BoxContainer _settings;
-    private readonly OptionButton _filter;
+    private readonly OptionButton _type;
+    private readonly OptionButton _melody;
+    private readonly OptionButton _quirk;
     private readonly LineEdit _testText;
 
     public SpeechVoicePicker()
@@ -76,40 +63,40 @@ public sealed partial class SpeechVoicePicker : PanelContainer
         };
         box.AddChild(_settings);
 
-        AddSlider(_settings, "speech-voice-pitch", SpeechVoice.MinPitch, SpeechVoice.MaxPitch,
-            v => v.Pitch, (v, x) => v.Pitch = x);
-        AddSlider(_settings, "speech-voice-pitch-variance", 0f, SpeechVoice.MaxPitchVariance,
-            v => v.PitchVariance, (v, x) => v.PitchVariance = x);
-        // Speed is seconds per syllable, so the slider runs backwards to put faster on the right.
-        AddSlider(_settings, "speech-voice-speed", SpeechVoice.MinSpeed, SpeechVoice.MaxSpeed,
-            v => SpeechVoice.MinSpeed + SpeechVoice.MaxSpeed - v.Speed,
-            (v, x) => v.Speed = SpeechVoice.MinSpeed + SpeechVoice.MaxSpeed - x);
-        AddSlider(_settings, "speech-voice-intonation", 0f, SpeechVoice.MaxIntonation,
-            v => v.Intonation, (v, x) => v.Intonation = x);
-        AddSlider(_settings, "speech-voice-vibrato-depth", 0f, SpeechVoice.MaxVibratoDepth,
-            v => v.VibratoDepth, (v, x) => v.VibratoDepth = x);
-        AddSlider(_settings, "speech-voice-vibrato-rate", SpeechVoice.MinVibratoRate, SpeechVoice.MaxVibratoRate,
-            v => v.VibratoRate, (v, x) => v.VibratoRate = x);
-        AddSlider(_settings, "speech-voice-tremolo", 0f, SpeechVoice.MaxTremolo,
-            v => v.Tremolo, (v, x) => v.Tremolo = x);
-
-        var filterRow = NewRow("speech-voice-filter");
-        _filter = new OptionButton { MinWidth = 220 };
-        foreach (var filter in Filters)
+        var typeRow = NewRow("speech-voice-type");
+        _type = new OptionButton { MinWidth = 220 };
+        foreach (var type in Enum.GetValues<SpeechVoiceType>())
         {
-            _filter.AddItem(Loc.GetString($"speech-voice-filter-{filter.ToString().ToLowerInvariant()}"), (int) filter);
+            _type.AddItem(Loc.GetString($"speech-voice-type-{type.ToString().ToLowerInvariant()}"), (int) type);
         }
 
-        _filter.OnItemSelected += args =>
+        _type.OnItemSelected += args =>
         {
-            _filter.SelectId(args.Id);
-            Change(v => v.Filter = (SpeechVoiceFilter) args.Id);
+            _type.SelectId(args.Id);
+            Change(v => v.Type = (SpeechVoiceType) args.Id);
         };
-        filterRow.AddChild(_filter);
-        _settings.AddChild(filterRow);
+        typeRow.AddChild(_type);
+        _settings.AddChild(typeRow);
 
-        AddSlider(_settings, "speech-voice-filter-strength", 0f, 1f,
-            v => v.FilterStrength, (v, x) => v.FilterStrength = x);
+        _melody = AddChoice("speech-voice-melody",
+            Enum.GetValues<SpeechVoiceMelody>().Select(m => ((int) m, m.ToString().ToLowerInvariant())),
+            (v, id) => v.Melody = (SpeechVoiceMelody) id);
+        _quirk = AddChoice("speech-voice-quirk",
+            Enum.GetValues<SpeechVoiceQuirk>().Select(q => ((int) q, q.ToString().ToLowerInvariant())),
+            (v, id) => v.Quirk = (SpeechVoiceQuirk) id);
+
+        AddSlider(_settings, "speech-voice-pitch", SpeechVoice.MinPitch, SpeechVoice.MaxPitch,
+            v => v.Pitch, (v, x) => v.Pitch = x, true);
+        AddSlider(_settings, "speech-voice-pace", SpeechVoice.MinPace, SpeechVoice.MaxPace,
+            v => v.Pace, (v, x) => v.Pace = x, true);
+        AddSlider(_settings, "speech-voice-pitch-variance", 0f, SpeechVoice.MaxPitchVariance,
+            v => v.PitchVariance, (v, x) => v.PitchVariance = x, true);
+        AddSlider(_settings, "speech-voice-intonation", 0f, SpeechVoice.MaxScale,
+            v => v.Intonation, (v, x) => v.Intonation = x, true);
+        AddSlider(_settings, "speech-voice-size", SpeechVoice.MinSize, SpeechVoice.MaxSize,
+            v => v.Size, (v, x) => v.Size = x, true);
+        AddSlider(_settings, "speech-voice-breathiness", 0f, SpeechVoice.MaxScale,
+            v => v.Breathiness, (v, x) => v.Breathiness = x, true);
 
         var testRow = new BoxContainer
         {
@@ -138,7 +125,9 @@ public sealed partial class SpeechVoicePicker : PanelContainer
 
         _mode.SelectId(voice.Enabled ? ModeVoice : ModeSound);
         UpdateMode();
-        _filter.SelectId((int) voice.Filter);
+        _type.SelectId((int) voice.Type);
+        _melody.SelectId((int) voice.Melody);
+        _quirk.SelectId((int) voice.Quirk);
 
         foreach (var refresh in _refreshers)
         {
@@ -161,7 +150,8 @@ public sealed partial class SpeechVoicePicker : PanelContainer
         OnVoiceChanged?.Invoke(voice);
     }
 
-    private static BoxContainer NewRow(LocId label)
+    /// <param name="tooltip">Hover text for the label, or null for none.</param>
+    private static BoxContainer NewRow(LocId label, string? tooltip = null)
     {
         var row = new BoxContainer
         {
@@ -170,25 +160,60 @@ public sealed partial class SpeechVoicePicker : PanelContainer
             SeparationOverride = 6,
         };
 
-        row.AddChild(new Label
+        var name = new Label
         {
             Text = Loc.GetString(label),
             VAlign = Label.VAlignMode.Center,
             MinWidth = 160,
             StyleClasses = { StyleWolfgate.StyleClassCreatorFieldLabel },
-        });
+        };
+
+        if (tooltip != null)
+        {
+            name.ToolTip = tooltip;
+            name.MouseFilter = MouseFilterMode.Stop; // labels ignore the mouse by default, so no hover without this
+        }
+
+        row.AddChild(name);
         return row;
     }
 
+    /// <summary>A labelled dropdown with hover text from <c>{label}-tooltip</c>.</summary>
+    /// <param name="names">Each choice's id and the lower-case name in its Fluent id, <c>{label}-{name}</c>.</param>
+    private OptionButton AddChoice(LocId label, IEnumerable<(int Id, string Name)> names, Action<SpeechVoice, int> set)
+    {
+        var tooltip = Loc.GetString($"{label}-tooltip");
+        var row = NewRow(label, tooltip);
+        var button = new OptionButton { MinWidth = 220, ToolTip = tooltip };
+        foreach (var (id, name) in names)
+        {
+            button.AddItem(Loc.GetString($"{label}-{name}"), id);
+        }
+
+        button.OnItemSelected += args =>
+        {
+            button.SelectId(args.Id);
+            Change(v => set(v, args.Id));
+        };
+
+        row.AddChild(button);
+        _settings.AddChild(row);
+        return button;
+    }
+
+    /// <summary>A labelled slider row. Its hover text is the label's Fluent id plus <c>-tooltip</c>.</summary>
+    /// <param name="multiplier">Shows the value itself as a percent, so 100% is the voice's own setting.</param>
     private void AddSlider(BoxContainer box,
         LocId label,
         float min,
         float max,
         Func<SpeechVoice, float> get,
-        Action<SpeechVoice, float> set)
+        Action<SpeechVoice, float> set,
+        bool multiplier = false)
     {
-        var row = NewRow(label);
-        var slider = new Slider { MinValue = min, MaxValue = max, HorizontalExpand = true };
+        var tooltip = Loc.GetString($"{label}-tooltip");
+        var row = NewRow(label, tooltip);
+        var slider = new Slider { MinValue = min, MaxValue = max, HorizontalExpand = true, ToolTip = tooltip };
         var value = new Label { MinWidth = 50, Align = Label.AlignMode.Right };
         row.AddChild(slider);
         row.AddChild(value);
@@ -196,7 +221,8 @@ public sealed partial class SpeechVoicePicker : PanelContainer
 
         void ShowValue()
         {
-            value.Text = Loc.GetString("ui-options-value-percent", ("value", (slider.Value - min) / (max - min)));
+            var shown = multiplier ? slider.Value : (slider.Value - min) / (max - min);
+            value.Text = Loc.GetString("ui-options-value-percent", ("value", shown));
         }
 
         slider.OnValueChanged += _ =>

@@ -1,5 +1,6 @@
 using Content.Client._WF.Voice;
 using Content.Shared._WF.Voice;
+using Content.Shared.Humanoid.Prototypes;
 
 namespace Content.Client.Lobby.UI;
 
@@ -20,6 +21,18 @@ public sealed partial class HumanoidProfileEditor
     private void UpdateSpeechVoiceControls()
     {
         _speechVoicePicker.SetVoice(Profile?.SpeechVoice ?? new SpeechVoice());
+    }
+
+    /// <summary>Puts the voice on the new species' own voice type. The player can change it after.</summary>
+    private void UpdateSpeciesSpeechVoice()
+    {
+        if (Profile == null || !_prototypeManager.TryIndex<SpeciesPrototype>(Profile.Species, out var species))
+            return;
+
+        var voice = Profile.SpeechVoice.Clone();
+        voice.Type = species.SpeechVoice;
+        Profile = Profile.WithSpeechVoice(voice);
+        UpdateSpeechVoiceControls();
     }
 
     private void SetSpeechVoice(SpeechVoice voice)

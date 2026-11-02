@@ -2129,6 +2129,7 @@ namespace Content.Client.Lobby.UI
             UpdateLegStyle(); // WOLFGATE(LegStyle): legs the new species lacks fall back to its own
             UpdateAugments(); // WOLFGATE(Augments): augments the new species can't take are dropped
             UpdateTypingBubble(); // WOLFGATE(TypingBubble): the species' own bubble changes with it
+            UpdateSpeciesSpeechVoice(); // WOLFGATE(Voice): a new species starts on its own voice type
             // WOLFGATE(Humanoid) START: keep the species picker and dropdown in step, drop hair the new species lacks
             EnforceSpeciesHair();
             SpeciesPicker.SetSelected(newSpecies);
