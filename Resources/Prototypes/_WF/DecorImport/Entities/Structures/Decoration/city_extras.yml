@@ -1294,12 +1294,8 @@
     energy: 0.5
     color: "#D0E0FF"
     netsync: false
-  - type: GenericVisualizer
-    visuals:
-      enum.ToggleableVisuals.Enabled:
-        screen:
-          True: { visible: true }
-          False: { visible: false }
+  - type: ToggleableVisuals
+    spriteLayer: screen
 
 - type: entity
   abstract: true
