@@ -27,6 +27,9 @@ public sealed partial class SpeechVoiceSynth
     private const float PhraseDeclination = 0.08f;
     private const float Coarticulation = 0.4f;
 
+    /// <summary>Scales every voice's letter length, so all of them speed up or slow down together.</summary>
+    private const float LetterTime = 0.93f;
+
     /// <summary>Intonation at which a question's last letter gets its full lift.</summary>
     private const float FullIntonation = 0.5f;
 
@@ -104,7 +107,7 @@ public sealed partial class SpeechVoiceSynth
 
         ApplyMelody(blips, voice.Melody);
 
-        var slot = style.LetterSeconds / voice.Pace * SampleRate;
+        var slot = style.LetterSeconds * LetterTime / voice.Pace * SampleRate;
         var starts = new int[blips.Count + 1];
         for (var i = 0; i < blips.Count; i++)
         {
@@ -183,12 +186,15 @@ public sealed partial class SpeechVoiceSynth
         var ampFrom = new float[MaxHarmonics + 1];
         var ampTo = new float[MaxHarmonics + 1];
         var harmonics = 0;
+        var lastCount = 0;
 
         // Pitch glides over about 20 ms, near the fastest a person can move between notes (Xu and Sun 2002).
         var f0Glide = Smoothing(0.02f);
-        var gainGlide = Smoothing(0.0015f);
+        var gainGlide = Smoothing(0.004f);
         var formantGlide = 1f - MathF.Exp(-Block / (0.012f * SampleRate));
-        var attack = 0.005f * SampleRate;
+
+        // Onset clicks are easier to hear than offset ones, so letters rise over 8 ms on a smooth curve.
+        var attack = 0.008f * SampleRate;
         var fade = 0.012f * SampleRate;
 
         var formants = Eh * formantScale;
@@ -301,6 +307,7 @@ public sealed partial class SpeechVoiceSynth
             var snap = b == 0 || blips[b - 1].Gap;
             var endsWord = b + 1 >= blips.Count || blips[b + 1].Gap;
             var wordFade = MathF.Min(WordFadeSeconds * SampleRate, 0.5f * slotLength);
+            var letterAttack = MathF.Max(1f, MathF.Min(attack, 0.3f * slotLength));
             wobblePhase = MathF.Tau * (0.5f + 0.5f * _noise.Next());
 
             if (blip.Onset.NoiseGain > 0f)
@@ -361,14 +368,15 @@ public sealed partial class SpeechVoiceSynth
 
                 // Eases out at the end of the slot, so letters run back to back without a click.
                 var cut = MathF.Min(1f, (start + slotLength - i) / fade);
-                var envelope = MathF.Min(MathF.Min(1f, (i - start) / attack), cut * cut * (3f - 2f * cut));
+                var rise = MathF.Min(1f, (i - start) / letterAttack);
+                rise = rise * rise * (3f - 2f * rise);
+                var envelope = MathF.Min(rise, cut * cut * (3f - 2f * cut));
 
                 // The last letter of a word has silence after it, where a sharp cut clicks, so it eases out for longer.
                 if (endsWord)
                 {
                     var ease = MathF.Min(1f, (start + slotLength - i) / wordFade);
-                    envelope = MathF.Min((i - start) / attack, ease * ease * (3f - 2f * ease));
-                    envelope = MathF.Min(1f, envelope);
+                    envelope = MathF.Min(rise, ease * ease * (3f - 2f * ease));
                 }
 
                 envelope *= blipGain;
@@ -393,7 +401,11 @@ public sealed partial class SpeechVoiceSynth
                     formants = snap ? mouth : formants + (mouth - formants) * formantGlide;
                     snap = false;
                     Array.Copy(ampTo, ampFrom, ampTo.Length);
-                    harmonics = Harmonics(ampTo, blipTilt, f0, formants, formantScale, style);
+                    var count = Harmonics(ampTo, blipTilt, f0, formants, formantScale, style);
+
+                    // Harmonics that no longer fit fade over this block instead of stopping mid-wave.
+                    harmonics = Math.Max(lastCount, count);
+                    lastCount = count;
                     breath.Tune(MathF.Min(formants.Z, MaxFrequency), 3000f * formantScale, SampleRate);
                     if (whisperAmount > 0f)
                     {
