@@ -25,7 +25,6 @@ public sealed partial class SpeechVoicePicker : PanelContainer
     private readonly BoxContainer _settings;
     private readonly OptionButton _type;
     private readonly OptionButton _melody;
-    private readonly OptionButton _quirk;
     private readonly LineEdit _testText;
 
     public SpeechVoicePicker()
@@ -81,9 +80,6 @@ public sealed partial class SpeechVoicePicker : PanelContainer
         _melody = AddChoice("speech-voice-melody",
             Enum.GetValues<SpeechVoiceMelody>().Select(m => ((int) m, m.ToString().ToLowerInvariant())),
             (v, id) => v.Melody = (SpeechVoiceMelody) id);
-        _quirk = AddChoice("speech-voice-quirk",
-            Enum.GetValues<SpeechVoiceQuirk>().Select(q => ((int) q, q.ToString().ToLowerInvariant())),
-            (v, id) => v.Quirk = (SpeechVoiceQuirk) id);
 
         AddSlider(_settings, "speech-voice-pitch", SpeechVoice.MinPitch, SpeechVoice.MaxPitch,
             v => v.Pitch, (v, x) => v.Pitch = x, true);
@@ -95,8 +91,6 @@ public sealed partial class SpeechVoicePicker : PanelContainer
             v => v.Intonation, (v, x) => v.Intonation = x, true);
         AddSlider(_settings, "speech-voice-size", SpeechVoice.MinSize, SpeechVoice.MaxSize,
             v => v.Size, (v, x) => v.Size = x, true);
-        AddSlider(_settings, "speech-voice-breathiness", 0f, SpeechVoice.MaxScale,
-            v => v.Breathiness, (v, x) => v.Breathiness = x, true);
 
         var testRow = new BoxContainer
         {
@@ -127,7 +121,6 @@ public sealed partial class SpeechVoicePicker : PanelContainer
         UpdateMode();
         _type.SelectId((int) voice.Type);
         _melody.SelectId((int) voice.Melody);
-        _quirk.SelectId((int) voice.Quirk);
 
         foreach (var refresh in _refreshers)
         {
@@ -201,7 +194,7 @@ public sealed partial class SpeechVoicePicker : PanelContainer
         return button;
     }
 
-    /// <summary>A labelled slider row. Its hover text is the label's Fluent id plus <c>-tooltip</c>.</summary>
+    /// <summary>A labelled slider row, with hover text from <c>{label}-tooltip</c> if that string exists.</summary>
     /// <param name="multiplier">Shows the value itself as a percent, so 100% is the voice's own setting.</param>
     private void AddSlider(BoxContainer box,
         LocId label,
@@ -211,9 +204,11 @@ public sealed partial class SpeechVoicePicker : PanelContainer
         Action<SpeechVoice, float> set,
         bool multiplier = false)
     {
-        var tooltip = Loc.GetString($"{label}-tooltip");
+        string? tooltip = Loc.TryGetString($"{label}-tooltip", out var text) ? text : null;
         var row = NewRow(label, tooltip);
-        var slider = new Slider { MinValue = min, MaxValue = max, HorizontalExpand = true, ToolTip = tooltip };
+        var slider = new Slider { MinValue = min, MaxValue = max, HorizontalExpand = true };
+        if (tooltip != null)
+            slider.ToolTip = tooltip;
         var value = new Label { MinWidth = 50, Align = Label.AlignMode.Right };
         row.AddChild(slider);
         row.AddChild(value);

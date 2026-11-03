@@ -19,26 +19,18 @@ public enum SpeechVoiceType : byte
     Synthetic,
 }
 
-/// <summary>The tune of the speech: how notes move between letters and across a sentence.</summary>
+/// <summary>The rhythm and tune of the speech: which letters are long and how notes move.</summary>
 [Serializable, NetSerializable]
 public enum SpeechVoiceMelody : byte
 {
-    Natural,
-    Flat,
-    Lively,
-    SingSong,
-    Questioning,
-    Dramatic,
-}
-
-/// <summary>A speaking habit layered over the voice.</summary>
-[Serializable, NetSerializable]
-public enum SpeechVoiceQuirk : byte
-{
-    None,
-    TrailingMumble,
-    Giggle,
-    Sigh,
+    StressBeat,
+    EvenBeat,
+    Tones,
+    Sung,
+    Cascade,
+    Leaps,
+    Gallop,
+    Chant,
 }
 
 /// <summary>A character's voice, picked in the creator and played when they talk.</summary>
@@ -74,13 +66,9 @@ public sealed partial class SpeechVoice : IEquatable<SpeechVoice>
     [DataField]
     public SpeechVoiceType Type = SpeechVoiceType.Human;
 
-    /// <summary>The tune of the speech. Pitch variance and intonation scale it.</summary>
+    /// <summary>The rhythm and tune of the speech. Pitch variance and intonation scale it.</summary>
     [DataField]
-    public SpeechVoiceMelody Melody = SpeechVoiceMelody.Natural;
-
-    /// <summary>The speaking habit, if any.</summary>
-    [DataField]
-    public SpeechVoiceQuirk Quirk = SpeechVoiceQuirk.None;
+    public SpeechVoiceMelody Melody = SpeechVoiceMelody.StressBeat;
 
     /// <summary>Pitch as a multiple of the voice's own pitch. Formants rise with it.</summary>
     [DataField]
@@ -101,10 +89,6 @@ public sealed partial class SpeechVoice : IEquatable<SpeechVoice>
     /// <summary>Throat size as a multiple of the voice's own. Bigger lowers the resonances, not the pitch.</summary>
     [DataField]
     public float Size = 1f;
-
-    /// <summary>Breath in the voice as a multiple of the voice's own amount.</summary>
-    [DataField]
-    public float Breathiness = 1f;
 
     /// <summary>A copy of this voice.</summary>
     public SpeechVoice Clone()
@@ -153,16 +137,12 @@ public sealed partial class SpeechVoice : IEquatable<SpeechVoice>
         voice.Pace = Clamp(Pace, MinPace, MaxPace, 1f);
         voice.Intonation = Clamp(Intonation, 0f, MaxScale, 1f);
         voice.Size = Clamp(Size, MinSize, MaxSize, 1f);
-        voice.Breathiness = Clamp(Breathiness, 0f, MaxScale, 1f);
 
         if (!Enum.IsDefined(Type))
             voice.Type = SpeechVoiceType.Human;
 
         if (!Enum.IsDefined(Melody))
-            voice.Melody = SpeechVoiceMelody.Natural;
-
-        if (!Enum.IsDefined(Quirk))
-            voice.Quirk = SpeechVoiceQuirk.None;
+            voice.Melody = SpeechVoiceMelody.StressBeat;
 
         return voice;
     }
@@ -182,13 +162,11 @@ public sealed partial class SpeechVoice : IEquatable<SpeechVoice>
         return Enabled == other.Enabled
                && Type == other.Type
                && Melody == other.Melody
-               && Quirk == other.Quirk
                && MathHelper.CloseTo(Pitch, other.Pitch)
                && MathHelper.CloseTo(PitchVariance, other.PitchVariance)
                && MathHelper.CloseTo(Pace, other.Pace)
                && MathHelper.CloseTo(Intonation, other.Intonation)
-               && MathHelper.CloseTo(Size, other.Size)
-               && MathHelper.CloseTo(Breathiness, other.Breathiness);
+               && MathHelper.CloseTo(Size, other.Size);
     }
 
     public override bool Equals(object? obj)

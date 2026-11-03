@@ -3,8 +3,8 @@
 Character voices. Player characters speak their chat aloud as a babble generated in code, with no recordings.
 
 Players pick a base voice on the character creator's Voice tab, then adjust its pitch, speed, pitch variance,
-intonation, size and breathiness, each with hover text. They also pick a melody (Natural, Flat, Lively, Sing-song, Questioning, Dramatic) and one quirk (Trailing
-mumble, Giggly ending, Sigh). Test plays a typed line. Voices are Human, Canid, Felid, Avian,
+intonation and size, each with hover text. They also pick a melody, which sets the rhythm and tune: Stress beat,
+Even beat, Tones, Sung, Cascade, Leaps, Gallop or Chant. Test plays a typed line. Voices are Human, Canid, Felid, Avian,
 Saurian, Rodent, Gelatinous, Sylvan, Arthropod, Lepidopteran and Synthetic. Changing species picks that species'
 voice type, set by `speechVoice` on its prototype.
 
@@ -50,7 +50,6 @@ most 8 at once, 4 of them radio and 2 from one source) and `SpeechVoiceSynth` (r
 - [`Content.Client/_WF/Voice/SpeechVoiceSynth.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceSynth.cs)
 - [`Content.Client/_WF/Voice/SpeechVoiceSynth.Effects.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceSynth.Effects.cs)
 - [`Content.Client/_WF/Voice/SpeechVoiceSynth.Melody.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceSynth.Melody.cs)
-- [`Content.Client/_WF/Voice/SpeechVoiceSynth.Quirks.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceSynth.Quirks.cs)
 - [`Content.Client/_WF/Voice/SpeechVoiceSynth.Sounds.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceSynth.Sounds.cs)
 - [`Content.Client/_WF/Voice/SpeechVoiceSynth.Species.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceSynth.Species.cs)
 - [`Content.Client/_WF/Voice/SpeechVoiceSynth.Text.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceSynth.Text.cs)

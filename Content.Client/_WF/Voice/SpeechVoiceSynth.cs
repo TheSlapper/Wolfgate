@@ -102,9 +102,9 @@ public sealed partial class SpeechVoiceSynth
             }
         }
 
-        ApplyQuirk(blips, voice.Quirk);
+        ApplyMelody(blips, voice.Melody);
 
-        var slot = style.LetterSeconds / (voice.Pace * Melody.For(voice.Melody).Pace) * SampleRate;
+        var slot = style.LetterSeconds / voice.Pace * SampleRate;
         var starts = new int[blips.Count + 1];
         for (var i = 0; i < blips.Count; i++)
         {
@@ -169,10 +169,8 @@ public sealed partial class SpeechVoiceSynth
         var intonation = style.Intonation * voice.Intonation * melody.Intonation;
         var pitch = voice.Pitch * style.F0Scale;
         var formantScale = BaseFormantScale * voice.Pitch * style.FormantScale / voice.Size;
-        // Breathiness runs from a pressed, bright voice at 0 to a soft, half-whispered one at the top.
-        var rd = style.Rd * (0.6f + 0.4f * voice.Breathiness);
-        var extraBreath = MathF.Max(0f, voice.Breathiness - 1f);
-        var whisperAmount = MathF.Min(1f, style.Whisper + 0.35f * extraBreath);
+        var rd = style.Rd;
+        var whisperAmount = style.Whisper;
 
         var tilt = new float[MaxHarmonics + 1];
         var shoutTilt = new float[MaxHarmonics + 1];
@@ -245,9 +243,6 @@ public sealed partial class SpeechVoiceSynth
         var swingPhase = 0f;
         var swingStep = MathF.Tau / (0.4f * SampleRate);
         var swingDepth = (0.03f + 0.08f * intonation) * melody.Swing;
-        var currentWord = -1;
-        var wordUp = false;
-        var wordPitch = 1f;
 
         for (var b = 0; b < blips.Count; b++)
         {
@@ -269,11 +264,6 @@ public sealed partial class SpeechVoiceSynth
 
             // Each letter gets its own note, kept a step away from the last one.
             var spread = 0.7f * style.PitchVariance * voice.PitchVariance * style.PitchSpread * melody.Spread;
-            if (blip.Word != currentWord)
-            {
-                currentWord = blip.Word;
-                wordPitch = melody.WordPitch(blip, ref wordUp, _noise.Next());
-            }
 
             var note = 1f + spread * _noise.Next();
             var step = spread > 0f ? 0.02f * style.PitchSpread * MathF.Min(1f, voice.PitchVariance) : 0f;
@@ -288,12 +278,15 @@ public sealed partial class SpeechVoiceSynth
             if (blip.Last && blip.Ending == '!')
                 blipGain *= 1.25f;
 
-            var blipF0 = BaseF0 * pitch * letterPitch * wordPitch * Contour(blip, intonation, melody.Uptalk) * blip.Lift * lastLift;
+            var tune = letterPitch * Contour(blip, intonation) * blip.Lift * lastLift;
+            if (melody.Snap)
+                tune = SnapToScale(tune);
+            var blipF0 = BaseF0 * pitch * tune;
             var blipFormants = 1f + 0.03f * _noise.Next();
             var slotSeconds = slotLength / (float) SampleRate;
 
             // Micro-prosody: pitch starts a little high after a voiceless consonant, a little low after a voiced one.
-            var bump = blip.Onset.Kind == SoundKind.None ? 0f : blip.Onset.Voiced ? -0.03f : 0.05f;
+            var bump = blip.Onset.Kind == SoundKind.None || melody.Snap ? 0f : blip.Onset.Voiced ? -0.03f : 0.05f;
             var onsetEnd = blip.ConsonantOnly ? 0.8f
                 : blip.OnsetShare > 0f ? blip.OnsetShare
                 : OnsetLength(blip.Onset.Kind);
@@ -469,7 +462,7 @@ public sealed partial class SpeechVoiceSynth
 
                 // Breath rides on the open phase of each glottal cycle (Klatt and Klatt 1990).
                 var open = phase < 0.6f ? MathF.Sin(MathF.PI * phase / 0.6f) : 0.15f;
-                var breathAmount = style.Breath * voice.Breathiness + 0.25f * extraBreath;
+                var breathAmount = style.Breath;
                 if (style.BreathGust > 0f)
                 {
                     var gust = 0.5f + 0.5f * MathF.Sin(MathF.Tau * 2.5f * i / SampleRate);
@@ -632,8 +625,7 @@ public sealed partial class SpeechVoiceSynth
     }
 
     /// <summary>Pitch through a phrase: a gentle fall, then a tune from the punctuation that ends it.</summary>
-    /// <param name="uptalk">Statements end rising instead of falling.</param>
-    private static float Contour(in Blip blip, float intonation, bool uptalk)
+    private static float Contour(in Blip blip, float intonation)
     {
         var t = blip.PhrasePosition;
         var ending = Math.Max(0f, (t - 0.6f) / 0.4f);
@@ -642,7 +634,6 @@ public sealed partial class SpeechVoiceSynth
             '?' => 1f + intonation * 0.5f * ending,
             '!' => 1f + intonation * 0.6f * (1f - t),
             ',' => 1f + intonation * 0.2f * ending,
-            _ when uptalk => 1f + intonation * 0.6f * Math.Max(0f, (t - 0.4f) / 0.6f),
             _ => 1f - intonation * 0.5f * ending,
         };
 
