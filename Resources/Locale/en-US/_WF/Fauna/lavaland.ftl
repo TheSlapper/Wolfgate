@@ -7,13 +7,6 @@ ent-MobLegionSkull = legion skull
     .desc = A fragment of the original legion, rallying behind its original. One isn't much of a threat, but...
 ent-LavalandMobAshWhelp = ash whelp
     .desc = The offspring of an ash drake, weak in comparison but still terrifying.
-ent-MaterialLegionSkull = legion skull
-    .desc = A grey deformed skull of a long gone humanoid. Just for a brief moment, you felt like it is staring right at your soul.
-ent-MaterialLegionSkull1 = { ent-MaterialLegionSkull }
-    .desc = { ent-MaterialLegionSkull.desc }
-ent-MaterialLegionSkull5 = { ent-MaterialLegionSkull }
-    .desc = { ent-MaterialLegionSkull.desc }
-stack-legion-skull = legion skull
 
 ent-CitadelRPMobGoliathCalf = goliath calf
     .desc = Goliaths may be naturally immortal, but they are still vulnerable. Calves are a rare sight on the surface.

@@ -23,7 +23,7 @@ public sealed partial class FaunaLineAttackComponent : Component
     public bool Cardinal;
 
     /// <summary>
-    /// Turns each effect to face along the line, for beam pieces drawn facing east.
+    /// Turns each effect to face along the line, so directional beam states show the matching direction.
     /// </summary>
     [DataField]
     public bool RotateEffects;

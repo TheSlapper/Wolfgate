@@ -154,7 +154,7 @@ public sealed partial class FaunaLineAttackSystem : EntitySystem
         }
 
         direction = Vector2.Normalize(direction);
-        ent.Comp.LineAngle = new Angle(direction);
+        ent.Comp.LineAngle = direction.ToWorldAngle();
         var last = _map.LocalToTile(parent, grid, xform.Coordinates);
         for (var step = 1; step <= ent.Comp.Range * 2 && ent.Comp.Tiles.Count < ent.Comp.Range; step++)
         {
