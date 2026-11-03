@@ -51,11 +51,17 @@ public sealed partial class PhotoWindow : DefaultWindow
         _description = new RichTextLabel { HorizontalExpand = true, MaxWidth = ImageSide };
         _back = new RichTextLabel { HorizontalExpand = true, MaxWidth = ImageSide };
 
+        var text = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 6 };
+        text.AddChild(_description);
+        text.AddChild(_back);
+
+        var scroll = new ScrollContainer { HScrollEnabled = false, VerticalExpand = true };
+        scroll.AddChild(text);
+
         var box = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 6 };
         box.AddChild(_image);
         box.AddChild(_waiting);
-        box.AddChild(_description);
-        box.AddChild(_back);
+        box.AddChild(scroll);
         Contents.AddChild(box);
     }
 

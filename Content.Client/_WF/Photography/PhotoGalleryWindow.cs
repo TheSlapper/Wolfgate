@@ -100,7 +100,7 @@ public sealed partial class PhotoGalleryWindow : DefaultWindow
         _list.Clear();
         foreach (var photo in gallery.Photos)
         {
-            _list.AddItem(photo.Name);
+            _list.AddItem(photo.Name).TooltipText = photo.Name;
         }
 
         _print.Visible = gallery.PrintCharge != null;

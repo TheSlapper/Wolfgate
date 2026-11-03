@@ -3,13 +3,18 @@ wf-photo-camera-examine-size = It takes photos [color=yellow]{$size}x{$size}[/co
 wf-photo-camera-examine-colour = It prints in colour.
 wf-photo-camera-examine-monochrome = It prints in monochrome.
 
-wf-photo-camera-verb-size = Adjust zoom
-wf-photo-camera-verb-monochrome = Print in monochrome
-wf-photo-camera-verb-colour = Print in colour
-wf-photo-camera-verb-flash-on = Turn flash on
-wf-photo-camera-verb-flash-off = Turn flash off
-wf-photo-camera-verb-customise-on = Ask to label photos
-wf-photo-camera-verb-customise-off = Stop asking to label photos
+wf-photo-camera-verb-settings = Camera settings
+wf-photo-camera-verb-zoom = Zoom
+wf-photo-camera-verb-colour = Colour
+wf-photo-camera-verb-flash = Flash
+wf-photo-camera-verb-labels = Label photos
+wf-photo-camera-verb-size-option = {$size}x{$size}
+wf-photo-camera-verb-next-size = Next size
+wf-photo-camera-verb-colour-option = Colour
+wf-photo-camera-verb-monochrome-option = Monochrome
+wf-photo-camera-verb-on = On
+wf-photo-camera-verb-off = Off
+wf-photo-camera-verb-current = Current setting
 
 wf-photo-camera-size-set = The photos will be {$size}x{$size} meters.
 wf-photo-camera-monochrome-on = Printing in monochrome.

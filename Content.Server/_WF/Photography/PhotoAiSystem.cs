@@ -9,7 +9,6 @@ namespace Content.Server._WF.Photography;
 public sealed partial class PhotoAiSystem : EntitySystem
 {
     [Dependency] private SharedActionsSystem _actions = default!;
-    [Dependency] private SharedUserInterfaceSystem _ui = default!;
 
     private static readonly EntProtoId CaptureAction = "ActionPhotoAiCapture";
     private static readonly EntProtoId GalleryAction = "ActionPhotoGallery";
@@ -37,7 +36,6 @@ public sealed partial class PhotoAiSystem : EntitySystem
         }
 
         EnsureComp<PhotoGalleryComponent>(ent);
-        _ui.SetUi(ent.Owner, PhotoUiKey.Gallery, new InterfaceData("PhotoGalleryBoundUserInterface"));
 
         var actions = EnsureComp<PhotoAiActionsComponent>(ent);
         _actions.AddAction(ent, ref actions.Capture, CaptureAction);

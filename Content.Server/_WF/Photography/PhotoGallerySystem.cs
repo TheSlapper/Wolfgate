@@ -53,6 +53,9 @@ public sealed partial class PhotoGallerySystem : EntitySystem
             return;
 
         args.Handled = true;
+        if (!_ui.HasUi(ent.Owner, PhotoUiKey.Gallery))
+            _ui.SetUi(ent.Owner, PhotoUiKey.Gallery, new InterfaceData("PhotoGalleryBoundUserInterface"));
+
         _ui.TryOpenUi(ent.Owner, PhotoUiKey.Gallery, args.Performer);
     }
 

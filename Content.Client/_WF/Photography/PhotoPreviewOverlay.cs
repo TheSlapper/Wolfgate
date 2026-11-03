@@ -1,4 +1,5 @@
 using Content.Shared._WF.Photography;
+using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
 using Robust.Client.Graphics;
 using Robust.Client.Input;
@@ -34,7 +35,8 @@ public sealed class PhotoPreviewOverlay : Overlay
     {
         if (args.Viewport.Eye != _eye.CurrentEye
             || _player.LocalEntity is not { } player
-            || _hands.GetActiveItem(player) is not { } held
+            || !_entMan.TryGetComponent<HandsComponent>(player, out var hands)
+            || _hands.GetActiveItem((player, hands)) is not { } held
             || !_entMan.TryGetComponent<PhotoCameraComponent>(held, out var camera)
             || _ui.CurrentlyHovered is not IViewportControl viewport
             || !_input.MouseScreenPosition.IsValid)

@@ -47,6 +47,7 @@ Albums held at round end carry over with their photos.
 - [`Content.Client/_WF/Photography/PhotoWindow.cs`](../../../Content.Client/_WF/Photography/PhotoWindow.cs)
 - [`Content.Client/_WF/Photography/TargetOutlineSystem.Photography.cs`](../../../Content.Client/_WF/Photography/TargetOutlineSystem.Photography.cs)
 - [`Content.Client/_WF/Photography/ThermalVisionOverlay.Photography.cs`](../../../Content.Client/_WF/Photography/ThermalVisionOverlay.Photography.cs)
+- [`Content.Client/_WF/Photography/VerbMenuUIController.Photography.cs`](../../../Content.Client/_WF/Photography/VerbMenuUIController.Photography.cs)
 
 ### Prototypes
 
@@ -76,10 +77,15 @@ Albums held at round end carry over with their photos.
 
 ## Non-modular edits
 
+- [`Content.Client/Verbs/UI/VerbMenuUIController.cs`](../../../Content.Client/Verbs/UI/VerbMenuUIController.cs)
+  - nested verb categories list under their top category
+  - keep a category whose verbs are all in nested categories
+  - nested verb categories
 - [`Content.Server.Database/Model.cs`](../../../Content.Server.Database/Model.cs)
   - photo images by hash
   - photo images, kept across rounds for photos that carry over
 - [`Content.Shared.Database/LogType.cs`](../../../Content.Shared.Database/LogType.cs): photos taken, labelled and written on
+- [`Content.Shared/Verbs/VerbCategory.cs`](../../../Content.Shared/Verbs/VerbCategory.cs): nested verb categories
 - [`Resources/Prototypes/_NF/Catalog/Fills/Lockers/security.yml`](../../../Resources/Prototypes/_NF/Catalog/Fills/Lockers/security.yml)
 - [`Resources/Prototypes/_NF/Catalog/VendingMachines/Inventories/cart.yml`](../../../Resources/Prototypes/_NF/Catalog/VendingMachines/Inventories/cart.yml)
 - [`Resources/Prototypes/Catalog/Fills/Items/toolboxes.yml`](../../../Resources/Prototypes/Catalog/Fills/Items/toolboxes.yml)

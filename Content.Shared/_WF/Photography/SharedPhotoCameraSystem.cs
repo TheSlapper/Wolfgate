@@ -19,6 +19,20 @@ public abstract partial class SharedPhotoCameraSystem : EntitySystem
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
 
+    private static readonly VerbCategory SettingsCategory = new("wf-photo-camera-verb-settings", null);
+
+    private static readonly VerbCategory ZoomCategory =
+        new("wf-photo-camera-verb-zoom", null) { Parent = SettingsCategory };
+
+    private static readonly VerbCategory ColourCategory =
+        new("wf-photo-camera-verb-colour", null) { Parent = SettingsCategory };
+
+    private static readonly VerbCategory FlashCategory =
+        new("wf-photo-camera-verb-flash", null) { Parent = SettingsCategory };
+
+    private static readonly VerbCategory LabelsCategory =
+        new("wf-photo-camera-verb-labels", null) { Parent = SettingsCategory };
+
     public override void Initialize()
     {
         base.Initialize();
@@ -69,15 +83,10 @@ public abstract partial class SharedPhotoCameraSystem : EntitySystem
         var user = args.User;
         args.Verbs.Add(new AlternativeVerb
         {
-            Text = Loc.GetString("wf-photo-camera-verb-size"),
-            Act = () =>
-            {
-                ent.Comp.Aperture = PhotoRules.NextAperture(ent.Comp.Aperture);
-                Dirty(ent);
-                var tiles = PhotoRules.TilesForAperture(ent.Comp.Aperture);
-                Popup.PopupClient(Loc.GetString("wf-photo-camera-size-set", ("size", tiles)), ent, user);
-                PlaySetting(ent, user);
-            },
+            Text = Loc.GetString("wf-photo-camera-verb-next-size"),
+            Category = ZoomCategory,
+            Priority = 1,
+            Act = () => SetAperture(ent, user, PhotoRules.NextAperture(ent.Comp.Aperture)),
         });
     }
 
@@ -87,48 +96,81 @@ public abstract partial class SharedPhotoCameraSystem : EntitySystem
             return;
 
         var user = args.User;
-        args.Verbs.Add(new Verb
+        for (var aperture = PhotoRules.MinAperture; aperture <= PhotoRules.MaxAperture; aperture++)
         {
-            Text = Loc.GetString(ent.Comp.Monochrome
-                ? "wf-photo-camera-verb-colour"
-                : "wf-photo-camera-verb-monochrome"),
-            Act = () =>
-            {
-                ent.Comp.Monochrome = !ent.Comp.Monochrome;
-                Dirty(ent);
-                Popup.PopupClient(Loc.GetString(ent.Comp.Monochrome
-                    ? "wf-photo-camera-monochrome-on"
-                    : "wf-photo-camera-monochrome-off"), ent, user);
-                PlaySetting(ent, user);
-            },
-        });
+            var value = aperture;
+            var tiles = PhotoRules.TilesForAperture(value);
+            args.Verbs.Add(Choice(ZoomCategory,
+                Loc.GetString("wf-photo-camera-verb-size-option", ("size", tiles)),
+                ent.Comp.Aperture == value,
+                PhotoRules.MaxAperture - value,
+                () => SetAperture(ent, user, value)));
+        }
 
-        args.Verbs.Add(new Verb
-        {
-            Text = Loc.GetString(ent.Comp.Flash ? "wf-photo-camera-verb-flash-off" : "wf-photo-camera-verb-flash-on"),
-            Act = () =>
-            {
-                ent.Comp.Flash = !ent.Comp.Flash;
-                Dirty(ent);
-                PlaySetting(ent, user);
-            },
-        });
+        args.Verbs.Add(Choice(ColourCategory, Loc.GetString("wf-photo-camera-verb-colour-option"),
+            !ent.Comp.Monochrome, 1, () => SetMonochrome(ent, user, false)));
+        args.Verbs.Add(Choice(ColourCategory, Loc.GetString("wf-photo-camera-verb-monochrome-option"),
+            ent.Comp.Monochrome, 0, () => SetMonochrome(ent, user, true)));
+
+        args.Verbs.Add(Choice(FlashCategory, Loc.GetString("wf-photo-camera-verb-on"),
+            ent.Comp.Flash, 1, () => SetFlash(ent, user, true)));
+        args.Verbs.Add(Choice(FlashCategory, Loc.GetString("wf-photo-camera-verb-off"),
+            !ent.Comp.Flash, 0, () => SetFlash(ent, user, false)));
 
         if (ent.Comp.StoresPhotos)
             return;
 
-        args.Verbs.Add(new Verb
+        args.Verbs.Add(Choice(LabelsCategory, Loc.GetString("wf-photo-camera-verb-on"),
+            ent.Comp.Customise, 1, () => SetCustomise(ent, user, true)));
+        args.Verbs.Add(Choice(LabelsCategory, Loc.GetString("wf-photo-camera-verb-off"),
+            !ent.Comp.Customise, 0, () => SetCustomise(ent, user, false)));
+    }
+
+    /// <summary>A settings choice, disabled when it is the current setting.</summary>
+    private Verb Choice(VerbCategory category, string text, bool current, int priority, Action act)
+    {
+        return new Verb
         {
-            Text = Loc.GetString(ent.Comp.Customise
-                ? "wf-photo-camera-verb-customise-off"
-                : "wf-photo-camera-verb-customise-on"),
-            Act = () =>
-            {
-                ent.Comp.Customise = !ent.Comp.Customise;
-                Dirty(ent);
-                PlaySetting(ent, user);
-            },
-        });
+            Text = text,
+            Category = category,
+            Priority = priority,
+            Disabled = current,
+            Message = current ? Loc.GetString("wf-photo-camera-verb-current") : null,
+            Act = act,
+        };
+    }
+
+    private void SetAperture(Entity<PhotoCameraComponent> ent, EntityUid user, int aperture)
+    {
+        ent.Comp.Aperture = aperture;
+        Dirty(ent);
+        var tiles = PhotoRules.TilesForAperture(aperture);
+        Popup.PopupClient(Loc.GetString("wf-photo-camera-size-set", ("size", tiles)), ent, user);
+        PlaySetting(ent, user);
+    }
+
+    private void SetMonochrome(Entity<PhotoCameraComponent> ent, EntityUid user, bool monochrome)
+    {
+        ent.Comp.Monochrome = monochrome;
+        Dirty(ent);
+        Popup.PopupClient(Loc.GetString(monochrome
+            ? "wf-photo-camera-monochrome-on"
+            : "wf-photo-camera-monochrome-off"), ent, user);
+        PlaySetting(ent, user);
+    }
+
+    private void SetFlash(Entity<PhotoCameraComponent> ent, EntityUid user, bool flash)
+    {
+        ent.Comp.Flash = flash;
+        Dirty(ent);
+        PlaySetting(ent, user);
+    }
+
+    private void SetCustomise(Entity<PhotoCameraComponent> ent, EntityUid user, bool customise)
+    {
+        ent.Comp.Customise = customise;
+        Dirty(ent);
+        PlaySetting(ent, user);
     }
 
     /// <summary>The square of tiles around a point, lined up with the grid under it.</summary>
