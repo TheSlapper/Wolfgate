@@ -423,6 +423,7 @@
   - type: Construction
     graph: DecorCutCoyoteFence
     node: intact
+    deconstructionTarget: null
 
 - type: entity
   parent: [ BaseUrbanFenceHoleMedium, CoyoteFenceStraight ]
@@ -1262,6 +1263,7 @@
   - type: Construction
     graph: DecorCutNebulaFenceBrick
     node: intact
+    deconstructionTarget: null
 
 - type: entity
   parent: NebulaFenceBrick
@@ -1337,6 +1339,7 @@
   - type: Construction
     graph: DecorCutNebulaFenceChain
     node: intact
+    deconstructionTarget: null
 
 - type: entity
   parent: NebulaFenceChain
@@ -1412,6 +1415,7 @@
   - type: Construction
     graph: DecorCutNebulaFencePalisade
     node: intact
+    deconstructionTarget: null
 
 - type: entity
   parent: NebulaFencePalisade
@@ -1487,6 +1491,7 @@
   - type: Construction
     graph: DecorCutNebulaFencePlank
     node: intact
+    deconstructionTarget: null
 
 - type: entity
   parent: NebulaFencePlank
@@ -1562,6 +1567,7 @@
   - type: Construction
     graph: DecorCutNebulaFenceStick
     node: intact
+    deconstructionTarget: null
 
 - type: entity
   parent: NebulaFenceStick
