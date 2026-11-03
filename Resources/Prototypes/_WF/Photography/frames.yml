@@ -1,0 +1,177 @@
+- type: entity
+  abstract: true
+  parent: BaseSign
+  id: BasePictureFrame
+  name: picture frame
+  description: Every time you look it makes you laugh.
+  components:
+  - type: Sprite
+    sprite: _WF/Photography/frame.rsi
+    layers:
+    - state: overlay
+      map: ["enum.PhotoVisualLayers.Base"]
+    - sprite: _WF/Photography/photo.rsi
+      state: photo
+      map: ["enum.PhotoVisualLayers.Photo"]
+      visible: false
+    - sprite: _WF/Photography/photo.rsi
+      state: photo
+      map: ["enum.PhotoVisualLayers.Thumbnail"]
+      visible: false
+  - type: PhotoFrame
+  - type: ContainerContainer
+    containers:
+      photo: !type:ContainerSlot
+  - type: ActivatableUI
+    key: enum.PhotoUiKey.Viewer
+    requiresComplex: false
+  - type: UserInterface
+    interfaces:
+      enum.PhotoUiKey.Viewer:
+        type: PhotoBoundUserInterface
+  - type: Damageable
+    damageContainer: Inorganic
+    damageModifierSet: Wood
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 15
+      behaviors:
+      - !type:EmptyAllContainersBehaviour
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+
+- type: entity
+  parent: BasePictureFrame
+  id: PictureFrame
+  description: The perfect showcase for your favorite deathtrap memories.
+  components:
+  - type: Construction
+    graph: PictureFrameGraph
+    node: PictureFrameNode
+
+- type: entity
+  parent: BasePictureFrame
+  id: PictureFrameShowroom
+  name: distinguished crew display
+  description: "A photo frame to commemorate crewmembers that distinguished themselves in the line of duty. WARNING: unauthorized tampering will be severely punished."
+
+- type: entity
+  parent: BasePictureFrame
+  id: PictureFrameMonkey
+  name: Mr. Deempisi portrait
+  description: "Under the portrait a plaque reads: 'While the meat grinder may not have spared you, fear not. Not one part of you has gone to waste... You were delicious.'"
+  components:
+  - type: Sprite
+    layers:
+    - state: monkey
+      map: ["enum.PhotoVisualLayers.Base"]
+    - sprite: _WF/Photography/photo.rsi
+      state: photo
+      map: ["enum.PhotoVisualLayers.Photo"]
+      visible: false
+    - sprite: _WF/Photography/photo.rsi
+      state: photo
+      map: ["enum.PhotoVisualLayers.Thumbnail"]
+      visible: false
+  - type: PhotoFrame
+    portraitState: monkey
+    portraitName: wf-photo-portrait-monkey-name
+    portraitDescription: wf-photo-portrait-monkey-description
+
+- type: entity
+  parent: PictureFrameMonkey
+  id: PictureFrameFruit
+  name: picture of a fruit
+  description: Ceci n'est pas une orange.
+  components:
+  - type: Sprite
+    layers:
+    - state: fruit
+      map: ["enum.PhotoVisualLayers.Base"]
+    - sprite: _WF/Photography/photo.rsi
+      state: photo
+      map: ["enum.PhotoVisualLayers.Photo"]
+      visible: false
+    - sprite: _WF/Photography/photo.rsi
+      state: photo
+      map: ["enum.PhotoVisualLayers.Thumbnail"]
+      visible: false
+  - type: PhotoFrame
+    portraitState: fruit
+    portraitName: wf-photo-portrait-fruit-name
+    portraitDescription: wf-photo-portrait-fruit-description
+
+- type: entity
+  parent: PictureFrameMonkey
+  id: PictureFrameRat
+  name: Tom portrait
+  description: Jerry the cat is still not amused.
+  components:
+  - type: Sprite
+    layers:
+    - state: rat
+      map: ["enum.PhotoVisualLayers.Base"]
+    - sprite: _WF/Photography/photo.rsi
+      state: photo
+      map: ["enum.PhotoVisualLayers.Photo"]
+      visible: false
+    - sprite: _WF/Photography/photo.rsi
+      state: photo
+      map: ["enum.PhotoVisualLayers.Thumbnail"]
+      visible: false
+  - type: PhotoFrame
+    portraitState: rat
+    portraitName: wf-photo-portrait-rat-name
+    portraitDescription: wf-photo-portrait-rat-description
+
+- type: constructionGraph
+  id: PictureFrameGraph
+  start: start
+  graph:
+  - node: start
+    actions:
+    - !type:DestroyEntity { }
+    edges:
+    - to: PictureFrameNode
+      completed:
+      - !type:SnapToGrid { }
+      steps:
+      - material: WoodPlank
+        amount: 1
+        doAfter: 1
+  - node: PictureFrameNode
+    entity: PictureFrame
+    edges:
+    - to: start
+      completed:
+      - !type:EmptyAllContainers { }
+      - !type:SpawnPrototype
+        prototype: MaterialWoodPlank1
+      steps:
+      - tool: Screwing
+        doAfter: 3
+    - to: start
+      completed:
+      - !type:EmptyAllContainers { }
+      - !type:SpawnPrototype
+        prototype: MaterialWoodPlank1
+      steps:
+      - tool: Anchoring
+        doAfter: 3
+
+- type: construction
+  id: PictureFrameConstruction
+  name: picture frame
+  description: A wooden frame for a photo, hung on a wall.
+  graph: PictureFrameGraph
+  startNode: start
+  targetNode: PictureFrameNode
+  category: construction-category-misc
+  objectType: Structure
+  placementMode: SnapgridCenter
+  canBuildInImpassable: true
+  icon:
+    sprite: _WF/Photography/frame.rsi
+    state: overlay

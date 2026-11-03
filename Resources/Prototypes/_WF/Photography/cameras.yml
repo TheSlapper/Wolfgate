@@ -1,0 +1,136 @@
+- type: entity
+  parent: BaseItem
+  id: Camera
+  name: camera
+  description: A polaroid camera.
+  components:
+  - type: Sprite
+    sprite: _WF/Photography/camera.rsi
+    layers:
+    - state: icon
+      map: ["enum.PhotoCameraVisuals.Ready"]
+  - type: Item
+    size: Small
+  - type: Clothing
+    quickEquip: false
+    slots:
+    - neck
+  - type: PhotoCamera
+  - type: PointLight
+    enabled: false
+    radius: 6
+    energy: 3
+    color: "#ffffff"
+  - type: Appearance
+  - type: GenericVisualizer
+    visuals:
+      enum.PhotoCameraVisuals.Ready:
+        enum.PhotoCameraVisuals.Ready:
+          True: { state: icon }
+          False: { state: icon-off }
+  - type: Reactive
+    reactions:
+    - reagents: [ Holywater ]
+      methods: [ Touch ]
+      effects:
+      - !type:PhotoReplaceEntity
+        prototype: CameraObscura
+        conditions:
+        - !type:ReagentThreshold
+          reagent: Holywater
+          min: 10
+  - type: StaticPrice
+    price: 60
+
+- type: entity
+  parent: Camera
+  id: CameraDetective
+  name: detective's camera
+  description: A silent polaroid camera with extra capacity for crime investigations.
+  components:
+  - type: PhotoCamera
+    filmLeft: 30
+    filmMax: 30
+    monochrome: true
+    flash: false
+    silent: true
+
+- type: entity
+  parent: Camera
+  id: CameraObscura
+  name: camera obscura
+  description: A polaroid camera, some say it can see ghosts!
+  components:
+  - type: PhotoCamera
+    seeGhosts: true
+    stealsSouls: true
+  - type: Reactive
+    reactions: []
+
+- type: entity
+  parent: CameraObscura
+  id: CameraObscuraBadmin
+  suffix: Admin
+  description: A polaroid camera, some say it can see ghosts! It seems to have an extra magnifier on the end.
+  components:
+  - type: PhotoCamera
+    seeGhosts: true
+    stealsSouls: true
+    filmLeft: 100
+    filmMax: 100
+    cooldown: 1
+
+- type: entity
+  parent: BaseItem
+  id: CameraFilm
+  name: film cartridge
+  description: A camera film cartridge. Insert it into a camera to reload it.
+  components:
+  - type: Sprite
+    sprite: _WF/Photography/film.rsi
+    state: icon
+  - type: Item
+    size: Tiny
+  - type: PhotoFilm
+  - type: StaticPrice
+    price: 10
+
+- type: entity
+  parent: Camera
+  id: CameraBorg
+  name: cyborg photo camera
+  description: A camera built into a cyborg. It keeps its photos and prints them on demand.
+  components:
+  - type: PhotoCamera
+    storesPhotos: true
+    customise: false
+    cooldown: 2
+  - type: PhotoGallery
+    printCharge: 50
+  - type: ActivatableUI
+    key: enum.PhotoUiKey.Gallery
+    inHandsOnly: true
+  - type: UserInterface
+    interfaces:
+      enum.PhotoUiKey.Gallery:
+        type: PhotoGalleryBoundUserInterface
+  - type: Reactive
+    reactions: []
+
+- type: entity
+  parent: [ BaseBorgModule, BaseProviderBorgModule ]
+  id: BorgModulePhotography
+  name: photography cyborg module
+  components:
+  - type: Sprite
+    layers:
+    - state: service
+    - sprite: _WF/Photography/camera.rsi
+      state: icon
+      scale: 0.5, 0.5
+  - type: ItemBorgModule
+    moduleId: Photography
+    items:
+    - CameraBorg
+  - type: BorgModuleIcon
+    icon: { sprite: _WF/Photography/camera.rsi, state: icon }
