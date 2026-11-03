@@ -161,6 +161,7 @@
     staticPacks:
     - ToolsStatic
     - WFPlanetStatic # WOLFGATE(Planets): landing thruster kits and parachutes.
+    - PhotographyStatic # WOLFGATE(Photography): cameras, film and photo albums.
     - PartsStatic
     - AtmosStatic
     - CablesStatic

@@ -69,6 +69,7 @@ namespace Content.Server.Database
 
         public DbSet<WolfgateGameScore> WolfgateGameScore { get; set; } = null!; // WOLFGATE(GameHub): best level scores
         public DbSet<WolfgateContractStanding> WolfgateContractStanding { get; set; } = null!; // WOLFGATE(Contracts): standing with contractors
+        public DbSet<WolfgatePhoto> WolfgatePhoto { get; set; } = null!; // WOLFGATE(Photography): photo images by hash
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -2168,6 +2169,32 @@ namespace Content.Server.Database
         public string Message { get; set; } = "";
 
         public DateTime CreatedAt { get; set; }
+    }
+    // WOLFGATE END
+
+    // WOLFGATE(Photography) START: photo images, kept across rounds for photos that carry over
+    /// <summary>A photo's image, stored once under its hash.</summary>
+    public class WolfgatePhoto
+    {
+        [Key, MaxLength(64)]
+        public string Hash { get; set; } = null!;
+
+        [Required]
+        public byte[] Png { get; set; } = null!;
+
+        public int Width { get; set; }
+
+        public int Height { get; set; }
+
+        /// <summary>The player who took it, or null for a photo with no player behind it.</summary>
+        public Guid? AuthorUserId { get; set; }
+
+        public int? RoundId { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+
+        /// <summary>When the cleanup first found nothing holding it, or null while something does.</summary>
+        public DateTime? UnusedSince { get; set; }
     }
     // WOLFGATE END
 }
