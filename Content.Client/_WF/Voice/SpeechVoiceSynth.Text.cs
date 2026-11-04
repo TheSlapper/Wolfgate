@@ -7,7 +7,7 @@ public sealed partial class SpeechVoiceSynth
     private const float CommaGap = 4f;
     private const float SentenceGap = 8f;
 
-    /// <summary>The blips for a message, one per letter, digit or letter pair, with phrases split at punctuation.</summary>
+    /// <summary>The blips for a message, one per letter or digit, with phrases split at punctuation.</summary>
     private static List<Blip> Blips(string text)
     {
         var blips = new List<Blip>();
@@ -119,20 +119,10 @@ public sealed partial class SpeechVoiceSynth
 
                 for (var i = index; i < end; i++)
                 {
-                    var pair = i + 1 < end
-                        ? Pair(char.ToLowerInvariant(text[i]), char.ToLowerInvariant(text[i + 1]))
-                        : null;
-                    var count = pair == null ? 1 : 2;
-                    Add(pair ?? Letter(char.ToLowerInvariant(text[i]), i == index));
-
-                    for (var k = i; k < i + count; k++)
-                    {
-                        letters++;
-                        if (char.IsAsciiLetterUpper(text[k]))
-                            upper++;
-                    }
-
-                    i += count - 1;
+                    Add(Letter(char.ToLowerInvariant(text[i]), i == index));
+                    letters++;
+                    if (char.IsAsciiLetterUpper(text[i]))
+                        upper++;
                 }
 
                 index = end;

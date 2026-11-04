@@ -50,6 +50,7 @@ most 8 at once, 4 of them radio and 2 from one source) and `SpeechVoiceSynth` (r
 - [`Content.Client/_WF/Voice/SpeechVoiceSynth.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceSynth.cs)
 - [`Content.Client/_WF/Voice/SpeechVoiceSynth.Effects.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceSynth.Effects.cs)
 - [`Content.Client/_WF/Voice/SpeechVoiceSynth.Melody.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceSynth.Melody.cs)
+- [`Content.Client/_WF/Voice/SpeechVoiceSynth.Score.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceSynth.Score.cs)
 - [`Content.Client/_WF/Voice/SpeechVoiceSynth.Sounds.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceSynth.Sounds.cs)
 - [`Content.Client/_WF/Voice/SpeechVoiceSynth.Species.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceSynth.Species.cs)
 - [`Content.Client/_WF/Voice/SpeechVoiceSynth.Text.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceSynth.Text.cs)

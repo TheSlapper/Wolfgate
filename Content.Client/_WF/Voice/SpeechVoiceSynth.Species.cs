@@ -25,7 +25,6 @@ public sealed partial class SpeechVoiceSynth
         public float Shimmer;
         public float Growl;
         public float Wobble;
-        public float FricationBoost;
 
         /// <summary>Seconds per letter at pace 1.</summary>
         public float LetterSeconds;
@@ -75,10 +74,10 @@ public sealed partial class SpeechVoiceSynth
         /// <summary>A 25 Hz flutter in loudness over the whole line.</summary>
         public float Purr;
 
-        /// <summary>Widens the noise band of s, z and sh into a bright hiss.</summary>
+        /// <summary>Widens the band of the sentence-end hiss.</summary>
         public float HissWidth;
 
-        /// <summary>At half or more, each phrase ends on a long s.</summary>
+        /// <summary>At half or more, each phrase ends on a soft hiss.</summary>
         public float HissTail;
 
         /// <summary>Short damped sine pops on each vowel.</summary>
@@ -122,13 +121,12 @@ public sealed partial class SpeechVoiceSynth
             Breath = 0.05f,
             Jitter = 0.005f,
             Shimmer = 0.03f,
-            FricationBoost = 1f,
             LetterSeconds = 0.05f,
             GapScale = 1f,
             PitchVariance = 0.1f,
             Intonation = 0.2f,
             VibratoRate = 5f,
-            LowPass = 7500f,
+            LowPass = 11000f,
             PitchSpread = 1f,
             FricativeStretch = 1f,
             HissWidth = 1f,
@@ -194,7 +192,6 @@ public sealed partial class SpeechVoiceSynth
                     style.FormantScale = 0.9f;
                     style.Rd = 1.3f;
                     style.Breath = 0.12f;
-                    style.FricationBoost = 1.8f;
                     style.FricativeStretch = 1.8f;
                     style.HissWidth = 2.2f;
                     style.HissTail = 1f;
@@ -255,7 +252,6 @@ public sealed partial class SpeechVoiceSynth
                     style.Tilt = 0.8f;
                     style.Breath = 0.15f;
                     style.Jitter = 0.004f;
-                    style.FricationBoost = 1.3f;
                     style.LetterSeconds = 0.045f;
                     style.Intonation = 0.25f;
                     style.Flutter = 0.3f;
