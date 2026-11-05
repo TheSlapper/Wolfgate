@@ -1309,11 +1309,6 @@
       - !type:PlaySoundBehavior
         sound:
           path: /Audio/Effects/demon_dies.ogg
-      - !type:SpawnEntitiesBehavior
-        spawn:
-          MaterialBluespace1:
-            min: 5
-            max: 5
       - !type:DoActsBehavior
         acts: [ "Destruction" ]
   - type: MovementSpeedModifier
@@ -1355,6 +1350,8 @@
     projectileThreshold: 0
   - type: FaunaDeathSpawn
     spawns:
+    - id: MaterialBluespace1
+      amount: 5
     - id: AnomalyCoreBluespace
       prob: 0.05
     - id: ShiptestGemFrostDiamond
@@ -1397,15 +1394,12 @@
       - !type:PlaySoundBehavior
         sound:
           path: /Audio/Effects/demon_dies.ogg
-      - !type:SpawnEntitiesBehavior
-        spawn:
-          MaterialBluespace1:
-            min: 10
-            max: 10
       - !type:DoActsBehavior
         acts: [ "Destruction" ]
   - type: FaunaDeathSpawn
     spawns:
+    - id: MaterialBluespace1
+      amount: 10
     - id: AnomalyCoreBluespace
       prob: 0.2
     - id: ShiptestGemFrostDiamond

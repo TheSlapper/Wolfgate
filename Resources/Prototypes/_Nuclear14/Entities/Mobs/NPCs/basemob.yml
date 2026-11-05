@@ -63,7 +63,7 @@
     damageContainer: Biological
     damageModifierSet: WastelandAnimal
   - type: Puller
-    needsHands: true
+    needsHands: false
   - type: IgnitionSource
 
 - type: entity
