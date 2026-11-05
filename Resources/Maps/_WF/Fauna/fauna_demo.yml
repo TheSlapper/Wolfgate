@@ -163,7 +163,12 @@ entities:
     - type: DecalGrid
       chunkCollection:
         version: 2
-        nodes: []
+        nodes:
+        - node:
+            id: arrow
+            color: '#FFFFFFFF'
+          decals:
+            1: -18.985817,0.43617058
     - type: PlanetMap
     - type: Parallax
       parallax: bedrock
@@ -192,7 +197,7 @@ entities:
     components:
     - type: Transform
       parent: 1
-      pos: -18.5,3.5
+      pos: -18.5,1.5
     - type: Fixtures
       fixtures: {}
 - proto: FaunaDisplaySpawner

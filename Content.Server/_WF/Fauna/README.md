@@ -1,103 +1,42 @@
 # Fauna
 
-Creatures for the alien planets, converted from SS13 forks and ported from SS14 forks, with their abilities and sounds.
-Shared behaviour lives here: `FaunaFleeCompound` and `FaunaCorpseEaterCompound` (HTN), `FaunaGrowth`, `FaunaEnrage`, `FaunaGourmonger`, `FaunaAmbush`, `FaunaAggroCry`, and the abilities that
-`FaunaAbilities` fires at the NPC's target (`FaunaCharge`, `FaunaSlam`, `FaunaShout`, `FaunaRegenerate`, `FaunaDodge`, `FaunaFuse`).
-On the `Maps/_WF/Fauna/fauna_demo.yml` demo map, `FaunaDisplaySpawner` markers stand each mob still, and a
-`FaunaDisplayButton` wakes them all or puts them back.
-On `Maps/_WF/Fauna/fauna_arena.yml`, `FaunaArenaButton` buttons pick one mob for the arena, start the fight and
-restock the weapon, armour and medical tables.
+Wild creatures for the alien planets, with their abilities, sounds and loot. Most are converted from SS13:
+CHOMPStation2 (`ca24d940aa`), Citadel RP (`db254a45e8`), DS13-2.0 (`4c8813536f`), NuclearPhase (`a90d33c6e9`),
+OnyxBay (`3cb893c921`), Polaris (`6cd19fe0de`), Shiptest (`1d98db044a`), Sojourn (`c4d39bd4ef`), TauCeti
+(`57a938ae83`), /vg/station (`23f25f386f`), VOREStation (`87b3dbf0ec`) and Voidcrew (`0c87384b55`). The rest are
+ported from SS14 forks and keep their fork's folders and IDs (`ADT`, `_CP14`, `_EinsteinEngines`, `_Funkystation`,
+`_Goobstation`, `_Impstation`, `_Lavaland`, `_Nuclear14`, `_StarLight`, and Space Wizards' hivebot).
 
-## Mob standard
+Mobs fight through their HTN and `FaunaAbilities`, which fires each mob's abilities at its target: charges, slams,
+shouts, blinks, projectile bursts, burrows and more. They take gun, melee and armour damage like other mobs, and
+bleed, heal, butcher and revive where their source allows it.
 
-Mobs match the fauna Wolfgate already spawns (planet, cavern and expedition mobs):
+Two test maps show them. On `Maps/_WF/Fauna/fauna_demo.yml`, a `FaunaDisplaySpawner` marker stands each mob still,
+and a `FaunaDisplayButton` wakes them all or puts them back. On `Maps/_WF/Fauna/fauna_arena.yml`, `FaunaArenaButton`
+buttons pick one mob, start the fight and restock the weapon, armour and medical tables.
 
-- Parent on `SimpleSpaceMobBase` (or `SimpleMobBase` for air breathers), not `BaseMobAsteroid`, so they bleed, burn,
-  give Wolfmed bite wounds, slow when hurt, rot and have a price. Robots leave out blood and the bite.
-- Damage through `MobDamageable`, not a fork's own damageable base.
-- 30-120 HP and 5-15 damage a hit. Big beasts up to about 300 HP, like `MobGoliath`. Mobs the source treats as
-  bosses keep the source's HP.
-- Factions `SimpleHostile`, `SimpleNeutral`, `Passive` or `Xeno`. Upstream HTN roots unless the mob has its own AI.
-- No `GhostRole` on wild fauna. It stops Monolith's mob cleanup.
-- Before a mob goes into expedition or salvage tables it needs `NFMobRestrictions` and the `NFMobFactionlessBase`
-  traits.
+Entry points: `FaunaAbilitiesSystem` and the ability systems it drives (`FaunaChargeSystem`, `FaunaSlamSystem`,
+`FaunaShoutSystem`, `FaunaBlinkSystem`, `FaunaProjectileBurstSystem` and others), `FaunaHelperSystem` (target key,
+free tiles, kin, next-tick spawns), `FaunaDisplaySystem` and `FaunaArenaSystem` for the test maps, the HTN compounds
+in `Resources/Prototypes/_WF/Fauna/NPCs/htn.yml`, and one mob file per source in
+`Resources/Prototypes/_WF/Fauna/Entities/Mobs`.
 
-## Left out of the DS13 necromorphs
+## Differences from the sources
 
-- The brute charge's speed build-up. Its frontal armour stops bullets and blades, not lasers.
-- Leaper gallop (its leap closes the same gap), table leap and tail sprite, and the twitcher's dodge shake.
-- Infector abilities (never coded in DS13), and the ubermorph's server-wide arrival and Sense tracking.
-
-## Left out of the OnyxBay, Voidcrew, /vg/, NuclearPhase and TauCeti mobs
-
-- Goliath tentacles drilling rock and needing asteroid floor.
-- The beholder's X-ray eye and its mindflayer, declone, dart, flash, flare and animate bolts.
-- The oceanborn hunters' bullet armour that grows with each hit.
-- Wendigo evolution, voice mimicry and fear of campfires. Its throw gets no longer when enraged.
-- The spider queen losing legs. Spiderlings leave a corpse instead of a remains decal.
-- The meatland creatures' stray respawn.
-
-## Left out of the Sojourn fauna
-
-- Chimera voice commands and breeding, and the hell diver's hunger meter and taming. The mukwah roar's own stats.
-- Roaches: taming, riding, eggs and rank fights. Spiders: perk scaling, genetics, walk animations, venom cut by armour
-  and the cave spider cocooning items.
-- Ameridian golems: crystal growth, spires and fields, ablative armour, the golem shake and shards embedding.
-  Termites: drill waves, termite meat and the smertnik's shot warning. The queen's burrows are ours.
-- Psi monsters: deep-maint binding, chaos level attacks, stat cuts (now MindbreakerToxin and Toxin), cult loot,
-  walking over tables, the flesh tower's shot warning and the unused second sprites. Light ignores brightness and
-  colour. The tail grapple's reel-in and Daskvey's unfinished Rune Chat.
-
-## Left out of the Shiptest fauna
-
-- The goliaths' grazing on ash flora and their tentacles drilling rock.
-- The desert basilisk's shell hit messages. The forgotten watcher eats any ore, not only diamonds.
-- Wolves don't avoid lava.
-- Antlions use the ADT antlion's sprite, which is the same art.
-- Hierophant: beacon, rock drilling, its purple flash, rage scaling, and the swarm and spam attacks. Its arena is a
-  plain wall ring that blocks it too. Wendigo: the exit portal, polar bear form and 8 hits a second. The fugu doesn't
-  flee between puffs. Kudzu doesn't grow flower buds. The mi-go is the StarLight one.
-
-## Left out of the Polaris Sif fauna
-
-- The frostfly's and moth's energy pool (a cooldown takes its place), vent crawling, hiding and the step aside
-  after each of their own shots. The chill from a freezing glob slows the target
-  but doesn't slow its attacks. Spore clouds disorient with a drunken wobble instead of blurred sight.
-- The berserk savik heals when its rage starts instead of gaining extra health, and isn't easier to hit.
-- The hooligan crab doesn't return home after a fight or shake the screen as it walks.
-- The kururaks' instinct score, pack leadership, rally call, evasion and sleeping sprite. The leader's flash doesn't
-  burn heads.
-- The grafadreka's sap reserve, fruit eating, sitting, harness, salve, dens and scarring. Its glow stays at full
-  brightness. Its spit slows instead of confusing, the toxic bite always applies and it heals any nearby grafadreka,
-  not players. Hatchlings don't hide.
-- Giant spider venoms are swapped for Wolfgate reagents (spidertoxin to mechanotoxin, serotrotium to happiness,
-  psilocybin to space drugs, phoron to plasma, stimm to stimulants). The tunneler erupts beside its prey instead of
-  tunnelling a line that stuns everything on the way, and doesn't get stuck when it hits a wall. The webslinger
-  throws its bola at random, not only at prey with free legs. Leaps don't pass over tables. Spiders don't nest, lay
-  eggs or spin webs as they walk, since the nurse that does isn't ported.
-- The Virgo broodmother uses the VG spider queen sprite (the same art). It births one broodling every 6 seconds up
-  to 8, in or out of a fight, and throws each one at its target instead of two at a time. Its broodlings are only
-  the five spider kinds ported here, and they leave a corpse. Cyanide became amatoxin.
-- Sakimm coins, hats and the thieving variant, and the blob spore's overmind and corpse infesting. Cryotoxin,
-  irritant and pyrotoxin venoms became frost oil, capsaicin oil and phlogiston.
-- The space worm's body slides along its path instead of stepping tile by tile, so its corner sprites go unused. It
-  doesn't swallow items as it moves or pass its stomach down the chain.
-
-## Left out of the Virgo and CHOMP mobs
-
-- The lunarmoth breaking glass, lights and firedoors. Shockchem became licoxide. The larva drains cables instead of
-  crawling into machines and vents.
-- The snowbull's health sprites. Its charge damages any structure alike instead of shattering windows, flipping
-  tables or opening closets. The startreader's pummeler and mech-tool loot.
-- Mimics keep one fixed disguise (no morph), floor mimics and mimic crates that open normally are out.
-- The ysbryd is faint to everyone, not invisible to all but one victim, and the blaidd doesn't freeze when watched.
-  Construct spells (beams, banishment, fortify, slam), deep wounds and the cardinal's stun immunity, bullet
-  fraction and shrapnel are out.
-- Tyr ants: the bronze haste aura, delayed bursts, nest building, the queen's idle laying and the fossiltank rex are
-  out. The solar ray's armour piercing works on all armour, not only energy armour.
-- Riding and vore on the giant rat, unicorn and crypt drake.
-- The large dragon's vore, riding, taming, style verbs and resting heal, moving during windups and its pellets
-  piercing. It always has curved horns.
+- DS13: no brute charge build-up, leaper gallop or table leap, twitcher dodge shake, infector abilities, or ubermorph
+  arrival and Sense tracking.
+- OnyxBay, Voidcrew, /vg/, NuclearPhase and TauCeti: goliath tentacles don't drill rock. No beholder X-ray eye or
+  bolts, oceanborn armour growth, wendigo evolution, voice mimicry or fear of fire, or meatland stray respawns. The
+  spider queen keeps her legs.
+- Sojourn: no taming, riding, breeding or hunger. No roach eggs and rank fights, spider genetics and cocoons, golem
+  crystal growth and ablative armour, termite drill waves, or psi binding, chaos attacks and cult loot.
+- Shiptest: goliaths don't graze or drill rock. The Hierophant has no beacon, drilling, rage scaling, swarm or spam
+  attacks, and its arena is a plain wall ring. The wendigo has no exit portal or bear form. The mi-go is StarLight's.
+- Polaris: frostflies and moths use a cooldown instead of an energy pool. No kururak pack instincts, grafadreka sap,
+  dens and harness, or spider nests and eggs. Spider venoms are swapped for Wolfgate reagents. The space worm slides
+  instead of stepping tile by tile.
+- Virgo and CHOMP: mimics keep one disguise. No construct spells, Tyr ant nest building, or riding, taming and vore.
+  The ysbryd is faint to everyone. The solargrub larva drains cables instead of crawling into machines.
 
 <!-- WOLFGATE-GENERATED START -->
 <!-- Generated by python Tools/_WF/Ci/modules.py --write. Don't edit by hand. -->
