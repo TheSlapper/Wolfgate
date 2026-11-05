@@ -401,7 +401,7 @@
     sound:
       path: /Audio/Weapons/slash.ogg
     event: !type:GoliathSummonTentacleAction
-      entityId: ShiptestEffectGruboidBabyTentacle
+      entityId: ShiptestEffectGruboidTentacle
       extraSpawns: 0
     useDelay: 4
     range: 7
@@ -506,33 +506,6 @@
     - state: tentacle_wiggle
   - type: SpawnOnDespawn
     prototype: ShiptestEffectGruboidTentacleRetract
-
-- type: entity
-  parent: ShiptestEffectGruboidTentacle
-  id: ShiptestEffectGruboidBabyTentacle
-  categories: [ HideSpawnMenu ]
-  components:
-  - type: SpawnOnDespawn
-    prototype: ShiptestGruboidBabyTentacle
-
-# The brood's tentacles hit harder but only trip.
-- type: entity
-  parent: ShiptestGruboidTentacle
-  id: ShiptestGruboidBabyTentacle
-  categories: [ HideSpawnMenu ]
-  components:
-  - type: StunOnContact
-    duration: 0.5
-    blacklist:
-      tags:
-      - Goliath
-  - type: DamageOnCollide
-    damage:
-      types:
-        Blunt: 32
-    whitelist:
-      components:
-      - MobState
 
 - type: entity
   parent: EffectGoliathTentacleRetract
@@ -2158,8 +2131,7 @@
     animation: WeaponArcPunch
     damage:
       types:
-        Blunt: 30
-        Structural: 40
+        Structural: 30
   - type: PreventPulledWhileAlive
   - type: FaunaProjectileBurst
     projectile: ShiptestProjectileSolar
@@ -2354,6 +2326,9 @@
         21
       AggroVisionRadius: !type:Single
         21
+      # Above 1 so a target exactly one tile away still passes the melee range check.
+      MeleeRange: !type:Single
+        1.2
 
 - type: entity
   id: ShiptestHierophantBlast

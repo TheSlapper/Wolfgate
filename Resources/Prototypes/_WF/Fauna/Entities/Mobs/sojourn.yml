@@ -2985,7 +2985,8 @@
     availableModes:
     - Burst
     shotsPerBurst: 3
-    burstFireRate: 6
+    burstFireRate: 1.33
+    burstCooldown: 1.5
     soundGunshot:
       path: /Audio/_WF/Fauna/Sojourn/acid_spit.ogg
   - type: HTN

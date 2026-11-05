@@ -522,6 +522,8 @@
     state: web
   - type: Ammo
     muzzleFlash: null
+  - type: ThrowingAngle
+    angle: 0
   - type: EmitSoundOnLand
     sound: /Audio/_WF/Fauna/VG/hivehand_empty.ogg
   - type: Ensnaring
