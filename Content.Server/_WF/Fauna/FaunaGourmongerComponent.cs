@@ -60,9 +60,15 @@ public sealed partial class FaunaGourmongerComponent : Component
     [DataField]
     public int GrowToSplit = 20;
 
+    /// <summary>
+    /// It won't split while this many gourmongers are alive.
+    /// </summary>
     [DataField]
     public int MaxAlive = 30;
 
+    /// <summary>
+    /// Offspring spawned when it splits.
+    /// </summary>
     [DataField]
     public int SplitInto = 2;
 
@@ -78,6 +84,9 @@ public sealed partial class FaunaGourmongerComponent : Component
     [DataField]
     public int FoodGrowth = 1;
 
+    /// <summary>
+    /// Meal count and max health gained from a corpse.
+    /// </summary>
     [DataField]
     public int CorpseGrowth = 2;
 
@@ -93,33 +102,63 @@ public sealed partial class FaunaGourmongerComponent : Component
     [DataField]
     public float RadiationRange = 3f;
 
+    /// <summary>
+    /// Faction while it is fed.
+    /// </summary>
     [DataField]
     public ProtoId<NpcFactionPrototype> CalmFaction = "Passive";
 
+    /// <summary>
+    /// Faction while it is starving.
+    /// </summary>
     [DataField]
     public ProtoId<NpcFactionPrototype> HangryFaction = "SimpleHostile";
 
+    /// <summary>
+    /// Meat dropped on death, holding its banked food.
+    /// </summary>
     [DataField]
     public EntProtoId Meat = "FoodMeat";
 
+    /// <summary>
+    /// Reagent added to the dropped meat.
+    /// </summary>
     [DataField]
     public ProtoId<ReagentPrototype> Nutriment = "Nutriment";
 
+    /// <summary>
+    /// Banked kcal per unit of nutriment in the dropped meat.
+    /// </summary>
     [DataField]
     public float KcalPerNutriment = 15f;
 
+    /// <summary>
+    /// Most nutriment one piece of dropped meat holds.
+    /// </summary>
     [DataField]
     public float NutrimentPerMeat = 20f;
 
+    /// <summary>
+    /// Spawned at a chance of <see cref="HeartChance"/> when a player hand-feeds it.
+    /// </summary>
     [DataField]
     public EntProtoId? Heart;
 
+    /// <summary>
+    /// Chance from 0 to 1 that a hand-feed spawns <see cref="Heart"/>.
+    /// </summary>
     [DataField]
     public float HeartChance = 0.05f;
 
+    /// <summary>
+    /// Chance from 0 to 1 per tick that a hungry one grumbles.
+    /// </summary>
     [DataField]
     public float GrumbleChance = 0.1f;
 
+    /// <summary>
+    /// Popups picked from when it grumbles.
+    /// </summary>
     [DataField]
     public List<LocId> Grumbles = new()
     {
@@ -128,33 +167,63 @@ public sealed partial class FaunaGourmongerComponent : Component
         "fauna-gourmonger-grumble-3",
     };
 
+    /// <summary>
+    /// Shown when a starving one sniffs for food.
+    /// </summary>
     [DataField]
     public LocId SniffPopup = "fauna-gourmonger-sniff";
 
+    /// <summary>
+    /// Shown to a player who tries to feed it while it is eating.
+    /// </summary>
     [DataField]
     public LocId BusyPopup = "fauna-gourmonger-busy";
 
+    /// <summary>
+    /// Examine text below <see cref="HungryKcal"/>.
+    /// </summary>
     [DataField]
     public LocId FamishedExamine = "fauna-gourmonger-examine-famished";
 
+    /// <summary>
+    /// Examine text above <see cref="FatKcal"/>.
+    /// </summary>
     [DataField]
     public LocId FatExamine = "fauna-gourmonger-examine-fat";
 
+    /// <summary>
+    /// Time between hunger ticks.
+    /// </summary>
     [DataField]
     public TimeSpan TickInterval = TimeSpan.FromSeconds(2);
 
+    /// <summary>
+    /// Time between sniffs while starving.
+    /// </summary>
     [DataField]
     public TimeSpan SniffInterval = TimeSpan.FromSeconds(15);
 
+    /// <summary>
+    /// How long the sniffing sprite state shows.
+    /// </summary>
     [DataField]
     public TimeSpan SniffDuration = TimeSpan.FromSeconds(1);
 
+    /// <summary>
+    /// Light colour once it has a quarter of the meals it needs to split.
+    /// </summary>
     [DataField]
     public Color GlowColor = Color.FromHex("#5ad35a");
 
+    /// <summary>
+    /// Whether it is starving and hostile.
+    /// </summary>
     [ViewVariables]
     public bool Hangry;
 
+    /// <summary>
+    /// Meals eaten toward <see cref="GrowToSplit"/>.
+    /// </summary>
     [ViewVariables]
     public int Meals;
 
@@ -164,12 +233,21 @@ public sealed partial class FaunaGourmongerComponent : Component
     [ViewVariables]
     public int FastingTicks;
 
+    /// <summary>
+    /// When the next hunger tick runs.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan NextTick;
 
+    /// <summary>
+    /// When it may sniff again.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan NextSniff;
 
+    /// <summary>
+    /// When the sniffing sprite state ends.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan SniffEnd;
 

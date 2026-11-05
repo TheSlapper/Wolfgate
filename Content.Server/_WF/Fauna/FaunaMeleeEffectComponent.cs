@@ -11,12 +11,21 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent]
 public sealed partial class FaunaMeleeEffectComponent : Component
 {
+    /// <summary>
+    /// Chance from 0 to 1 per hit target that the effect lands.
+    /// </summary>
     [DataField]
     public float Chance = 0.1f;
 
+    /// <summary>
+    /// How long a landed effect slows the target.
+    /// </summary>
     [DataField]
     public TimeSpan? Slow;
 
+    /// <summary>
+    /// How long a landed effect knocks the target down.
+    /// </summary>
     [DataField]
     public TimeSpan? Knockdown;
 
@@ -38,6 +47,9 @@ public sealed partial class FaunaMeleeEffectComponent : Component
     [DataField]
     public bool DropTarget;
 
+    /// <summary>
+    /// Shown when an effect lands.
+    /// </summary>
     [DataField]
     public LocId? Popup;
 
@@ -53,6 +65,9 @@ public sealed partial class FaunaMeleeEffectComponent : Component
     [DataField]
     public SoundSpecifier? Sound;
 
+    /// <summary>
+    /// Shown when the mob forgets its target after an effect.
+    /// </summary>
     [DataField]
     public LocId? DropPopup;
 
@@ -62,6 +77,9 @@ public sealed partial class FaunaMeleeEffectComponent : Component
     [DataField]
     public float ThrowDowned;
 
+    /// <summary>
+    /// Shown when a downed target is hurled away.
+    /// </summary>
     [DataField]
     public LocId? ThrowPopup;
 
@@ -89,6 +107,9 @@ public sealed partial class FaunaMeleeEffectComponent : Component
     [DataField]
     public float MissChance;
 
+    /// <summary>
+    /// Shown when a hit whiffs.
+    /// </summary>
     [DataField]
     public LocId? MissPopup;
 
@@ -98,6 +119,9 @@ public sealed partial class FaunaMeleeEffectComponent : Component
     [DataField]
     public DamageSpecifier? AltDamage;
 
+    /// <summary>
+    /// Chance from 0 to 1 that a hit deals <see cref="AltDamage"/>.
+    /// </summary>
     [DataField]
     public float AltChance;
 

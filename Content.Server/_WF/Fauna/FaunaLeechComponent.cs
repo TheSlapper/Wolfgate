@@ -8,6 +8,9 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent, AutoGenerateComponentPause]
 public sealed partial class FaunaLeechComponent : Component
 {
+    /// <summary>
+    /// Chance from 0 to 1 that a melee hit latches on.
+    /// </summary>
     [DataField]
     public float Chance = 0.3f;
 
@@ -23,9 +26,15 @@ public sealed partial class FaunaLeechComponent : Component
     [DataField]
     public DamageSpecifier? Heal;
 
+    /// <summary>
+    /// Time between feeds.
+    /// </summary>
     [DataField]
     public TimeSpan Interval = TimeSpan.FromSeconds(3);
 
+    /// <summary>
+    /// Chance from 0 to 1 per feed to show <see cref="PainPopup"/>.
+    /// </summary>
     [DataField]
     public float PainChance = 0.15f;
 
@@ -41,6 +50,9 @@ public sealed partial class FaunaLeechComponent : Component
     [DataField]
     public float BurnLimit = 1.5f;
 
+    /// <summary>
+    /// Shown when the mob latches on.
+    /// </summary>
     [DataField]
     public LocId? LatchPopup;
 
@@ -50,12 +62,21 @@ public sealed partial class FaunaLeechComponent : Component
     [DataField]
     public LocId? PainPopup;
 
+    /// <summary>
+    /// Shown to the victim when the mob lets go.
+    /// </summary>
     [DataField]
     public LocId? ReleasePopup;
 
+    /// <summary>
+    /// When the next feed happens.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan NextTick;
 
+    /// <summary>
+    /// The mob it is latched onto, if any.
+    /// </summary>
     [ViewVariables]
     public EntityUid? Victim;
 }

@@ -8,6 +8,9 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent, AutoGenerateComponentPause]
 public sealed partial class FaunaGrowthComponent : Component
 {
+    /// <summary>
+    /// Adult form the mob is replaced with.
+    /// </summary>
     [DataField(required: true)]
     public EntProtoId GrowInto;
 
@@ -23,12 +26,21 @@ public sealed partial class FaunaGrowthComponent : Component
     [DataField]
     public float Chance = 1f;
 
+    /// <summary>
+    /// Shortest time from spawn to growing up.
+    /// </summary>
     [DataField]
     public TimeSpan MinDelay = TimeSpan.FromMinutes(10);
 
+    /// <summary>
+    /// Longest time from spawn to growing up.
+    /// </summary>
     [DataField]
     public TimeSpan MaxDelay = TimeSpan.FromMinutes(20);
 
+    /// <summary>
+    /// When the mob grows up.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan GrowAt;
 }

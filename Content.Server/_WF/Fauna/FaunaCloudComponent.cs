@@ -10,15 +10,27 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent, AutoGenerateComponentPause]
 public sealed partial class FaunaCloudComponent : Component
 {
+    /// <summary>
+    /// Tiles from the cloud's centre within which mobs are hit.
+    /// </summary>
     [DataField]
     public float Radius = 1.5f;
 
+    /// <summary>
+    /// Damage dealt to each mob inside per interval.
+    /// </summary>
     [DataField]
     public DamageSpecifier? Damage;
 
+    /// <summary>
+    /// Stamina damage dealt to each mob inside per interval.
+    /// </summary>
     [DataField]
     public float Stamina;
 
+    /// <summary>
+    /// Slowdown applied to each mob inside per interval.
+    /// </summary>
     [DataField]
     public TimeSpan Slow = TimeSpan.Zero;
 
@@ -46,9 +58,15 @@ public sealed partial class FaunaCloudComponent : Component
     [DataField]
     public bool BreathingOnly;
 
+    /// <summary>
+    /// Time between hits on the mobs inside.
+    /// </summary>
     [DataField]
     public TimeSpan Interval = TimeSpan.FromSeconds(1);
 
+    /// <summary>
+    /// When the mobs inside are next hit.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan NextTick;
 }

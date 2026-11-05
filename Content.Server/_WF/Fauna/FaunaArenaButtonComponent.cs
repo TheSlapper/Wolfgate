@@ -6,9 +6,15 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent]
 public sealed partial class FaunaArenaButtonComponent : Component
 {
+    /// <summary>
+    /// What the button does when pressed.
+    /// </summary>
     [DataField(required: true)]
     public FaunaArenaAction Action;
 
+    /// <summary>
+    /// Least time between presses.
+    /// </summary>
     [DataField]
     public TimeSpan Delay = TimeSpan.FromSeconds(1);
 
@@ -19,6 +25,9 @@ public sealed partial class FaunaArenaButtonComponent : Component
     public TimeSpan NextPress;
 }
 
+/// <summary>
+/// What a <see cref="FaunaArenaButtonComponent"/> does when pressed.
+/// </summary>
 public enum FaunaArenaAction : byte
 {
     Previous,

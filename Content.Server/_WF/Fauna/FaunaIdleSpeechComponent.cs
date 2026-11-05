@@ -6,6 +6,9 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent, AutoGenerateComponentPause]
 public sealed partial class FaunaIdleSpeechComponent : Component
 {
+    /// <summary>
+    /// Lines picked from at random.
+    /// </summary>
     [DataField(required: true)]
     public List<LocId> Lines = new();
 
@@ -27,6 +30,9 @@ public sealed partial class FaunaIdleSpeechComponent : Component
     [DataField]
     public bool IdleOnly = true;
 
+    /// <summary>
+    /// When the next speech roll happens.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan NextCheck;
 }

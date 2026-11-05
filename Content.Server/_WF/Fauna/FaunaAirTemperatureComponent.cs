@@ -24,12 +24,21 @@ public sealed partial class FaunaAirTemperatureComponent : Component
     [DataField]
     public float? BoostFrom;
 
+    /// <summary>
+    /// Watts used instead of <see cref="Power"/> above <see cref="BoostFrom"/>.
+    /// </summary>
     [DataField]
     public float BoostPower;
 
+    /// <summary>
+    /// Time between changes to the air.
+    /// </summary>
     [DataField]
     public TimeSpan Interval = TimeSpan.FromSeconds(1);
 
+    /// <summary>
+    /// When the air is next changed.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan NextTick;
 }

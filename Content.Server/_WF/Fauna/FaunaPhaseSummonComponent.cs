@@ -28,6 +28,9 @@ public sealed partial class FaunaPhaseSummonComponent : Component
     [DataField]
     public int SpawnRange = 2;
 
+    /// <summary>
+    /// Spawned on the mob when a phase fires, and where it lands after a teleport.
+    /// </summary>
     [DataField]
     public EntProtoId? Effect = "EffectSparks";
 
@@ -37,13 +40,22 @@ public sealed partial class FaunaPhaseSummonComponent : Component
     [DataField]
     public EntProtoId? Gore;
 
+    /// <summary>
+    /// Index in <see cref="Phases"/> of the next phase to fire.
+    /// </summary>
     [ViewVariables]
     public int NextPhase;
 
+    /// <summary>
+    /// Whether the mob took damage since the last phase check.
+    /// </summary>
     [ViewVariables]
     public bool Pending;
 }
 
+/// <summary>
+/// One health phase of <see cref="FaunaPhaseSummonComponent"/>.
+/// </summary>
 [DataDefinition]
 public sealed partial class FaunaSummonPhase
 {
@@ -53,9 +65,15 @@ public sealed partial class FaunaSummonPhase
     [DataField(required: true)]
     public float Fraction;
 
+    /// <summary>
+    /// Entities spawned near the mob when the phase fires.
+    /// </summary>
     [DataField]
     public List<EntProtoId> Spawns = new();
 
+    /// <summary>
+    /// Popup shown on the mob when the phase fires.
+    /// </summary>
     [DataField]
     public LocId? Popup;
 

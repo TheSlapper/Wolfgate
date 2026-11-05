@@ -8,9 +8,15 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent]
 public sealed partial class FaunaDodgeComponent : Component
 {
+    /// <summary>
+    /// Current dodge pool. Dodge chance is this over <see cref="MaxPool"/>.
+    /// </summary>
     [DataField]
     public float Pool = 100f;
 
+    /// <summary>
+    /// Largest the dodge pool can grow.
+    /// </summary>
     [DataField]
     public float MaxPool = 100f;
 
@@ -26,6 +32,9 @@ public sealed partial class FaunaDodgeComponent : Component
     [DataField]
     public float UseChance = 0.55f;
 
+    /// <summary>
+    /// Pool spent on a dodge that costs pool.
+    /// </summary>
     [DataField]
     public float Usage = 8f;
 
@@ -35,9 +44,15 @@ public sealed partial class FaunaDodgeComponent : Component
     [DataField]
     public bool SideStep;
 
+    /// <summary>
+    /// Played on each dodge.
+    /// </summary>
     [DataField]
     public SoundSpecifier? Sound;
 
+    /// <summary>
+    /// Popup shown on each dodge.
+    /// </summary>
     [DataField]
     public LocId Popup = "fauna-dodge";
 

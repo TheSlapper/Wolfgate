@@ -14,6 +14,9 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent]
 public sealed partial class FaunaCorpseEaterComponent : Component
 {
+    /// <summary>
+    /// How long each meal takes.
+    /// </summary>
     [DataField]
     public TimeSpan Delay = TimeSpan.FromSeconds(5);
 
@@ -35,6 +38,9 @@ public sealed partial class FaunaCorpseEaterComponent : Component
     [DataField]
     public bool EatCritical;
 
+    /// <summary>
+    /// Damage group that the meal's healing goes to.
+    /// </summary>
     [DataField]
     public ProtoId<DamageGroupPrototype> HealGroup = "Brute";
 
@@ -44,6 +50,9 @@ public sealed partial class FaunaCorpseEaterComponent : Component
     [DataField]
     public DamageSpecifier? Bite;
 
+    /// <summary>
+    /// Added to the mob's hunger after each meal.
+    /// </summary>
     [DataField]
     public float Hunger;
 
@@ -71,6 +80,9 @@ public sealed partial class FaunaCorpseEaterComponent : Component
     [DataField]
     public EntProtoId? Cocoon;
 
+    /// <summary>
+    /// Container on the <see cref="Cocoon"/> that holds the corpse.
+    /// </summary>
     [DataField]
     public string CocoonContainer = "cocoon";
 
@@ -80,15 +92,27 @@ public sealed partial class FaunaCorpseEaterComponent : Component
     [DataField]
     public EntProtoId? Spawn;
 
+    /// <summary>
+    /// Played when a meal finishes.
+    /// </summary>
     [DataField]
     public SoundSpecifier? Sound;
 
+    /// <summary>
+    /// Shown when the mob starts eating.
+    /// </summary>
     [DataField]
     public LocId StartPopup = "fauna-eat-corpse-start";
 
+    /// <summary>
+    /// Shown when the mob finishes eating.
+    /// </summary>
     [DataField]
     public LocId DonePopup = "fauna-eat-corpse-done";
 
+    /// <summary>
+    /// What the mob is eating now, if anything.
+    /// </summary>
     [ViewVariables]
     public EntityUid? Eating;
 }

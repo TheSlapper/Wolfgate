@@ -17,6 +17,9 @@ public sealed partial class FaunaGunOperator : HTNOperator, IHtnConditionalShutd
 
     private GunSystem _gun = default!;
 
+    /// <summary>
+    /// The gun operator this one wraps.
+    /// </summary>
     [DataField(required: true)]
     public HTNOperator Gun = default!;
 
@@ -54,6 +57,9 @@ public sealed partial class FaunaGunOperator : HTNOperator, IHtnConditionalShutd
         return Gun.Update(blackboard, frameTime);
     }
 
+    /// <summary>
+    /// Passes the conditional shutdown on to <see cref="Gun"/>.
+    /// </summary>
     public void ConditionalShutdown(NPCBlackboard blackboard)
     {
         (Gun as IHtnConditionalShutdown)?.ConditionalShutdown(blackboard);

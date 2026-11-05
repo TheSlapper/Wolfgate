@@ -9,9 +9,15 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent]
 public sealed partial class FaunaDisplaySpawnerComponent : Component
 {
+    /// <summary>
+    /// Mob spawned at this spot.
+    /// </summary>
     [DataField(required: true)]
     public EntProtoId Prototype;
 
+    /// <summary>
+    /// The display mob currently spawned here.
+    /// </summary>
     [ViewVariables]
     public EntityUid? Spawned;
 }

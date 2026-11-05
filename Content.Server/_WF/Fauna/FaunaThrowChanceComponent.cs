@@ -6,6 +6,9 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent]
 public sealed partial class FaunaThrowChanceComponent : Component
 {
+    /// <summary>
+    /// Chance from 0 to 1 that a melee hit throws the target.
+    /// </summary>
     [DataField]
     public float Chance = 0.25f;
 

@@ -39,15 +39,27 @@ public sealed partial class FaunaDarknessComponent : Component
     [DataField]
     public float LightRange = 10f;
 
+    /// <summary>
+    /// Time between light checks.
+    /// </summary>
     [DataField]
     public TimeSpan Interval = TimeSpan.FromSeconds(2);
 
+    /// <summary>
+    /// When the next light check runs.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan NextCheck;
 
+    /// <summary>
+    /// Whether no light reached the mob at the last check.
+    /// </summary>
     [ViewVariables]
     public bool Dark;
 
+    /// <summary>
+    /// Whether the mob is faded out with Stealth.
+    /// </summary>
     [ViewVariables]
     public bool Hidden;
 }

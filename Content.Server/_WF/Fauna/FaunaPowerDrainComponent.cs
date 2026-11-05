@@ -15,6 +15,9 @@ public sealed partial class FaunaPowerDrainComponent : Component
     [DataField]
     public float Rate = 75000f;
 
+    /// <summary>
+    /// Time between drains.
+    /// </summary>
     [DataField]
     public TimeSpan Interval = TimeSpan.FromSeconds(2);
 
@@ -25,9 +28,15 @@ public sealed partial class FaunaPowerDrainComponent : Component
     [DataField]
     public EntProtoId? EvolveInto;
 
+    /// <summary>
+    /// Joules drained before it evolves into <see cref="EvolveInto"/>.
+    /// </summary>
     [DataField]
     public float EvolveAt = 32000000f;
 
+    /// <summary>
+    /// Shown when the mob evolves.
+    /// </summary>
     [DataField]
     public LocId? EvolvePopup;
 
@@ -43,12 +52,21 @@ public sealed partial class FaunaPowerDrainComponent : Component
     [DataField]
     public bool Anchor;
 
+    /// <summary>
+    /// Whether the mob is draining now.
+    /// </summary>
     [ViewVariables]
     public bool Draining;
 
+    /// <summary>
+    /// Joules drained so far.
+    /// </summary>
     [ViewVariables]
     public float Drained;
 
+    /// <summary>
+    /// When the next drain happens.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan NextTick;
 }

@@ -13,6 +13,9 @@ public sealed partial class FaunaEmoteOperator : HTNOperator
 {
     private ChatSystem _chat = default!;
 
+    /// <summary>
+    /// Fluent string sent as the emote.
+    /// </summary>
     [DataField(required: true)]
     public LocId Emote;
 

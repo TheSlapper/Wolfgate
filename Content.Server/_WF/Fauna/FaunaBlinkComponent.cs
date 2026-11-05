@@ -16,6 +16,9 @@ public sealed partial class FaunaBlinkComponent : Component
     [DataField]
     public int Distance = 3;
 
+    /// <summary>
+    /// Played when the mob teleports.
+    /// </summary>
     [DataField]
     public SoundSpecifier? Sound = new SoundPathSpecifier("/Audio/Effects/teleport_arrival.ogg");
 
@@ -49,6 +52,9 @@ public sealed partial class FaunaBlinkComponent : Component
     [DataField]
     public bool AfterShout;
 
+    /// <summary>
+    /// When the next idle teleport happens.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan NextIdle;
 }

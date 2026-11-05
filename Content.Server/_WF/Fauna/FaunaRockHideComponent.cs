@@ -14,6 +14,9 @@ public sealed partial class FaunaRockHideComponent : Component
     [DataField]
     public float ProjectileThreshold = 30f;
 
+    /// <summary>
+    /// Damage multiplier for projectiles below <see cref="ProjectileThreshold"/>.
+    /// </summary>
     [DataField]
     public float ProjectileMultiplier = 0.3f;
 
@@ -29,6 +32,9 @@ public sealed partial class FaunaRockHideComponent : Component
     [DataField]
     public EntityWhitelist? Exempt;
 
+    /// <summary>
+    /// Shown when a thrown item bounces off.
+    /// </summary>
     [DataField]
     public LocId BouncePopup = "fauna-rock-hide-bounce";
 }

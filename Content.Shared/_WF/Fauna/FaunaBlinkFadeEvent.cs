@@ -9,6 +9,12 @@ namespace Content.Shared._WF.Fauna;
 [Serializable, NetSerializable]
 public sealed class FaunaBlinkFadeEvent(NetEntity mob, NetCoordinates from) : EntityEventArgs
 {
+    /// <summary>
+    /// The mob that blinked.
+    /// </summary>
     public NetEntity Mob = mob;
+    /// <summary>
+    /// Where the mob left from.
+    /// </summary>
     public NetCoordinates From = from;
 }

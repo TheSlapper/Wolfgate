@@ -13,9 +13,15 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent, AutoGenerateComponentPause]
 public sealed partial class FaunaWormComponent : Component
 {
+    /// <summary>
+    /// Entity spawned for each body segment.
+    /// </summary>
     [DataField(required: true)]
     public EntProtoId SegmentPrototype;
 
+    /// <summary>
+    /// Body segments spawned behind the head at map init.
+    /// </summary>
     [DataField]
     public int SegmentCount = 6;
 
@@ -43,15 +49,27 @@ public sealed partial class FaunaWormComponent : Component
     [ViewVariables]
     public List<EntityCoordinates> Trail = new();
 
+    /// <summary>
+    /// Head position at the last trail update, to skip updates when it hasn't moved.
+    /// </summary>
     [ViewVariables]
     public EntityCoordinates? LastHead;
 
+    /// <summary>
+    /// ID of the container that holds swallowed things.
+    /// </summary>
     [DataField]
     public string StomachId = "fauna_worm_stomach";
 
+    /// <summary>
+    /// Container that holds swallowed things.
+    /// </summary>
     [ViewVariables]
     public Container Stomach = default!;
 
+    /// <summary>
+    /// Stack spawned from what the worm digests.
+    /// </summary>
     [DataField]
     public ProtoId<StackPrototype> DigestStack = "Plasma";
 
@@ -61,9 +79,15 @@ public sealed partial class FaunaWormComponent : Component
     [DataField]
     public int FlatDigestAmount = 5;
 
+    /// <summary>
+    /// Chance per tick, 0-1, that the worm digests its stomach.
+    /// </summary>
     [DataField]
     public float ProcessChance = 0.5f;
 
+    /// <summary>
+    /// Chance, 0-1, that each swallowed thing is digested when the worm digests.
+    /// </summary>
     [DataField]
     public float DigestChance = 0.2f;
 
@@ -73,6 +97,9 @@ public sealed partial class FaunaWormComponent : Component
     [DataField]
     public DamageSpecifier DigestDamage = new();
 
+    /// <summary>
+    /// Time between digestion and damage-sharing ticks.
+    /// </summary>
     [DataField]
     public TimeSpan TickInterval = TimeSpan.FromSeconds(2);
 
@@ -100,6 +127,9 @@ public sealed partial class FaunaWormComponent : Component
     [DataField]
     public bool ShareDamage;
 
+    /// <summary>
+    /// When the next tick runs.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan NextTick;
 }

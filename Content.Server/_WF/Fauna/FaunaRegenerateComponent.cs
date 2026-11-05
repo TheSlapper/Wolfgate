@@ -14,12 +14,21 @@ public sealed partial class FaunaRegenerateComponent : Component
     [DataField(required: true)]
     public DamageSpecifier Heal = new();
 
+    /// <summary>
+    /// Time the healing is spread over.
+    /// </summary>
     [DataField]
     public TimeSpan Duration = TimeSpan.FromSeconds(5);
 
+    /// <summary>
+    /// When the current regeneration ends.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan EndAt;
 
+    /// <summary>
+    /// When the next heal tick happens.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan NextTick;
 }

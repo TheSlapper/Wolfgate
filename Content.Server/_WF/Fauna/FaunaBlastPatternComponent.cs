@@ -8,9 +8,15 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent]
 public sealed partial class FaunaBlastPatternComponent : Component
 {
+    /// <summary>
+    /// Entity spawned on each tile of the pattern.
+    /// </summary>
     [DataField(required: true)]
     public EntProtoId Effect;
 
+    /// <summary>
+    /// Layout of the tiles around the centre.
+    /// </summary>
     [DataField]
     public FaunaBlastShape Shape = FaunaBlastShape.Square;
 
@@ -26,6 +32,9 @@ public sealed partial class FaunaBlastPatternComponent : Component
     [DataField]
     public TimeSpan RingDelay = TimeSpan.Zero;
 
+    /// <summary>
+    /// Which arms a cross has.
+    /// </summary>
     [DataField]
     public FaunaBlastCross Cross = FaunaBlastCross.Cardinal;
 
@@ -41,16 +50,28 @@ public sealed partial class FaunaBlastPatternComponent : Component
     [DataField]
     public EntProtoId? Telegraph;
 
+    /// <summary>
+    /// Effect spawned at the centre of a cross with only cardinal arms.
+    /// </summary>
     [DataField]
     public EntProtoId? TelegraphCardinal;
 
+    /// <summary>
+    /// Effect spawned at the centre of a cross with only diagonal arms.
+    /// </summary>
     [DataField]
     public EntProtoId? TelegraphDiagonal;
 
+    /// <summary>
+    /// Tile offsets still to spawn <see cref="Effect"/> on, with when each spawns.
+    /// </summary>
     [ViewVariables]
     public List<(TimeSpan At, Vector2i Tile)> Pending = new();
 }
 
+/// <summary>
+/// Tile layout of a <see cref="FaunaBlastPatternComponent"/>.
+/// </summary>
 public enum FaunaBlastShape : byte
 {
     Square,
@@ -58,6 +79,9 @@ public enum FaunaBlastShape : byte
     Ring,
 }
 
+/// <summary>
+/// Which arms a cross pattern has.
+/// </summary>
 public enum FaunaBlastCross : byte
 {
     Cardinal,

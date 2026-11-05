@@ -13,6 +13,9 @@ public sealed partial class FaunaTentacleCooldownComponent : Component
     [DataField]
     public TimeSpan HitCut = TimeSpan.FromSeconds(1);
 
+    /// <summary>
+    /// Whether the action was off cooldown at the last check.
+    /// </summary>
     [ViewVariables]
     public bool Ready;
 }

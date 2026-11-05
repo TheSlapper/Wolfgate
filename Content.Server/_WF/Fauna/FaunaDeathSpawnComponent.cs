@@ -9,6 +9,9 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent]
 public sealed partial class FaunaDeathSpawnComponent : Component
 {
+    /// <summary>
+    /// Entities spawned around the mob when it dies.
+    /// </summary>
     [DataField]
     public List<EntitySpawnEntry> Spawns = new();
 
@@ -18,6 +21,9 @@ public sealed partial class FaunaDeathSpawnComponent : Component
     [DataField]
     public float Scatter = 0.5f;
 
+    /// <summary>
+    /// Popup shown on the mob when it dies.
+    /// </summary>
     [DataField]
     public LocId? Popup;
 

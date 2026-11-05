@@ -12,6 +12,9 @@ public sealed partial class FaunaEatCorpseOperator : HTNOperator
     [Dependency] private IEntityManager _entManager = default!;
     private FaunaCorpseEaterSystem _eater = default!;
 
+    /// <summary>
+    /// Blackboard key that holds the corpse to eat.
+    /// </summary>
     [DataField]
     public string TargetKey = "Target";
 

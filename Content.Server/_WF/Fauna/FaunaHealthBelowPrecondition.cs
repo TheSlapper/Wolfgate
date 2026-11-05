@@ -14,6 +14,9 @@ public sealed partial class FaunaHealthBelowPrecondition : HTNPrecondition
 
     private MobThresholdSystem _thresholds = default!;
 
+    /// <summary>
+    /// Health fraction from 0 to 1 that the mob must be below.
+    /// </summary>
     [DataField(required: true)]
     public float Fraction;
 

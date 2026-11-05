@@ -7,6 +7,9 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent, AutoGenerateComponentPause]
 public sealed partial class FaunaFuseComponent : Component
 {
+    /// <summary>
+    /// Delay between a landed melee hit and the explosion.
+    /// </summary>
     [DataField]
     public TimeSpan FuseTime = TimeSpan.FromSeconds(3);
 
@@ -16,6 +19,9 @@ public sealed partial class FaunaFuseComponent : Component
     [DataField]
     public float BurstChance = 0.2f;
 
+    /// <summary>
+    /// Least damage from one hit that can roll <see cref="BurstChance"/>.
+    /// </summary>
     [DataField]
     public float MinDamage = 5f;
 
@@ -25,12 +31,21 @@ public sealed partial class FaunaFuseComponent : Component
     [DataField]
     public float Jitter;
 
+    /// <summary>
+    /// Last jitter step applied while the fuse burns.
+    /// </summary>
     [ViewVariables]
     public int JitterStep;
 
+    /// <summary>
+    /// When the lit fuse goes off, zero while unlit.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan ExplodeAt;
 
+    /// <summary>
+    /// Whether the mob has already exploded.
+    /// </summary>
     [ViewVariables]
     public bool Exploded;
 }

@@ -10,9 +10,15 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent, AutoGenerateComponentPause]
 public sealed partial class FaunaLineAttackComponent : Component
 {
+    /// <summary>
+    /// Spawned on each tile of the line as it is drawn.
+    /// </summary>
     [DataField(required: true)]
     public EntProtoId Effect;
 
+    /// <summary>
+    /// Most tiles the line reaches. It stops early at a blocked tile.
+    /// </summary>
     [DataField]
     public int Range = 3;
 
@@ -28,6 +34,9 @@ public sealed partial class FaunaLineAttackComponent : Component
     [DataField]
     public bool RotateEffects;
 
+    /// <summary>
+    /// Time between using the action and the line firing.
+    /// </summary>
     [DataField]
     public TimeSpan Windup = TimeSpan.FromSeconds(2);
 
@@ -44,6 +53,9 @@ public sealed partial class FaunaLineAttackComponent : Component
     [DataField]
     public EntProtoId? Strike;
 
+    /// <summary>
+    /// Time from the last drawn tile to the <see cref="Strike"/> spawns.
+    /// </summary>
     [DataField]
     public TimeSpan StrikeDelay = TimeSpan.FromSeconds(1);
 
@@ -53,6 +65,9 @@ public sealed partial class FaunaLineAttackComponent : Component
     [DataField]
     public EntProtoId? EffectStart;
 
+    /// <summary>
+    /// Replaces <see cref="Effect"/> on the last tile of the line.
+    /// </summary>
     [DataField]
     public EntProtoId? EffectEnd;
 
@@ -62,6 +77,9 @@ public sealed partial class FaunaLineAttackComponent : Component
     [DataField]
     public EntProtoId? StrikeStart;
 
+    /// <summary>
+    /// Replaces <see cref="Strike"/> on the last tile of the line.
+    /// </summary>
     [DataField]
     public EntProtoId? StrikeEnd;
 
@@ -71,15 +89,27 @@ public sealed partial class FaunaLineAttackComponent : Component
     [DataField]
     public TimeSpan FiringTime;
 
+    /// <summary>
+    /// Played when the <see cref="Strike"/> spawns land.
+    /// </summary>
     [DataField]
     public SoundSpecifier? StrikeSound;
 
+    /// <summary>
+    /// Played when the wind-up starts.
+    /// </summary>
     [DataField]
     public SoundSpecifier? WindupSound;
 
+    /// <summary>
+    /// Played when the wind-up ends and the line starts.
+    /// </summary>
     [DataField]
     public SoundSpecifier? FireSound;
 
+    /// <summary>
+    /// Popup shown on the mob when the wind-up starts.
+    /// </summary>
     [DataField]
     public LocId? WindupPopup;
 
@@ -89,6 +119,9 @@ public sealed partial class FaunaLineAttackComponent : Component
     [DataField]
     public float WindupJitter;
 
+    /// <summary>
+    /// Entity the line is aimed at when the wind-up ends.
+    /// </summary>
     [DataField]
     public EntityUid? Target;
 
@@ -98,24 +131,45 @@ public sealed partial class FaunaLineAttackComponent : Component
     [DataField, AutoPausedField]
     public TimeSpan? FireAt;
 
+    /// <summary>
+    /// Tiles of the line still to be drawn, nearest first.
+    /// </summary>
     [ViewVariables]
     public Queue<EntityCoordinates> Tiles = new();
 
+    /// <summary>
+    /// Direction of the current line, used by <see cref="RotateEffects"/>.
+    /// </summary>
     [ViewVariables]
     public Angle LineAngle;
 
+    /// <summary>
+    /// Drawn tiles waiting for the <see cref="Strike"/> spawns.
+    /// </summary>
     [ViewVariables]
     public List<EntityCoordinates> StrikeTiles = new();
 
+    /// <summary>
+    /// When the <see cref="Strike"/> spawns land.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan StrikeAt;
 
+    /// <summary>
+    /// When the mob drops its firing look. Zero when not firing.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan IdleAt;
 
+    /// <summary>
+    /// Whether the next drawn tile is the first of the line.
+    /// </summary>
     [ViewVariables]
     public bool FirstTile;
 
+    /// <summary>
+    /// When the next tile of the line is drawn.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan NextStep;
 }

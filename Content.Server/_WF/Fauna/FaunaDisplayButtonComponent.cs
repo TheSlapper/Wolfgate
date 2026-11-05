@@ -6,9 +6,15 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent]
 public sealed partial class FaunaDisplayButtonComponent : Component
 {
+    /// <summary>
+    /// Whether the last press spawned the mobs with their AI on.
+    /// </summary>
     [ViewVariables]
     public bool Live;
 
+    /// <summary>
+    /// Least time between presses.
+    /// </summary>
     [DataField]
     public TimeSpan Delay = TimeSpan.FromSeconds(1);
 

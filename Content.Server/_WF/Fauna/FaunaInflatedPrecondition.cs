@@ -10,6 +10,9 @@ public sealed partial class FaunaInflatedPrecondition : HTNPrecondition
 {
     [Dependency] private IEntityManager _entManager = default!;
 
+    /// <summary>
+    /// Inflation state the mob must be in for the precondition to pass.
+    /// </summary>
     [DataField]
     public bool Inflated = true;
 

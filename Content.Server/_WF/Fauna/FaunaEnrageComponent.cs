@@ -9,15 +9,27 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent, AutoGenerateComponentPause]
 public sealed partial class FaunaEnrageComponent : Component
 {
+    /// <summary>
+    /// Total damage the mob must have taken to enrage.
+    /// </summary>
     [DataField]
     public FixedPoint2 Threshold = 300;
 
+    /// <summary>
+    /// Melee damage the mob deals while enraged, in place of its normal damage.
+    /// </summary>
     [DataField(required: true)]
     public DamageSpecifier Damage = new();
 
+    /// <summary>
+    /// Walk and sprint speed while enraged.
+    /// </summary>
     [DataField]
     public float Speed = 3.5f;
 
+    /// <summary>
+    /// Chance to throw the target on a hit while enraged, 0-1.
+    /// </summary>
     [DataField]
     public float ThrowChance = 0.45f;
 
@@ -57,21 +69,39 @@ public sealed partial class FaunaEnrageComponent : Component
     [DataField]
     public bool ClearStuns;
 
+    /// <summary>
+    /// Popup shown when the rage starts.
+    /// </summary>
     [DataField]
     public LocId? Popup;
 
+    /// <summary>
+    /// Popup shown when the mob becomes exhausted.
+    /// </summary>
     [DataField]
     public LocId? ExhaustedPopup;
 
+    /// <summary>
+    /// When the current timed rage ends.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan RageEnd;
 
+    /// <summary>
+    /// When the current exhaustion ends.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan ExhaustionEnd;
 
+    /// <summary>
+    /// Whether the mob is exhausted after a timed rage.
+    /// </summary>
     [ViewVariables]
     public bool Exhausted;
 
+    /// <summary>
+    /// Whether the mob is enraged.
+    /// </summary>
     [ViewVariables]
     public bool Enraged;
 

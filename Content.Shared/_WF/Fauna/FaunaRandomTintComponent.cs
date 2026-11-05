@@ -26,6 +26,9 @@ public sealed partial class FaunaRandomTintComponent : Component
     [DataField]
     public string? LightPalette;
 
+    /// <summary>
+    /// Colour picked from each palette, by palette name.
+    /// </summary>
     [DataField, AutoNetworkedField]
     public Dictionary<string, Color> Selected = new();
 }

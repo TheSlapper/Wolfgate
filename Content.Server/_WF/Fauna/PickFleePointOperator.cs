@@ -25,9 +25,15 @@ public sealed partial class PickFleePointOperator : HTNOperator
     [DataField]
     public string Key = "Target";
 
+    /// <summary>
+    /// Blackboard key the picked point is written to.
+    /// </summary>
     [DataField]
     public string TargetCoordinates = "TargetCoordinates";
 
+    /// <summary>
+    /// Blackboard key the path to the picked point is written to.
+    /// </summary>
     [DataField]
     public string PathfindKey = NPCBlackboard.PathfindKey;
 

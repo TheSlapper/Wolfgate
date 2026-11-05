@@ -67,6 +67,9 @@ public sealed partial class FaunaRegenerateActionEvent : InstantActionEvent;
 /// </summary>
 public sealed partial class FaunaBlastActionEvent : EntityTargetActionEvent
 {
+    /// <summary>
+    /// Blast pattern spawned on the target's tile.
+    /// </summary>
     [DataField(required: true)]
     public EntProtoId Pattern;
 }

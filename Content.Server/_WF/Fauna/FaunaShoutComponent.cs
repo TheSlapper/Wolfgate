@@ -9,12 +9,21 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent, AutoGenerateComponentPause]
 public sealed partial class FaunaShoutComponent : Component
 {
+    /// <summary>
+    /// Tiles around the mob that the shout reaches.
+    /// </summary>
     [DataField]
     public float Range = 8f;
 
+    /// <summary>
+    /// Number of camera shakes per shout.
+    /// </summary>
     [DataField]
     public int Shakes = 3;
 
+    /// <summary>
+    /// Strength of each camera shake.
+    /// </summary>
     [DataField]
     public int Strength = 2;
 
@@ -24,6 +33,9 @@ public sealed partial class FaunaShoutComponent : Component
     [DataField]
     public float Disorient;
 
+    /// <summary>
+    /// Shown when the mob shouts.
+    /// </summary>
     [DataField]
     public LocId? Popup;
 
@@ -51,6 +63,9 @@ public sealed partial class FaunaShoutComponent : Component
     [DataField]
     public bool Enrage;
 
+    /// <summary>
+    /// When the shout's <see cref="Jitter"/> stops, zero while not shaking.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan JitterEnd;
 }

@@ -70,6 +70,9 @@ public enum FaunaGourmongerVisuals : byte
     State,
 }
 
+/// <summary>
+/// What a gourmonger is doing, for <see cref="FaunaGourmongerVisuals.State"/>.
+/// </summary>
 [Serializable, NetSerializable]
 public enum FaunaGourmongerState : byte
 {
@@ -96,6 +99,9 @@ public enum FaunaLineAttackVisuals : byte
     State,
 }
 
+/// <summary>
+/// Whether a line attack is idle, winding up or firing.
+/// </summary>
 [Serializable, NetSerializable]
 public enum FaunaLineAttackState : byte
 {

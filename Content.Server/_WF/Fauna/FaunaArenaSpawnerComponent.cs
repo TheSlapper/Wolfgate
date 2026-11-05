@@ -9,6 +9,9 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent]
 public sealed partial class FaunaArenaSpawnerComponent : Component
 {
+    /// <summary>
+    /// Mobs the arena buttons cycle through.
+    /// </summary>
     [DataField(required: true)]
     public List<EntProtoId> Roster = new();
 
@@ -18,9 +21,15 @@ public sealed partial class FaunaArenaSpawnerComponent : Component
     [DataField]
     public float ClearRadius = 11f;
 
+    /// <summary>
+    /// Position in <see cref="Roster"/> of the current mob. -1 before the first spawn.
+    /// </summary>
     [ViewVariables]
     public int Index = -1;
 
+    /// <summary>
+    /// Mob currently spawned in the arena.
+    /// </summary>
     [ViewVariables]
     public EntityUid? Spawned;
 }

@@ -8,6 +8,9 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent]
 public sealed partial class FaunaRandomAmmoComponent : Component
 {
+    /// <summary>
+    /// Projectiles picked from at random after each shot.
+    /// </summary>
     [DataField(required: true)]
     public List<EntProtoId> Prototypes = new();
 }

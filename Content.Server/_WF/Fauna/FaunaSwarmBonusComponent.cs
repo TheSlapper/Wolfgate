@@ -6,6 +6,9 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent]
 public sealed partial class FaunaSwarmBonusComponent : Component
 {
+    /// <summary>
+    /// Tiles from the mob that allies count within.
+    /// </summary>
     [DataField]
     public float Radius = 1.5f;
 

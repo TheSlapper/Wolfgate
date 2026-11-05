@@ -11,6 +11,9 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent, AutoGenerateComponentPause]
 public sealed partial class FaunaSlamComponent : Component
 {
+    /// <summary>
+    /// Dealt to each mob in the cone.
+    /// </summary>
     [DataField(required: true)]
     public DamageSpecifier Damage = new();
 
@@ -20,6 +23,9 @@ public sealed partial class FaunaSlamComponent : Component
     [DataField]
     public DamageSpecifier? StructureDamage;
 
+    /// <summary>
+    /// Length of the cone, in tiles.
+    /// </summary>
     [DataField]
     public float Range = 3f;
 
@@ -29,12 +35,21 @@ public sealed partial class FaunaSlamComponent : Component
     [DataField]
     public float Arc = 90f;
 
+    /// <summary>
+    /// Wind-up between using the action and the slam.
+    /// </summary>
     [DataField]
     public TimeSpan Delay = TimeSpan.FromSeconds(2);
 
+    /// <summary>
+    /// How long each hit mob is knocked down.
+    /// </summary>
     [DataField]
     public TimeSpan Knockdown = TimeSpan.FromSeconds(3);
 
+    /// <summary>
+    /// Played at the mob when the slam lands.
+    /// </summary>
     [DataField]
     public SoundSpecifier? HitSound;
 
@@ -62,9 +77,15 @@ public sealed partial class FaunaSlamComponent : Component
     [DataField]
     public ProtoId<EmotePrototype>? Emote;
 
+    /// <summary>
+    /// When the slam lands. Null when no wind-up is running.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan? SlamAt;
 
+    /// <summary>
+    /// Direction the cone faces, aimed at the target when the wind-up starts.
+    /// </summary>
     [ViewVariables]
     public Angle Direction;
 }

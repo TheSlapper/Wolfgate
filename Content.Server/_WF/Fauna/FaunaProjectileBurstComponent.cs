@@ -9,9 +9,15 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent, AutoGenerateComponentPause]
 public sealed partial class FaunaProjectileBurstComponent : Component
 {
+    /// <summary>
+    /// Projectile fired by every burst unless the action names its own.
+    /// </summary>
     [DataField(required: true)]
     public EntProtoId Projectile;
 
+    /// <summary>
+    /// Projectile speed, in tiles per second.
+    /// </summary>
     [DataField]
     public float Speed = 15f;
 
@@ -21,6 +27,9 @@ public sealed partial class FaunaProjectileBurstComponent : Component
     [DataField]
     public int SpreadCount = 3;
 
+    /// <summary>
+    /// Angle between neighbouring shots of the spread.
+    /// </summary>
     [DataField]
     public Angle SpreadStep = Angle.FromDegrees(10);
 
@@ -30,12 +39,21 @@ public sealed partial class FaunaProjectileBurstComponent : Component
     [DataField]
     public float SpiralChance;
 
+    /// <summary>
+    /// Shots fired in a spiral.
+    /// </summary>
     [DataField]
     public int SpiralCount = 10;
 
+    /// <summary>
+    /// Angle each spiral shot turns from the one before it.
+    /// </summary>
     [DataField]
     public Angle SpiralStep = Angle.FromDegrees(180 / Math.E);
 
+    /// <summary>
+    /// Time between spiral shots.
+    /// </summary>
     [DataField]
     public TimeSpan SpiralDelay = TimeSpan.FromSeconds(0.3);
 
@@ -46,9 +64,15 @@ public sealed partial class FaunaProjectileBurstComponent : Component
     [DataField]
     public int VolleyCount;
 
+    /// <summary>
+    /// Largest random angle a volley shot strays from the target.
+    /// </summary>
     [DataField]
     public Angle VolleyJitter = Angle.FromDegrees(10);
 
+    /// <summary>
+    /// Time between volley shots.
+    /// </summary>
     [DataField]
     public TimeSpan VolleyDelay = TimeSpan.FromSeconds(0.1);
 
@@ -64,15 +88,27 @@ public sealed partial class FaunaProjectileBurstComponent : Component
     [DataField]
     public TimeSpan Windup = TimeSpan.Zero;
 
+    /// <summary>
+    /// Played when the wind-up starts.
+    /// </summary>
     [DataField]
     public SoundSpecifier? WindupSound;
 
+    /// <summary>
+    /// Played when a spread or volley fires.
+    /// </summary>
     [DataField]
     public SoundSpecifier? SpreadSound;
 
+    /// <summary>
+    /// Played when a spiral starts.
+    /// </summary>
     [DataField]
     public SoundSpecifier? SpiralSound;
 
+    /// <summary>
+    /// Shown at the mob when the wind-up starts, unless the action names its own.
+    /// </summary>
     [DataField]
     public LocId? WindupPopup;
 
@@ -88,9 +124,15 @@ public sealed partial class FaunaProjectileBurstComponent : Component
     [DataField]
     public float WindupJitter;
 
+    /// <summary>
+    /// Shown at the mob when a spread or volley fires.
+    /// </summary>
     [DataField]
     public LocId? SpreadPopup;
 
+    /// <summary>
+    /// Shown at the mob when a spiral starts.
+    /// </summary>
     [DataField]
     public LocId? SpiralPopup;
 
@@ -100,6 +142,9 @@ public sealed partial class FaunaProjectileBurstComponent : Component
     [DataField]
     public int DeathCount;
 
+    /// <summary>
+    /// Entity the current burst aims at, set by the action.
+    /// </summary>
     [DataField]
     public EntityUid? Target;
 
@@ -109,18 +154,33 @@ public sealed partial class FaunaProjectileBurstComponent : Component
     [DataField, AutoPausedField]
     public TimeSpan? FireAt;
 
+    /// <summary>
+    /// Spiral shots still to fire.
+    /// </summary>
     [DataField]
     public int SpiralShotsLeft;
 
+    /// <summary>
+    /// When the next spiral shot fires.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan NextSpiralShot;
 
+    /// <summary>
+    /// Volley shots still to fire.
+    /// </summary>
     [DataField]
     public int VolleyShotsLeft;
 
+    /// <summary>
+    /// When the next volley shot fires.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan NextVolleyShot;
 
+    /// <summary>
+    /// Set once the death ring has fired, so it fires only once.
+    /// </summary>
     [DataField]
     public bool DeathBurstDone;
 

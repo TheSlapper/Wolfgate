@@ -6,6 +6,9 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent]
 public sealed partial class FaunaWormSegmentComponent : Component
 {
+    /// <summary>
+    /// The worm head this segment follows.
+    /// </summary>
     [ViewVariables]
     public EntityUid? Head;
 }

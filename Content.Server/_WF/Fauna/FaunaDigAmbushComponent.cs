@@ -24,6 +24,9 @@ public sealed partial class FaunaDigAmbushComponent : Component
     [DataField]
     public EntProtoId? Splash;
 
+    /// <summary>
+    /// How long the mob stays underground before it erupts.
+    /// </summary>
     [DataField]
     public TimeSpan Duration = TimeSpan.FromSeconds(3);
 
@@ -45,6 +48,9 @@ public sealed partial class FaunaDigAmbushComponent : Component
     [DataField]
     public TimeSpan? EruptKnockdown;
 
+    /// <summary>
+    /// Played where the mob digs in and where it erupts.
+    /// </summary>
     [DataField]
     public SoundSpecifier? Sound = new SoundPathSpecifier("/Audio/_WF/Fauna/Shiptest/crystal_bamf.ogg");
 
@@ -72,30 +78,57 @@ public sealed partial class FaunaDigAmbushComponent : Component
     [DataField]
     public int FleeDistance = 6;
 
+    /// <summary>
+    /// Minimum time between one flee dig and the next.
+    /// </summary>
     [DataField]
     public TimeSpan FleeCooldown = TimeSpan.FromSeconds(30);
 
+    /// <summary>
+    /// Whether a flee dig is waiting for <see cref="FleeAt"/>.
+    /// </summary>
     [DataField]
     public bool FleePending;
 
+    /// <summary>
+    /// Whether the current dig is a flee, so the mob comes up away from the hole.
+    /// </summary>
     [DataField]
     public bool Fleeing;
 
+    /// <summary>
+    /// When the pending flee dig starts.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan FleeAt;
 
+    /// <summary>
+    /// When the mob may start another flee.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan NextFlee;
 
+    /// <summary>
+    /// Entity the mob erupts next to. Null while fleeing.
+    /// </summary>
     [DataField]
     public EntityUid? Target;
 
+    /// <summary>
+    /// Hole holding the mob while it is underground.
+    /// </summary>
     [DataField]
     public EntityUid? HoleEntity;
 
+    /// <summary>
+    /// When the mob comes back up.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan EruptAt;
 
+    /// <summary>
+    /// When <see cref="Heal"/> is next applied while underground.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan NextHeal;
 }

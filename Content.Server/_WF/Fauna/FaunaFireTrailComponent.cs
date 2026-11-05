@@ -8,6 +8,9 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent]
 public sealed partial class FaunaFireTrailComponent : Component
 {
+    /// <summary>
+    /// Fire spawned on each tile the mob leaves and around its corpse.
+    /// </summary>
     [DataField(required: true)]
     public EntProtoId Fire;
 

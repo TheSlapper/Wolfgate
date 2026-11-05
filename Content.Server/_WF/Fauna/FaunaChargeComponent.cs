@@ -9,15 +9,27 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent, AutoGenerateComponentPause]
 public sealed partial class FaunaChargeComponent : Component
 {
+    /// <summary>
+    /// Longest charge in tiles, and how far the camera kick reaches.
+    /// </summary>
     [DataField]
     public float Range = 6f;
 
+    /// <summary>
+    /// Charge speed in tiles per second.
+    /// </summary>
     [DataField]
     public float Speed = 15f;
 
+    /// <summary>
+    /// How long the mob that is hit stays down.
+    /// </summary>
     [DataField]
     public TimeSpan Knockdown = TimeSpan.FromSeconds(0.6);
 
+    /// <summary>
+    /// Dealt to the mob that is hit.
+    /// </summary>
     [DataField]
     public DamageSpecifier? Damage;
 

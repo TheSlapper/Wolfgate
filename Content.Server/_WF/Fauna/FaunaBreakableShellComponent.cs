@@ -9,6 +9,9 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent]
 public sealed partial class FaunaBreakableShellComponent : Component
 {
+    /// <summary>
+    /// Damage the shell absorbs before it breaks. It cracks at half.
+    /// </summary>
     [DataField]
     public float MaxHealth = 60f;
 
@@ -24,12 +27,21 @@ public sealed partial class FaunaBreakableShellComponent : Component
     [DataField]
     public List<EntProtoId> Loot = new();
 
+    /// <summary>
+    /// Played when the shell breaks.
+    /// </summary>
     [DataField]
     public SoundSpecifier? BreakSound = new SoundCollectionSpecifier("GlassBreak");
 
+    /// <summary>
+    /// Damage the shell has absorbed so far.
+    /// </summary>
     [DataField]
     public float Absorbed;
 
+    /// <summary>
+    /// Whether the shell has broken.
+    /// </summary>
     [DataField]
     public bool Broken;
 }

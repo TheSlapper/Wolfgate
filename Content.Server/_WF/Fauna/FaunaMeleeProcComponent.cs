@@ -12,12 +12,21 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent]
 public sealed partial class FaunaMeleeProcComponent : Component
 {
+    /// <summary>
+    /// Chance per melee hit, 0-1, that the proc fires.
+    /// </summary>
     [DataField]
     public float Chance = 0.25f;
 
+    /// <summary>
+    /// Extra damage dealt to the first hit target on a proc.
+    /// </summary>
     [DataField]
     public DamageSpecifier? Damage;
 
+    /// <summary>
+    /// Entity spawned at the mob on a proc.
+    /// </summary>
     [DataField]
     public EntProtoId? Spawn;
 
@@ -27,9 +36,15 @@ public sealed partial class FaunaMeleeProcComponent : Component
     [DataField]
     public int MaxSpawned;
 
+    /// <summary>
+    /// Shown at the target on a proc.
+    /// </summary>
     [DataField]
     public LocId? Popup;
 
+    /// <summary>
+    /// Played at the mob on a proc.
+    /// </summary>
     [DataField]
     public SoundSpecifier? Sound;
 
@@ -51,6 +66,9 @@ public sealed partial class FaunaMeleeProcComponent : Component
     [DataField]
     public string? Solution;
 
+    /// <summary>
+    /// Units of <see cref="Solution"/> injected per proc.
+    /// </summary>
     [DataField]
     public FixedPoint2 TransferAmount = 5;
 
@@ -66,9 +84,15 @@ public sealed partial class FaunaMeleeProcComponent : Component
     [DataField]
     public float EmpRange;
 
+    /// <summary>
+    /// Energy the EMP pulse drains from batteries it hits.
+    /// </summary>
     [DataField]
     public float EmpEnergy = 1000f;
 
+    /// <summary>
+    /// How long the EMP pulse disables what it hits.
+    /// </summary>
     [DataField]
     public TimeSpan EmpDuration = TimeSpan.FromSeconds(15);
 
@@ -84,6 +108,9 @@ public sealed partial class FaunaMeleeProcComponent : Component
     [DataField]
     public float BloodDrainMax;
 
+    /// <summary>
+    /// Spawns made by this mob that are still tracked.
+    /// </summary>
     [ViewVariables]
     public List<EntityUid> Spawned = new();
 }

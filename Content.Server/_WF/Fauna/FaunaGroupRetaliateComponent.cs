@@ -6,6 +6,9 @@ namespace Content.Server._WF.Fauna;
 [RegisterComponent]
 public sealed partial class FaunaGroupRetaliateComponent : Component
 {
+    /// <summary>
+    /// Tiles within which kin join in.
+    /// </summary>
     [DataField]
     public float Radius = 6f;
 }

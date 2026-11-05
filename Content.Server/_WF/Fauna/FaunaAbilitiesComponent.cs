@@ -14,9 +14,15 @@ public sealed partial class FaunaAbilitiesComponent : Component
     [DataField(required: true)]
     public List<FaunaAbility> Abilities = new();
 
+    /// <summary>
+    /// Time between checks for a usable ability.
+    /// </summary>
     [DataField]
     public TimeSpan Interval = TimeSpan.FromSeconds(0.5);
 
+    /// <summary>
+    /// When the next check runs.
+    /// </summary>
     [DataField, AutoPausedField]
     public TimeSpan NextCheck;
 
@@ -33,12 +39,21 @@ public sealed partial class FaunaAbilitiesComponent : Component
 [DataDefinition]
 public sealed partial class FaunaAbility
 {
+    /// <summary>
+    /// Action given to the mob and fired at the target.
+    /// </summary>
     [DataField(required: true)]
     public EntProtoId Action;
 
+    /// <summary>
+    /// Closest target distance in tiles it is used at.
+    /// </summary>
     [DataField]
     public float MinRange;
 
+    /// <summary>
+    /// Furthest target distance in tiles it is used at.
+    /// </summary>
     [DataField]
     public float MaxRange = 8f;
 
@@ -66,6 +81,9 @@ public sealed partial class FaunaAbility
     [DataField]
     public float BelowHealth;
 
+    /// <summary>
+    /// The action entity added to the mob.
+    /// </summary>
     [ViewVariables]
     public EntityUid? ActionEnt;
 }
