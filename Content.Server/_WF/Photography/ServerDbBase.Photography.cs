@@ -20,6 +20,7 @@ public abstract partial class ServerDbBase
         return await db.DbContext.WolfgatePhoto.AsNoTracking().SingleOrDefaultAsync(p => p.Hash == hash, cancel);
     }
 
+    /// <summary>Adds an image, or marks an existing one as in use again.</summary>
     public async Task AddPhotoAsync(WolfgatePhoto photo, CancellationToken cancel = default)
     {
         await using var db = await GetDb(cancel);
@@ -37,6 +38,41 @@ public abstract partial class ServerDbBase
         await ctx.SaveChangesAsync(cancel);
     }
 
+    public async Task<List<WolfgatePhotoAlbum>> GetPhotoAlbumsAsync(Guid userId, CancellationToken cancel = default)
+    {
+        await using var db = await GetDb(cancel);
+        return await db.DbContext.WolfgatePhotoAlbum.AsNoTracking()
+            .Where(a => a.Profile.Preference.UserId == userId)
+            .OrderByDescending(a => a.UpdatedAt)
+            .ToListAsync(cancel);
+    }
+
+    /// <summary>Adds or replaces an album's save. Skips it if its character was deleted.</summary>
+    public async Task SavePhotoAlbumAsync(WolfgatePhotoAlbum album, CancellationToken cancel = default)
+    {
+        await using var db = await GetDb(cancel);
+        var ctx = db.DbContext;
+
+        var row = await ctx.WolfgatePhotoAlbum.SingleOrDefaultAsync(a => a.AlbumId == album.AlbumId, cancel);
+        if (row == null)
+        {
+            if (!await ctx.Profile.AnyAsync(p => p.Id == album.ProfileId, cancel))
+                return;
+
+            ctx.WolfgatePhotoAlbum.Add(album);
+        }
+        else
+        {
+            row.ProfileId = album.ProfileId;
+            row.Data = album.Data;
+            row.RoundId = album.RoundId;
+            row.UpdatedAt = album.UpdatedAt;
+        }
+
+        await ctx.SaveChangesAsync(cancel);
+    }
+
+    /// <summary>Marks images nothing saved holds, and deletes ones marked longer ago than keep.</summary>
     public async Task<(int Found, int Deleted)> PurgeUnusedPhotosAsync(TimeSpan keep,
         CancellationToken cancel = default)
     {
@@ -44,7 +80,7 @@ public abstract partial class ServerDbBase
         var ctx = db.DbContext;
         var now = DateTime.UtcNow;
 
-        // Carried-over photos are saved entities in profile items and deposit boxes, which name their image by hash.
+        // Carried-over photos are saved entities (albums, profile items, deposit boxes) that name their image by hash.
         var held = new HashSet<string>();
         var saved = await ctx.Profile
             .SelectMany(p => p.Items)
@@ -55,6 +91,7 @@ public abstract partial class ServerDbBase
             .Where(i => i.EntityData.Contains("Photo"))
             .Select(i => i.EntityData)
             .ToListAsync(cancel));
+        saved.AddRange(await ctx.WolfgatePhotoAlbum.Select(a => a.Data).ToListAsync(cancel));
 
         foreach (var data in saved)
         {

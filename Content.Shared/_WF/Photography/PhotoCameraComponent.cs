@@ -88,11 +88,16 @@ public sealed partial class PhotoComponent : Component
     [DataField, AutoNetworkedField]
     public string Hash = string.Empty;
 
+    /// <summary>Image size in pixels.</summary>
     [DataField, AutoNetworkedField]
     public int Width;
 
     [DataField, AutoNetworkedField]
     public int Height;
+
+    /// <summary>The picture drawn on the sprite, as base64 RGB bytes, so drawing it needs no image download.</summary>
+    [DataField, AutoNetworkedField]
+    public string Thumbnail = string.Empty;
 
     /// <summary>Text written on the back.</summary>
     [DataField, AutoNetworkedField]
@@ -111,6 +116,7 @@ public sealed partial class PhotoComponent : Component
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true)]
 public sealed partial class PhotoFrameComponent : Component
 {
+    /// <summary>Container that holds the framed photo.</summary>
     public const string ContainerId = "photo";
 
     /// <summary>Sprite state shown while the frame is empty. Null shows the bare frame.</summary>
@@ -143,6 +149,10 @@ public sealed partial class PhotoGalleryComponent : Component
     [DataField]
     public int Capacity = 50;
 
+    /// <summary>Number given to the next photo, so numbers don't repeat after a delete.</summary>
+    [DataField]
+    public int NextNumber = 1;
+
     /// <summary>Battery charge a print costs. Null for a gallery that can't print.</summary>
     [DataField]
     public float? PrintCharge;
@@ -155,9 +165,11 @@ public sealed partial class PhotoGalleryComponent : Component
 [DataDefinition, Serializable, NetSerializable]
 public sealed partial record PhotoGalleryEntry
 {
+    /// <summary>Hex SHA-256 of the PNG.</summary>
     [DataField]
     public string Hash = string.Empty;
 
+    /// <summary>Image size in pixels.</summary>
     [DataField]
     public int Width;
 

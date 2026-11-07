@@ -8,6 +8,9 @@ using Robust.Shared.Configuration;
 using Robust.Shared.Enums;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 namespace Content.Server._WF.Photography;
 
@@ -19,8 +22,8 @@ public sealed partial class PhotoStoreSystem : EntitySystem
     [Dependency] private GameTicker _ticker = default!;
     [Dependency] private IGameTiming _timing = default!;
 
-    /// <summary>A stored image.</summary>
-    public sealed record StoredPhoto(byte[] Png, int Width, int Height);
+    /// <summary>A stored image and its thumbnail.</summary>
+    public sealed record StoredPhoto(byte[] Png, int Width, int Height, string Thumbnail);
 
     private readonly Dictionary<string, StoredPhoto> _images = new();
 
@@ -50,7 +53,7 @@ public sealed partial class PhotoStoreSystem : EntitySystem
     /// <summary>Stores a new image under its hash, writing it to the database in the background.</summary>
     public void Store(string hash, byte[] png, int width, int height, Guid? author)
     {
-        _images[hash] = new StoredPhoto(png, width, height);
+        _images[hash] = new StoredPhoto(png, width, height, MakeThumbnail(png));
 
         var row = new WolfgatePhoto
         {
@@ -87,7 +90,7 @@ public sealed partial class PhotoStoreSystem : EntitySystem
             if (row == null)
                 return null;
 
-            var stored = new StoredPhoto(row.Png, row.Width, row.Height);
+            var stored = new StoredPhoto(row.Png, row.Width, row.Height, MakeThumbnail(row.Png));
             _images[hash] = stored;
             return stored;
         }
@@ -114,20 +117,82 @@ public sealed partial class PhotoStoreSystem : EntitySystem
         }
     }
 
-    /// <summary>Marks a photo that loads with an image as aged and reads its image ahead of time.</summary>
+    /// <summary>Marks a photo that loads with an image as aged, and gives it a thumbnail if it was saved without.</summary>
     private void OnPhotoStartup(Entity<PhotoComponent> ent, ref ComponentStartup args)
     {
-        if (ent.Comp.Hash.Length == 0)
+        if (string.IsNullOrEmpty(ent.Comp.Hash))
             return;
 
         ent.Comp.Old = true;
-        _ = GetAsync(ent.Comp.Hash);
+        FillThumbnail(ent);
+    }
+
+    /// <summary>Sets a photo's thumbnail from its image, reading the image from the database if needed.</summary>
+    public async void FillThumbnail(Entity<PhotoComponent> ent)
+    {
+        var hash = ent.Comp.Hash;
+        if (string.IsNullOrEmpty(hash) || !string.IsNullOrEmpty(ent.Comp.Thumbnail))
+            return;
+
+        if (_images.TryGetValue(hash, out var cached))
+        {
+            ent.Comp.Thumbnail = cached.Thumbnail;
+            return;
+        }
+
+        var stored = await GetAsync(hash);
+        if (stored == null || TerminatingOrDeleted(ent) || ent.Comp.Hash != hash)
+            return;
+
+        ent.Comp.Thumbnail = stored.Thumbnail;
+        Dirty(ent);
+    }
+
+    /// <summary>Shrinks an image to the thumbnail size and packs its pixels as base64 RGB.</summary>
+    private string MakeThumbnail(byte[] png)
+    {
+        try
+        {
+            var size = PhotoRules.ThumbnailPixels;
+            using var image = Image.Load<Rgba32>(png);
+            image.Mutate(context => context.Resize(size, size));
+
+            var bytes = new byte[PhotoRules.ThumbnailBytes];
+            var i = 0;
+            for (var y = 0; y < size; y++)
+            {
+                for (var x = 0; x < size; x++)
+                {
+                    var pixel = image[x, y];
+                    bytes[i++] = pixel.R;
+                    bytes[i++] = pixel.G;
+                    bytes[i++] = pixel.B;
+                }
+            }
+
+            return Convert.ToBase64String(bytes);
+        }
+        catch (Exception e)
+        {
+            Log.Warning($"Could not make a photo thumbnail: {e.Message}");
+            return string.Empty;
+        }
     }
 
     private async void OnImageRequest(PhotoImageRequestEvent msg, EntitySessionEventArgs args)
     {
         var session = args.SenderSession;
-        if (msg.Hash is not { Length: 64 } hash || !IsShown(hash) || !TakeDownload(session))
+        if (msg.Hash is not { Length: 64 } hash)
+            return;
+
+        if (!IsShown(hash))
+        {
+            RaiseNetworkEvent(new PhotoImageEvent(hash, null), session);
+            return;
+        }
+
+        // Over the limit the request goes unanswered, and the client asks again later.
+        if (!TakeDownload(session))
             return;
 
         var stored = await GetAsync(hash);

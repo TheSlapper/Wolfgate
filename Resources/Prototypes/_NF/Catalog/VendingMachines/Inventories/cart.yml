@@ -21,7 +21,6 @@
     # WOLFGATE(Photography)
     Camera: 4
     CameraFilm: 12
-    PhotoAlbum: 4
     HandLabeler: 4294967295 #Infinite
     BrbSign: 4294967295 #Infinite
     DeskBell: 4294967295 #Infinite

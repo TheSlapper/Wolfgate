@@ -32,6 +32,9 @@ public sealed class PhotoCaptureRequestEvent : EntityEventArgs
 
     /// <summary>Ghosts to draw although the photographer can't normally see them.</summary>
     public NetEntity[] Ghosts = Array.Empty<NetEntity>();
+
+    /// <summary>Cloaked entities to leave out, as the photographer can't see them.</summary>
+    public NetEntity[] Hidden = Array.Empty<NetEntity>();
 }
 
 /// <summary>Client to server: the rendered photo for a request, as PNG.</summary>

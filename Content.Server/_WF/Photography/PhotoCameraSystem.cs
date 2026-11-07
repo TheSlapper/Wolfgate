@@ -13,6 +13,8 @@ using Content.Shared.Interaction;
 using Content.Shared.Revenant.Components;
 using Content.Shared.Silicons.StationAi;
 using Content.Shared.StatusEffect;
+using Content.Shared.Stealth;
+using Content.Shared.Stealth.Components;
 using Content.Shared.Stunnable;
 using Robust.Server.GameObjects;
 using Robust.Server.GameStates;
@@ -22,6 +24,7 @@ using Robust.Shared.Map.Components;
 using Robust.Shared.Physics;
 using Robust.Shared.Player;
 using Robust.Shared.Random;
+using Robust.Shared.Utility;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.PixelFormats;
@@ -45,6 +48,7 @@ public sealed partial class PhotoCameraSystem : SharedPhotoCameraSystem
     [Dependency] private RevenantSystem _revenant = default!;
     [Dependency] private StationAiVisionSystem _aiVision = default!;
     [Dependency] private PhotoSystem _photo = default!;
+    [Dependency] private SharedStealthSystem _stealth = default!;
     [Dependency] private StatusEffectsSystem _status = default!;
     [Dependency] private PhotoStoreSystem _store = default!;
     [Dependency] private SharedStunSystem _stun = default!;
@@ -64,6 +68,7 @@ public sealed partial class PhotoCameraSystem : SharedPhotoCameraSystem
         int Tiles,
         bool[] Visible,
         List<EntityUid> Ghosts,
+        HashSet<EntityUid> Hidden,
         TimeSpan Deadline);
 
     private readonly Dictionary<int, Pending> _pending = new();
@@ -197,12 +202,17 @@ public sealed partial class PhotoCameraSystem : SharedPhotoCameraSystem
         }
 
         var ghosts = new List<EntityUid>();
-        if (camera.SeeGhosts)
+        var hidden = new HashSet<EntityUid>();
+        foreach (var uid in InSquare(square, visible, targetCoords.MapId))
         {
-            foreach (var ghost in InSquare(square, visible, targetCoords.MapId).Where(IsSpirit))
+            if (camera.SeeGhosts && IsSpirit(uid))
             {
-                _pvs.AddForceSend(ghost, actor.PlayerSession);
-                ghosts.Add(ghost);
+                _pvs.AddForceSend(uid, actor.PlayerSession);
+                ghosts.Add(uid);
+            }
+            else if (IsCloaked(uid))
+            {
+                hidden.Add(uid);
             }
         }
 
@@ -220,7 +230,7 @@ public sealed partial class PhotoCameraSystem : SharedPhotoCameraSystem
         var id = ++_nextRequest;
         var deadline = Timing.CurTime + TimeSpan.FromSeconds(_cfg.GetCVar(PhotoCVars.CaptureTimeout));
         _pending[id] = new Pending(ent, user, actor.PlayerSession, targetCoords.MapId, square.Centre, square.Rotation,
-            tiles, visible, ghosts, deadline);
+            tiles, visible, ghosts, hidden, deadline);
 
         RaiseNetworkEvent(new PhotoCaptureRequestEvent
         {
@@ -233,6 +243,7 @@ public sealed partial class PhotoCameraSystem : SharedPhotoCameraSystem
             Visible = visible,
             Monochrome = camera.Monochrome,
             Ghosts = GetNetEntityArray(ghosts.ToArray()),
+            Hidden = GetNetEntityArray(hidden.ToArray()),
         }, actor.PlayerSession);
 
         return true;
@@ -262,8 +273,9 @@ public sealed partial class PhotoCameraSystem : SharedPhotoCameraSystem
         _store.Store(hash, png, size, size, args.SenderSession.UserId);
 
         var square = new PhotoSquare(EntityUid.Invalid, pending.Centre, pending.Rotation, pending.Tiles);
-        var seen = InSquare(square, pending.Visible, pending.Map).ToList();
+        var seen = InSquare(square, pending.Visible, pending.Map).Where(uid => !pending.Hidden.Contains(uid));
         var caption = _caption.Describe(seen, pending.Tiles, camera.SeeGhosts);
+        var description = FormattedMessage.EscapeText(caption.Description);
 
         if (camera.StealsSouls)
             StealSouls(caption.Revenants);
@@ -276,7 +288,7 @@ public sealed partial class PhotoCameraSystem : SharedPhotoCameraSystem
             Hash = hash,
             Width = size,
             Height = size,
-            Description = caption.Description,
+            Description = description,
             Haunted = caption.Haunted,
         };
 
@@ -375,6 +387,14 @@ public sealed partial class PhotoCameraSystem : SharedPhotoCameraSystem
             return false;
 
         return _aiVision.IsAccessible((square.Grid, broadphase, grid), square.GridTile(index));
+    }
+
+    /// <summary>Whether an entity is cloaked past the point it can be examined. Photos leave it out.</summary>
+    private bool IsCloaked(EntityUid uid)
+    {
+        return TryComp<StealthComponent>(uid, out var stealth)
+            && stealth.Enabled
+            && _stealth.GetVisibility(uid, stealth) < stealth.ExamineThreshold;
     }
 
     private bool IsSpirit(EntityUid uid)

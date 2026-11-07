@@ -1,22 +1,18 @@
-using System.Linq;
 using Content.Shared._WF.Photography;
 using Content.Shared.GameTicking;
 using Content.Shared.Hands.EntitySystems;
-using Content.Shared.Inventory;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._WF.Photography;
 
-/// <summary>Gives photographers a camera, and a personal album unless one came back with them.</summary>
+/// <summary>Gives photographers a camera. <see cref="PhotoAlbumSystem"/> gives their personal album.</summary>
 public sealed partial class PhotographerSystem : EntitySystem
 {
     [Dependency] private SharedHandsSystem _hands = default!;
-    [Dependency] private InventorySystem _inventory = default!;
 
     private static readonly EntProtoId Camera = "Camera";
-    private static readonly EntProtoId Album = "PhotoAlbumPersonal";
 
-    /// <summary>Spawned mobs to equip next tick, once traits and carried-over items are in place.</summary>
+    /// <summary>Spawned mobs to equip next tick, once traits are in place.</summary>
     private readonly List<EntityUid> _queued = new();
 
     public override void Initialize()
@@ -49,15 +45,6 @@ public sealed partial class PhotographerSystem : EntitySystem
 
     private void Equip(EntityUid mob)
     {
-        var coords = Transform(mob).Coordinates;
-        _hands.PickupOrDrop(mob, Spawn(Camera, coords), checkActionBlocker: false);
-
-        if (!CarriesAlbum(mob))
-            _hands.PickupOrDrop(mob, Spawn(Album, coords), checkActionBlocker: false);
-    }
-
-    private bool CarriesAlbum(EntityUid mob)
-    {
-        return _inventory.GetHandOrInventoryEntities(mob).Any(uid => MetaData(uid).EntityPrototype?.ID == Album.Id);
+        _hands.PickupOrDrop(mob, Spawn(Camera, Transform(mob).Coordinates), checkActionBlocker: false);
     }
 }

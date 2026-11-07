@@ -1,25 +1,39 @@
 using System.IO;
+using System.Linq;
 using Content.Shared._WF.Photography;
 using Content.Shared.GameTicking;
 using Robust.Client.Graphics;
 using Robust.Shared.Graphics;
+using Robust.Shared.Timing;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 
 namespace Content.Client._WF.Photography;
 
-/// <summary>Downloads photo images by hash once and keeps them as full-size and thumbnail textures.</summary>
+/// <summary>
+/// Downloads full photo images by hash for the viewers, and builds sprite thumbnails from the data each photo carries.
+/// </summary>
 public sealed partial class PhotoImageSystem : EntitySystem
 {
-    /// <summary>A downloaded photo.</summary>
-    public sealed record PhotoTextures(Texture Full, Texture Thumbnail);
+    [Dependency] private IGameTiming _timing = default!;
 
-    private readonly Dictionary<string, PhotoTextures> _textures = new();
-    private readonly HashSet<string> _requested = new();
+    /// <summary>How long to wait before asking again, as the server skips requests over its rate limit.</summary>
+    private static readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(15);
 
-    /// <summary>Raised when an image arrives, with its hash.</summary>
-    public event Action<string>? ImageLoaded;
+    private readonly Dictionary<string, Texture> _textures = new();
+
+    private readonly Dictionary<string, Texture> _thumbnails = new();
+
+    /// <summary>Images asked for and not answered yet, with when they were last asked for.</summary>
+    private readonly Dictionary<string, TimeSpan> _requested = new();
+
+    /// <summary>Images the server has none for, or that didn't load. Not asked for again this round.</summary>
+    private readonly HashSet<string> _missing = new();
+
+    private readonly List<string> _due = new();
+
+    private static readonly TextureLoadParameters Parameters =
+        TextureLoadParameters.Default with { SampleParameters = TextureSampleParameters.Default };
 
     public override void Initialize()
     {
@@ -35,42 +49,91 @@ public sealed partial class PhotoImageSystem : EntitySystem
         Reset();
     }
 
-    /// <summary>The textures for a hash, asking the server for them the first time.</summary>
-    public PhotoTextures? Get(string hash)
+    /// <summary>The full image for a hash, asking the server for it the first time.</summary>
+    public Texture? Get(string hash)
     {
-        if (hash.Length == 0)
+        if (string.IsNullOrEmpty(hash))
             return null;
 
-        if (_textures.TryGetValue(hash, out var textures))
-            return textures;
+        if (_textures.TryGetValue(hash, out var texture))
+            return texture;
 
-        if (_requested.Add(hash))
-            RaiseNetworkEvent(new PhotoImageRequestEvent(hash));
+        if (!_requested.ContainsKey(hash) && !_missing.Contains(hash))
+            Request(hash);
 
         return null;
     }
 
-    private void OnImage(PhotoImageEvent ev)
+    /// <summary>The thumbnail for a photo, built from its base64 RGB data the first time.</summary>
+    public Texture? Thumbnail(PhotoComponent photo)
     {
-        if (ev.Png == null || _textures.ContainsKey(ev.Hash) || Load(ev.Png) is not { } textures)
-            return;
+        if (string.IsNullOrEmpty(photo.Hash) || string.IsNullOrEmpty(photo.Thumbnail))
+            return null;
 
-        _textures[ev.Hash] = textures;
-        ImageLoaded?.Invoke(ev.Hash);
+        if (_thumbnails.TryGetValue(photo.Hash, out var texture))
+            return texture;
+
+        var bytes = new byte[PhotoRules.ThumbnailBytes];
+        if (!Convert.TryFromBase64String(photo.Thumbnail, bytes, out var written) || written != bytes.Length)
+            return null;
+
+        var size = PhotoRules.ThumbnailPixels;
+        using var image = new Image<Rgba32>(size, size);
+        for (var i = 0; i < size * size; i++)
+        {
+            image[i % size, i / size] = new Rgba32(bytes[i * 3], bytes[i * 3 + 1], bytes[i * 3 + 2]);
+        }
+
+        texture = Texture.LoadFromImage(image, "photo-thumbnail", Parameters);
+        _thumbnails[photo.Hash] = texture;
+        return texture;
     }
 
-    private PhotoTextures? Load(byte[] png)
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        var now = _timing.RealTime;
+        foreach (var (hash, asked) in _requested)
+        {
+            if (now >= asked + RetryDelay)
+                _due.Add(hash);
+        }
+
+        foreach (var hash in _due)
+        {
+            Request(hash);
+        }
+
+        _due.Clear();
+    }
+
+    private void Request(string hash)
+    {
+        _requested[hash] = _timing.RealTime;
+        RaiseNetworkEvent(new PhotoImageRequestEvent(hash));
+    }
+
+    private void OnImage(PhotoImageEvent ev)
+    {
+        if (!_requested.Remove(ev.Hash))
+            return;
+
+        if (ev.Png == null || Load(ev.Png) is not { } texture)
+        {
+            _missing.Add(ev.Hash);
+            return;
+        }
+
+        _textures[ev.Hash] = texture;
+    }
+
+    private Texture? Load(byte[] png)
     {
         try
         {
             using var image = Image.Load<Rgba32>(new MemoryStream(png));
-            var parameters = TextureLoadParameters.Default with { SampleParameters = TextureSampleParameters.Default };
-            var full = Texture.LoadFromImage(image, "photo", parameters);
-
-            var size = PhotoRules.ThumbnailPixels;
-            using var small = image.Clone(context => context.Resize(size, size));
-            var thumbnail = Texture.LoadFromImage(small, "photo-thumbnail", parameters);
-            return new PhotoTextures(full, thumbnail);
+            return Texture.LoadFromImage(image, "photo", Parameters);
         }
         catch (Exception e)
         {
@@ -81,13 +144,14 @@ public sealed partial class PhotoImageSystem : EntitySystem
 
     private void Reset()
     {
-        foreach (var textures in _textures.Values)
+        foreach (var texture in _textures.Values.Concat(_thumbnails.Values))
         {
-            (textures.Full as OwnedTexture)?.Dispose();
-            (textures.Thumbnail as OwnedTexture)?.Dispose();
+            (texture as OwnedTexture)?.Dispose();
         }
 
         _textures.Clear();
+        _thumbnails.Clear();
         _requested.Clear();
+        _missing.Clear();
     }
 }

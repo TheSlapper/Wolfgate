@@ -88,15 +88,14 @@ public sealed partial class PhotoWindow : DefaultWindow
         var meta = _entMan.GetComponent<MetaDataComponent>(photoUid.Value);
         Title = meta.EntityName;
 
-        var textures = _images.Get(photo.Hash);
-        _image.Texture = textures?.Full;
-        _waiting.Text = Loc.GetString(photo.Hash.Length == 0 ? "wf-photo-window-blank" : "wf-photo-window-loading");
-        _waiting.Visible = textures == null;
+        _image.Texture = _images.Get(photo.Hash);
+        _waiting.Text = Loc.GetString(string.IsNullOrEmpty(photo.Hash) ?"wf-photo-window-blank" : "wf-photo-window-loading");
+        _waiting.Visible = _image.Texture == null;
 
         if (_shownDescription != meta.EntityDescription)
         {
             _shownDescription = meta.EntityDescription;
-            _description.SetMessage(FormattedMessage.FromUnformatted(_shownDescription));
+            _description.SetMessage(FormattedMessage.FromMarkupPermissive(_shownDescription));
         }
 
         if (_shownBack != photo.BackText)

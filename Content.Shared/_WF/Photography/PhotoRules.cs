@@ -16,6 +16,9 @@ public static class PhotoRules
     /// <summary>Side of the thumbnail drawn on photo and frame sprites.</summary>
     public const int ThumbnailPixels = 8;
 
+    /// <summary>Bytes in a thumbnail: RGB for each pixel.</summary>
+    public const int ThumbnailBytes = ThumbnailPixels * ThumbnailPixels * 3;
+
     /// <summary>Longest photo name, description and back text.</summary>
     public const int MaxNameLength = 32;
     public const int MaxDescriptionLength = 128;

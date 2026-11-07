@@ -12,6 +12,7 @@ using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Utility;
 
 namespace Content.Server._WF.Photography;
 
@@ -19,11 +20,13 @@ namespace Content.Server._WF.Photography;
 public sealed partial class PhotoSystem : EntitySystem
 {
     [Dependency] private IAdminLogManager _adminLog = default!;
+    [Dependency] private PhotoAlbumSystem _albums = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedInteractionSystem _interaction = default!;
     [Dependency] private MetaDataSystem _meta = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private QuickDialogSystem _quickDialog = default!;
+    [Dependency] private PhotoStoreSystem _store = default!;
     [Dependency] private TagSystem _tag = default!;
 
     private static readonly ProtoId<TagPrototype> WriteTag = "Write";
@@ -48,6 +51,7 @@ public sealed partial class PhotoSystem : EntitySystem
         photo.Width = entry.Width;
         photo.Height = entry.Height;
         photo.Haunted = entry.Haunted;
+        _store.FillThumbnail((uid, photo));
         Dirty(uid, photo);
 
         if (entry.Name.Length > 0)
@@ -86,7 +90,7 @@ public sealed partial class PhotoSystem : EntitySystem
         if (description.Length > 0)
         {
             var desc = Loc.GetString("wf-photo-customised-description",
-                ("custom", description), ("caption", MetaData(photo).EntityDescription));
+                ("custom", FormattedMessage.EscapeText(description)), ("caption", MetaData(photo).EntityDescription));
             _meta.SetEntityDescription(photo, desc);
         }
 
@@ -98,6 +102,7 @@ public sealed partial class PhotoSystem : EntitySystem
 
         if (name.Length > 0 || description.Length > 0 || caption.Length > 0)
         {
+            _albums.PhotoChanged(photo);
             _adminLog.Add(LogType.WFPhoto, LogImpact.Low,
                 $"{ToPrettyString(user):user} labelled {ToPrettyString(photo):photo} name '{name}', description '{description}', caption '{caption}'");
         }
@@ -112,7 +117,10 @@ public sealed partial class PhotoSystem : EntitySystem
         }
 
         if (ent.Comp.BackText.Length > 0)
-            args.PushMarkup(Loc.GetString("wf-photo-examine-back", ("text", ent.Comp.BackText)));
+        {
+            var back = FormattedMessage.EscapeText(ent.Comp.BackText);
+            args.PushMarkup(Loc.GetString("wf-photo-examine-back", ("text", back)));
+        }
     }
 
     private void OnInteractUsing(Entity<PhotoComponent> ent, ref InteractUsingEvent args)
@@ -137,6 +145,7 @@ public sealed partial class PhotoSystem : EntitySystem
 
                 ent.Comp.BackText = back;
                 Dirty(ent);
+                _albums.PhotoChanged(ent);
                 _audio.PlayPvs(WriteSound, ent);
                 _popup.PopupEntity(Loc.GetString("wf-photo-write-done"), ent, user);
                 _adminLog.Add(LogType.WFPhoto, LogImpact.Low,
@@ -168,6 +177,7 @@ public sealed partial class PhotoSystem : EntitySystem
                         _meta.SetEntityName(ent, name.Length > 0
                             ? Loc.GetString("wf-photo-renamed", ("name", name))
                             : Loc.GetString("wf-photo-default-name"));
+                        _albums.PhotoChanged(ent);
                         _adminLog.Add(LogType.WFPhoto, LogImpact.Low,
                             $"{ToPrettyString(user):user} renamed {ToPrettyString(ent):photo} to '{name}'");
                     });

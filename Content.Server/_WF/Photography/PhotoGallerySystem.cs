@@ -36,7 +36,7 @@ public sealed partial class PhotoGallerySystem : EntitySystem
             return;
 
         entry.Name = Loc.GetString("wf-photo-gallery-entry-name",
-            ("number", comp.Photos.Count + 1), ("user", user));
+            ("number", comp.NextNumber++), ("user", user));
         comp.Photos.Add(entry);
         while (comp.Photos.Count > comp.Capacity)
         {

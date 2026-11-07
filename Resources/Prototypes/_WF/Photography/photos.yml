@@ -99,20 +99,10 @@
   - type: Storage
     maxItemSize: Tiny
     grid:
-    - 0,0,6,2
+    - 0,0,9,4
     whitelist:
       tags:
       - Photo
-  - type: PersistAtRoundEnd
-  - type: Flammable
-    fireSpread: true
-    alwaysCombustible: true
-    damage:
-      types:
-        Heat: 1
-  - type: FireVisuals
-    sprite: Effects/fire.rsi
-    normalState: fire
   - type: StaticPrice
     price: 20
 
@@ -146,3 +136,6 @@
   name: personal photo album
   suffix: Personal
   description: A photographer's own album, filled over many shifts.
+  components:
+  - type: StaticPrice
+    price: 0

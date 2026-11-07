@@ -13,7 +13,9 @@ using Robust.Shared.Map;
 
 namespace Content.Client._WF.Photography;
 
-/// <summary>Takes UI out of the world for one photo render: highlights, previews, HUDs and vision effects.</summary>
+/// <summary>
+/// Takes UI out of the world for one photo render: highlights, previews, HUDs, vision effects and cloaked entities.
+/// </summary>
 public sealed partial class PhotoCaptureFilterSystem : EntitySystem
 {
     [Dependency] private IOverlayManager _overlays = default!;
@@ -101,9 +103,17 @@ public sealed partial class PhotoCaptureFilterSystem : EntitySystem
     private readonly List<EntityUid> _hiddenSprites = new();
     private EntityUid? _disabledLight;
 
-    /// <summary>Removes UI from the world around a photo square until <see cref="Restore"/>.</summary>
-    public void Hide(PhotoSquare square, MapId map)
+    /// <summary>
+    /// Removes UI and the <paramref name="hidden"/> entities from around a photo square until <see cref="Restore"/>.
+    /// </summary>
+    public void Hide(PhotoSquare square, MapId map, NetEntity[] hidden)
     {
+        foreach (var net in hidden)
+        {
+            if (TryGetEntity(net, out var uid) && TryComp<SpriteComponent>(uid, out var sprite) && sprite.Visible)
+                HideSprite((uid.Value, sprite));
+        }
+
         if (_overlays.TryGetOverlay<ThermalVisionOverlay>(out var thermal)
             && thermal.LightEntity is { } light
             && TryComp<PointLightComponent>(light, out var pointLight)
@@ -121,10 +131,7 @@ public sealed partial class PhotoCaptureFilterSystem : EntitySystem
                 continue;
 
             if (sprite.Visible && IsClientSide(uid) && IsPreview(uid))
-            {
-                _sprite.SetVisible((uid, sprite), false);
-                _hiddenSprites.Add(uid);
-            }
+                HideSprite((uid, sprite));
 
             foreach (var entry in _sprite.GetPostShaders(sprite))
             {
@@ -182,6 +189,12 @@ public sealed partial class PhotoCaptureFilterSystem : EntitySystem
         return HasComp<ConstructionGhostComponent>(uid)
             || HasComp<MultipartMachineGhostComponent>(uid)
             || MetaData(uid).EntityPrototype is { } proto && PreviewPrototypes.Contains(proto.ID);
+    }
+
+    private void HideSprite(Entity<SpriteComponent> sprite)
+    {
+        _sprite.SetVisible((sprite.Owner, sprite.Comp), false);
+        _hiddenSprites.Add(sprite.Owner);
     }
 
     private bool IsHighlight(EntityUid uid, ShaderInstance shader)

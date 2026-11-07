@@ -14,12 +14,14 @@ public readonly record struct PhotoSquare(EntityUid Grid, Vector2 Centre, Angle 
         return (index % Tiles - half, half - index / Tiles);
     }
 
+    /// <summary>Map position of the middle of a tile in the square.</summary>
     public MapCoordinates TileCentre(int index, MapId map)
     {
         var (x, y) = Offset(index);
         return new MapCoordinates(Centre + Rotation.RotateVec(new Vector2(x, y)), map);
     }
 
+    /// <summary>Grid tile indices of a tile in the square.</summary>
     public Vector2i GridTile(int index)
     {
         var (x, y) = Offset(index);

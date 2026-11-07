@@ -76,7 +76,7 @@ public sealed partial class PhotoCaptureSystem : EntitySystem
         var ghosts = ShowGhosts(ev.Ghosts);
         try
         {
-            _filter.Hide(square, map.MapId);
+            _filter.Hide(square, map.MapId, ev.Hidden);
             viewport.Render();
         }
         finally

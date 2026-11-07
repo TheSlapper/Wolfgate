@@ -27,30 +27,6 @@ public sealed partial class PhotoVisualizerSystem : EntitySystem
             UpdateFrame((uid, comp)));
         SubscribeLocalEvent<PhotoFrameComponent, EntRemovedFromContainerMessage>((uid, comp, _) =>
             UpdateFrame((uid, comp)));
-
-        _images.ImageLoaded += OnImageLoaded;
-    }
-
-    public override void Shutdown()
-    {
-        base.Shutdown();
-        _images.ImageLoaded -= OnImageLoaded;
-    }
-
-    private void OnImageLoaded(string hash)
-    {
-        var photos = EntityQueryEnumerator<PhotoComponent>();
-        while (photos.MoveNext(out var uid, out var photo))
-        {
-            if (photo.Hash == hash)
-                UpdatePhoto((uid, photo));
-        }
-
-        var frames = EntityQueryEnumerator<PhotoFrameComponent>();
-        while (frames.MoveNext(out var uid, out var frame))
-        {
-            UpdateFrame((uid, frame));
-        }
     }
 
     private void UpdatePhoto(Entity<PhotoComponent> ent)
@@ -62,7 +38,11 @@ public sealed partial class PhotoVisualizerSystem : EntitySystem
         if (_sprite.LayerMapTryGet(spriteEnt, PhotoVisualLayers.Base, out _, false))
             _sprite.LayerSetRsiState(spriteEnt, PhotoVisualLayers.Base, ent.Comp.Old ? OldPhotoState : PhotoState);
 
-        SetThumbnail(spriteEnt, ent.Comp.Hash);
+        SetThumbnail(spriteEnt, ent.Comp);
+
+        if (_container.TryGetContainingContainer((ent.Owner, null, null), out var container)
+            && TryComp<PhotoFrameComponent>(container.Owner, out var frame))
+            UpdateFrame((container.Owner, frame));
     }
 
     private void UpdateFrame(Entity<PhotoFrameComponent> ent)
@@ -91,17 +71,17 @@ public sealed partial class PhotoVisualizerSystem : EntitySystem
                 _sprite.LayerSetRsiState(spriteEnt, PhotoVisualLayers.Photo, photo.Old ? OldPhotoState : PhotoState);
         }
 
-        SetThumbnail(spriteEnt, photo?.Hash ?? string.Empty);
+        SetThumbnail(spriteEnt, photo);
     }
 
-    private void SetThumbnail(Entity<SpriteComponent?> sprite, string hash)
+    private void SetThumbnail(Entity<SpriteComponent?> sprite, PhotoComponent? photo)
     {
         if (!_sprite.LayerMapTryGet(sprite, PhotoVisualLayers.Thumbnail, out _, false))
             return;
 
-        var textures = _images.Get(hash);
-        _sprite.LayerSetVisible(sprite, PhotoVisualLayers.Thumbnail, textures != null);
-        if (textures != null)
-            _sprite.LayerSetTexture(sprite, PhotoVisualLayers.Thumbnail, textures.Thumbnail);
+        var texture = photo == null ? null : _images.Thumbnail(photo);
+        _sprite.LayerSetVisible(sprite, PhotoVisualLayers.Thumbnail, texture != null);
+        if (texture != null)
+            _sprite.LayerSetTexture(sprite, PhotoVisualLayers.Thumbnail, texture);
     }
 }

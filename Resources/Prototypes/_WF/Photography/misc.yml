@@ -40,7 +40,6 @@
   recipes:
   - Camera
   - CameraFilm
-  - PhotoAlbum
 
 - type: latheRecipe
   id: Camera
@@ -61,15 +60,6 @@
   materials:
     Steel: 20
     Glass: 20
-
-- type: latheRecipe
-  id: PhotoAlbum
-  result: PhotoAlbum
-  categories:
-  - Tools
-  completetime: 2
-  materials:
-    Cardboard: 100
 
 - type: latheRecipe
   parent: BaseBorgModuleRecipe

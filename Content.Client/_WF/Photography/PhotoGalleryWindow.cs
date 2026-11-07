@@ -91,7 +91,7 @@ public sealed partial class PhotoGalleryWindow : DefaultWindow
             Rebuild(gallery);
 
         if (_selected >= 0 && _selected < gallery.Photos.Count)
-            _image.Texture = _images.Get(gallery.Photos[_selected].Hash)?.Full;
+            _image.Texture = _images.Get(gallery.Photos[_selected].Hash);
     }
 
     private void Rebuild(PhotoGalleryComponent gallery)
@@ -117,7 +117,7 @@ public sealed partial class PhotoGalleryWindow : DefaultWindow
         _delete.Disabled = !has;
         _image.Texture = null;
         var description = has ? gallery!.Photos[index].Description : string.Empty;
-        _description.SetMessage(FormattedMessage.FromUnformatted(description));
+        _description.SetMessage(FormattedMessage.FromMarkupPermissive(description));
 
         if (has && !_list[index].Selected)
             _list[index].Selected = true;
