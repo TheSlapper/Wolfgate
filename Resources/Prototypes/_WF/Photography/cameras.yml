@@ -1,8 +1,6 @@
 - type: entity
   parent: BaseItem
   id: WFCamera
-  name: camera
-  description: A polaroid camera.
   components:
   - type: Sprite
     sprite: _WF/Photography/camera.rsi
@@ -45,8 +43,6 @@
 - type: entity
   parent: WFCamera
   id: WFCameraDetective
-  name: detective's camera
-  description: A silent polaroid camera with extra capacity for crime investigations.
   components:
   - type: PhotoCamera
     filmLeft: 30
@@ -58,7 +54,6 @@
 - type: entity
   parent: WFCamera
   id: WFCameraPersonal
-  suffix: Photographer
   components:
   - type: StaticPrice
     price: 0
@@ -66,8 +61,6 @@
 - type: entity
   parent: WFCamera
   id: WFCameraObscura
-  name: camera obscura
-  description: A polaroid camera, some say it can see ghosts!
   components:
   - type: PhotoCamera
     seeGhosts: true
@@ -78,8 +71,6 @@
 - type: entity
   parent: WFCameraObscura
   id: WFCameraObscuraBadmin
-  suffix: Admin
-  description: A polaroid camera, some say it can see ghosts! It seems to have an extra magnifier on the end.
   components:
   - type: PhotoCamera
     seeGhosts: true
@@ -91,8 +82,6 @@
 - type: entity
   parent: BaseItem
   id: WFCameraFilm
-  name: film cartridge
-  description: A camera film cartridge. Insert it into a camera to reload it.
   components:
   - type: Sprite
     sprite: _WF/Photography/film.rsi
@@ -106,8 +95,6 @@
 - type: entity
   parent: WFCamera
   id: WFCameraBorg
-  name: cyborg photo camera
-  description: A camera built into a cyborg. It keeps its photos and prints them on demand.
   components:
   - type: PhotoCamera
     storesPhotos: true
@@ -128,7 +115,6 @@
 - type: entity
   parent: [ BaseBorgModule, BaseProviderBorgModule ]
   id: WFBorgModulePhotography
-  name: photography cyborg module
   components:
   - type: Sprite
     layers:

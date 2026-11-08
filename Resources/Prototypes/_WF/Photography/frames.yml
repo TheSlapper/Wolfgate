@@ -2,8 +2,6 @@
   abstract: true
   parent: BaseSign
   id: WFBasePictureFrame
-  name: picture frame
-  description: Every time you look it makes you laugh.
   components:
   - type: Sprite
     sprite: _WF/Photography/frame.rsi
@@ -45,7 +43,6 @@
 - type: entity
   parent: WFBasePictureFrame
   id: WFPictureFrame
-  description: The perfect showcase for your favorite deathtrap memories.
   components:
   - type: Construction
     graph: WFPictureFrameGraph
@@ -54,14 +51,10 @@
 - type: entity
   parent: WFBasePictureFrame
   id: WFPictureFrameShowroom
-  name: distinguished crew display
-  description: "A photo frame to commemorate crewmembers that distinguished themselves in the line of duty. WARNING: unauthorized tampering will be severely punished."
 
 - type: entity
   parent: WFBasePictureFrame
   id: WFPictureFrameMonkey
-  name: Mr. Deempisi portrait
-  description: "Under the portrait a plaque reads: 'While the meat grinder may not have spared you, fear not. Not one part of you has gone to waste... You were delicious.'"
   components:
   - type: Sprite
     layers:
@@ -83,8 +76,6 @@
 - type: entity
   parent: WFPictureFrameMonkey
   id: WFPictureFrameFruit
-  name: picture of a fruit
-  description: Ceci n'est pas une orange.
   components:
   - type: Sprite
     layers:
@@ -106,8 +97,6 @@
 - type: entity
   parent: WFPictureFrameMonkey
   id: WFPictureFrameRat
-  name: Tom portrait
-  description: Jerry the cat is still not amused.
   components:
   - type: Sprite
     layers:

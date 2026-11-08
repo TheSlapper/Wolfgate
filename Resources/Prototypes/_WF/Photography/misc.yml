@@ -1,7 +1,5 @@
 - type: entity
   id: WFActionPhotoAiCapture
-  name: Take photo
-  description: Take a photo of a spot the station cameras can see.
   components:
   - type: WorldTargetAction
     icon:
@@ -16,8 +14,6 @@
 
 - type: entity
   id: WFActionPhotoGallery
-  name: View photos
-  description: Look through the photos you have taken.
   components:
   - type: InstantAction
     icon:

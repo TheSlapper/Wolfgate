@@ -21,7 +21,8 @@ public sealed partial class PhotoGalleryWindow : DefaultWindow
     private readonly RichTextLabel _description;
     private readonly Button _print;
     private readonly Button _delete;
-    private int _shownCount = -1;
+    private readonly List<string> _shownNames = new();
+    private bool _shown;
     private int _selected = -1;
 
     /// <summary>The entity holding the gallery.</summary>
@@ -87,19 +88,36 @@ public sealed partial class PhotoGalleryWindow : DefaultWindow
         if (!_entMan.TryGetComponent<PhotoGalleryComponent>(Target, out var gallery))
             return;
 
-        if (gallery.Photos.Count != _shownCount)
+        if (!_shown || !SameEntries(gallery))
             Rebuild(gallery);
 
         if (_selected >= 0 && _selected < gallery.Photos.Count)
             _image.Texture = _images.Get(gallery.Photos[_selected].Hash);
     }
 
+    /// <summary>Whether the list still shows the gallery's entries. Entry names are unique, so they stand for them.</summary>
+    private bool SameEntries(PhotoGalleryComponent gallery)
+    {
+        if (gallery.Photos.Count != _shownNames.Count)
+            return false;
+
+        for (var i = 0; i < _shownNames.Count; i++)
+        {
+            if (gallery.Photos[i].Name != _shownNames[i])
+                return false;
+        }
+
+        return true;
+    }
+
     private void Rebuild(PhotoGalleryComponent gallery)
     {
-        _shownCount = gallery.Photos.Count;
+        _shown = true;
+        _shownNames.Clear();
         _list.Clear();
         foreach (var photo in gallery.Photos)
         {
+            _shownNames.Add(photo.Name);
             _list.AddItem(photo.Name).TooltipText = photo.Name;
         }
 

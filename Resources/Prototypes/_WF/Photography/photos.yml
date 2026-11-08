@@ -10,7 +10,6 @@
 - type: entity
   parent: BaseItem
   id: WFPhoto
-  name: photo
   components:
   - type: Sprite
     sprite: _WF/Photography/photo.rsi
@@ -86,8 +85,6 @@
 - type: entity
   parent: BaseStorageItem
   id: WFPhotoAlbum
-  name: photo album
-  description: A big book used to store photos and mementos.
   components:
   - type: Sprite
     sprite: _WF/Photography/album.rsi
@@ -109,7 +106,6 @@
 - type: entity
   parent: WFPhotoAlbum
   id: WFPhotoAlbumBlue
-  suffix: Blue
   components:
   - type: Sprite
     state: album-blue
@@ -117,7 +113,6 @@
 - type: entity
   parent: WFPhotoAlbum
   id: WFPhotoAlbumRed
-  suffix: Red
   components:
   - type: Sprite
     state: album-red
@@ -125,7 +120,6 @@
 - type: entity
   parent: WFPhotoAlbum
   id: WFPhotoAlbumGreen
-  suffix: Green
   components:
   - type: Sprite
     state: album-green
@@ -133,9 +127,6 @@
 - type: entity
   parent: WFPhotoAlbumGreen
   id: WFPhotoAlbumPersonal
-  name: personal photo album
-  suffix: Personal
-  description: A photographer's own album, filled over many shifts.
   components:
   - type: StaticPrice
     price: 0
