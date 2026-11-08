@@ -84,3 +84,9 @@ wf-photo-soul-stolen = You feel your essence draining away from having your pict
 
 trait-photographer-name = Photographer
 trait-photographer-desc = You carry your camera and personal photo album everywhere you go, and your scrapbooks are legendary among your coworkers.
+
+cmd-blankphoto-desc = Deletes a photo's image for good and blanks every copy of it, in the round and in saved albums.
+cmd-blankphoto-help = Usage: {$command} <hash or photo/frame entity ID>. The hash is in the photo admin logs.
+cmd-blankphoto-invalid-args = Expected one argument.
+cmd-blankphoto-bad-target = {$target} isn't a photo hash or an entity holding a photo.
+cmd-blankphoto-success = Blanked photo {$hash}: {$count} copies in the round. Saved copies blank when they next load.

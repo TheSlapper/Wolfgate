@@ -10,7 +10,7 @@ public sealed partial class PhotographerSystem : EntitySystem
 {
     [Dependency] private SharedHandsSystem _hands = default!;
 
-    private static readonly EntProtoId Camera = "Camera";
+    private static readonly EntProtoId Camera = "WFCameraPersonal";
 
     /// <summary>Spawned mobs to equip next tick, once traits are in place.</summary>
     private readonly List<EntityUid> _queued = new();

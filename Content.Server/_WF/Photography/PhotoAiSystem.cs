@@ -10,8 +10,8 @@ public sealed partial class PhotoAiSystem : EntitySystem
 {
     [Dependency] private SharedActionsSystem _actions = default!;
 
-    private static readonly EntProtoId CaptureAction = "ActionPhotoAiCapture";
-    private static readonly EntProtoId GalleryAction = "ActionPhotoGallery";
+    private static readonly EntProtoId CaptureAction = "WFActionPhotoAiCapture";
+    private static readonly EntProtoId GalleryAction = "WFActionPhotoGallery";
 
     public override void Initialize()
     {

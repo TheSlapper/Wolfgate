@@ -67,7 +67,7 @@ public sealed partial class PhotoCameraComponent : Component
     public float Range = 12f;
 
     [DataField]
-    public SoundSpecifier ShutterSound = new SoundCollectionSpecifier("PhotoShutter");
+    public SoundSpecifier ShutterSound = new SoundCollectionSpecifier("WFPhotoShutter");
 
     [DataField]
     public SoundSpecifier ClickSound = new SoundPathSpecifier("/Audio/UserInterface/click.ogg");

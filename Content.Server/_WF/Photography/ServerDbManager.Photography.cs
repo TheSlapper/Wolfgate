@@ -11,6 +11,9 @@ public partial interface IServerDbManager
     /// <summary>Stores a photo. A hash already stored keeps its row and counts as in use again.</summary>
     Task AddPhotoAsync(WolfgatePhoto photo, CancellationToken cancel = default);
 
+    /// <summary>Deletes the photo stored under a hash.</summary>
+    Task DeletePhotoAsync(string hash, CancellationToken cancel = default);
+
     /// <summary>Notes photos no profile or deposit box holds and deletes ones noted longer ago than keep.</summary>
     Task<(int Found, int Deleted)> PurgeUnusedPhotosAsync(TimeSpan keep, CancellationToken cancel = default);
 
@@ -33,6 +36,12 @@ public sealed partial class ServerDbManager
     {
         DbWriteOpsMetric.Inc();
         return RunDbCommand(() => _db.AddPhotoAsync(photo, cancel));
+    }
+
+    public Task DeletePhotoAsync(string hash, CancellationToken cancel = default)
+    {
+        DbWriteOpsMetric.Inc();
+        return RunDbCommand(() => _db.DeletePhotoAsync(hash, cancel));
     }
 
     public Task<(int Found, int Deleted)> PurgeUnusedPhotosAsync(TimeSpan keep, CancellationToken cancel = default)

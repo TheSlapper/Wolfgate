@@ -1,5 +1,5 @@
 - type: entity
-  id: ActionPhotoAiCapture
+  id: WFActionPhotoAiCapture
   name: Take photo
   description: Take a photo of a spot the station cameras can see.
   components:
@@ -15,7 +15,7 @@
     event: !type:PhotoAiCaptureActionEvent
 
 - type: entity
-  id: ActionPhotoGallery
+  id: WFActionPhotoGallery
   name: View photos
   description: Look through the photos you have taken.
   components:
@@ -28,7 +28,7 @@
     event: !type:PhotoGalleryActionEvent
 
 - type: trait
-  id: Photographer
+  id: WFPhotographer
   name: trait-photographer-name
   description: trait-photographer-desc
   category: Quirks
@@ -36,14 +36,14 @@
   - type: Photographer
 
 - type: latheRecipePack
-  id: PhotographyStatic
+  id: WFPhotographyStatic
   recipes:
-  - Camera
-  - CameraFilm
+  - WFCamera
+  - WFCameraFilm
 
 - type: latheRecipe
-  id: Camera
-  result: Camera
+  id: WFCamera
+  result: WFCamera
   categories:
   - Tools
   completetime: 4
@@ -52,8 +52,8 @@
     Glass: 200
 
 - type: latheRecipe
-  id: CameraFilm
-  result: CameraFilm
+  id: WFCameraFilm
+  result: WFCameraFilm
   categories:
   - Tools
   completetime: 1
@@ -63,5 +63,5 @@
 
 - type: latheRecipe
   parent: BaseBorgModuleRecipe
-  id: BorgModulePhotography
-  result: BorgModulePhotography
+  id: WFBorgModulePhotography
+  result: WFBorgModulePhotography

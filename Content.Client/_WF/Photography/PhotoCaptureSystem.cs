@@ -79,6 +79,11 @@ public sealed partial class PhotoCaptureSystem : EntitySystem
             _filter.Hide(square, map.MapId, ev.Hidden);
             viewport.Render();
         }
+        catch
+        {
+            viewport.Dispose();
+            throw;
+        }
         finally
         {
             _filter.Restore();

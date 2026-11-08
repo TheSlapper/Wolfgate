@@ -20,6 +20,12 @@ public abstract partial class ServerDbBase
         return await db.DbContext.WolfgatePhoto.AsNoTracking().SingleOrDefaultAsync(p => p.Hash == hash, cancel);
     }
 
+    public async Task DeletePhotoAsync(string hash, CancellationToken cancel = default)
+    {
+        await using var db = await GetDb(cancel);
+        await db.DbContext.WolfgatePhoto.Where(p => p.Hash == hash).ExecuteDeleteAsync(cancel);
+    }
+
     /// <summary>Adds an image, or marks an existing one as in use again.</summary>
     public async Task AddPhotoAsync(WolfgatePhoto photo, CancellationToken cancel = default)
     {

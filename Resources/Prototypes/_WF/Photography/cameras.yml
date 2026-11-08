@@ -1,6 +1,6 @@
 - type: entity
   parent: BaseItem
-  id: Camera
+  id: WFCamera
   name: camera
   description: A polaroid camera.
   components:
@@ -34,7 +34,7 @@
       methods: [ Touch ]
       effects:
       - !type:PhotoReplaceEntity
-        prototype: CameraObscura
+        prototype: WFCameraObscura
         conditions:
         - !type:ReagentThreshold
           reagent: Holywater
@@ -43,8 +43,8 @@
     price: 60
 
 - type: entity
-  parent: Camera
-  id: CameraDetective
+  parent: WFCamera
+  id: WFCameraDetective
   name: detective's camera
   description: A silent polaroid camera with extra capacity for crime investigations.
   components:
@@ -56,8 +56,16 @@
     silent: true
 
 - type: entity
-  parent: Camera
-  id: CameraObscura
+  parent: WFCamera
+  id: WFCameraPersonal
+  suffix: Photographer
+  components:
+  - type: StaticPrice
+    price: 0
+
+- type: entity
+  parent: WFCamera
+  id: WFCameraObscura
   name: camera obscura
   description: A polaroid camera, some say it can see ghosts!
   components:
@@ -68,8 +76,8 @@
     reactions: []
 
 - type: entity
-  parent: CameraObscura
-  id: CameraObscuraBadmin
+  parent: WFCameraObscura
+  id: WFCameraObscuraBadmin
   suffix: Admin
   description: A polaroid camera, some say it can see ghosts! It seems to have an extra magnifier on the end.
   components:
@@ -82,7 +90,7 @@
 
 - type: entity
   parent: BaseItem
-  id: CameraFilm
+  id: WFCameraFilm
   name: film cartridge
   description: A camera film cartridge. Insert it into a camera to reload it.
   components:
@@ -96,8 +104,8 @@
     price: 10
 
 - type: entity
-  parent: Camera
-  id: CameraBorg
+  parent: WFCamera
+  id: WFCameraBorg
   name: cyborg photo camera
   description: A camera built into a cyborg. It keeps its photos and prints them on demand.
   components:
@@ -119,7 +127,7 @@
 
 - type: entity
   parent: [ BaseBorgModule, BaseProviderBorgModule ]
-  id: BorgModulePhotography
+  id: WFBorgModulePhotography
   name: photography cyborg module
   components:
   - type: Sprite
@@ -131,6 +139,6 @@
   - type: ItemBorgModule
     moduleId: Photography
     items:
-    - CameraBorg
+    - WFCameraBorg
   - type: BorgModuleIcon
     icon: { sprite: _WF/Photography/camera.rsi, state: icon }

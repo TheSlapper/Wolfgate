@@ -4,10 +4,12 @@ using Content.Server.Database;
 using Content.Server.GameTicking;
 using Content.Shared._WF.Photography;
 using Content.Shared.GameTicking;
+using Robust.Server.Player;
 using Robust.Shared.Configuration;
 using Robust.Shared.Enums;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
+using Robust.Shared.Utility;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -19,6 +21,8 @@ public sealed partial class PhotoStoreSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IServerDbManager _db = default!;
+    [Dependency] private PhotoAlbumSystem _albums = default!;
+    [Dependency] private IPlayerManager _player = default!;
     [Dependency] private GameTicker _ticker = default!;
     [Dependency] private IGameTiming _timing = default!;
 
@@ -33,6 +37,12 @@ public sealed partial class PhotoStoreSystem : EntitySystem
     /// <summary>When each session's download window started and how many images it has had in it.</summary>
     private readonly Dictionary<ICommonSession, (TimeSpan Start, int Count)> _downloads = new();
 
+    /// <summary>Images each session has been sent this round. Clients keep them, so they aren't sent twice.</summary>
+    private readonly Dictionary<ICommonSession, HashSet<string>> _sent = new();
+
+    /// <summary>Hashes the database has no image for, deleted or never saved.</summary>
+    private readonly HashSet<string> _absent = new();
+
     public override void Initialize()
     {
         base.Initialize();
@@ -40,20 +50,39 @@ public sealed partial class PhotoStoreSystem : EntitySystem
         SubscribeNetworkEvent<PhotoImageRequestEvent>(OnImageRequest);
         SubscribeLocalEvent<PhotoComponent, ComponentStartup>(OnPhotoStartup);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
+        _player.PlayerStatusChanged += OnPlayerStatusChanged;
 
         PurgeUnused();
+    }
+
+    public override void Shutdown()
+    {
+        base.Shutdown();
+        _player.PlayerStatusChanged -= OnPlayerStatusChanged;
     }
 
     private void OnRoundRestart(RoundRestartCleanupEvent args)
     {
         _images.Clear();
         _downloads.Clear();
+        _sent.Clear();
+        _absent.Clear();
+    }
+
+    private void OnPlayerStatusChanged(object? sender, SessionStatusEventArgs args)
+    {
+        if (args.NewStatus != SessionStatus.Disconnected)
+            return;
+
+        _downloads.Remove(args.Session);
+        _sent.Remove(args.Session);
     }
 
     /// <summary>Stores a new image under its hash, writing it to the database in the background.</summary>
     public void Store(string hash, byte[] png, int width, int height, Guid? author)
     {
         _images[hash] = new StoredPhoto(png, width, height, MakeThumbnail(png));
+        _absent.Remove(hash);
 
         var row = new WolfgatePhoto
         {
@@ -88,7 +117,10 @@ public sealed partial class PhotoStoreSystem : EntitySystem
         {
             var row = await _db.GetPhotoAsync(hash);
             if (row == null)
+            {
+                _absent.Add(hash);
                 return null;
+            }
 
             var stored = new StoredPhoto(row.Png, row.Width, row.Height, MakeThumbnail(row.Png));
             _images[hash] = stored;
@@ -117,14 +149,93 @@ public sealed partial class PhotoStoreSystem : EntitySystem
         }
     }
 
-    /// <summary>Marks a photo that loads with an image as aged, and gives it a thumbnail if it was saved without.</summary>
+    /// <summary>
+    /// Marks a photo that loads with an image as aged, and checks its image is still stored, blanking it if not.
+    /// </summary>
     private void OnPhotoStartup(Entity<PhotoComponent> ent, ref ComponentStartup args)
     {
         if (string.IsNullOrEmpty(ent.Comp.Hash))
             return;
 
         ent.Comp.Old = true;
-        FillThumbnail(ent);
+        CheckStored(ent, ent.Comp.Hash);
+    }
+
+    private async void CheckStored(Entity<PhotoComponent> ent, string hash)
+    {
+        var stored = await GetAsync(hash);
+        if (TerminatingOrDeleted(ent) || ent.Comp.Hash != hash)
+            return;
+
+        if (stored == null)
+        {
+            if (_absent.Contains(hash))
+                BlankPhoto(ent);
+            return;
+        }
+
+        if (string.IsNullOrEmpty(ent.Comp.Thumbnail))
+        {
+            ent.Comp.Thumbnail = stored.Thumbnail;
+            Dirty(ent);
+        }
+    }
+
+    /// <summary>
+    /// Deletes an image for good and blanks every photo and gallery entry in the round that shows it.
+    /// Saved copies blank themselves when they next load. Returns how many photos and entries were blanked.
+    /// </summary>
+    public int Blank(string hash)
+    {
+        _images.Remove(hash);
+        _absent.Add(hash);
+        DeleteStored(hash);
+
+        var blanked = 0;
+        var photos = EntityQueryEnumerator<PhotoComponent>();
+        while (photos.MoveNext(out var uid, out var photo))
+        {
+            if (photo.Hash != hash)
+                continue;
+
+            BlankPhoto((uid, photo));
+            blanked++;
+        }
+
+        var galleries = EntityQueryEnumerator<PhotoGalleryComponent>();
+        while (galleries.MoveNext(out var uid, out var gallery))
+        {
+            var removed = gallery.Photos.RemoveAll(p => p.Hash == hash);
+            if (removed == 0)
+                continue;
+
+            blanked += removed;
+            Dirty(uid, gallery);
+        }
+
+        return blanked;
+    }
+
+    private void BlankPhoto(Entity<PhotoComponent> ent)
+    {
+        ent.Comp.Hash = string.Empty;
+        ent.Comp.Thumbnail = string.Empty;
+        ent.Comp.Width = 0;
+        ent.Comp.Height = 0;
+        Dirty(ent);
+        _albums.PhotoChanged(ent);
+    }
+
+    private async void DeleteStored(string hash)
+    {
+        try
+        {
+            await _db.DeletePhotoAsync(hash);
+        }
+        catch (Exception e)
+        {
+            Log.Error($"Deleting photo {hash} threw: {e}");
+        }
     }
 
     /// <summary>Sets a photo's thumbnail from its image, reading the image from the database if needed.</summary>
@@ -182,7 +293,8 @@ public sealed partial class PhotoStoreSystem : EntitySystem
     private async void OnImageRequest(PhotoImageRequestEvent msg, EntitySessionEventArgs args)
     {
         var session = args.SenderSession;
-        if (msg.Hash is not { Length: 64 } hash)
+        if (msg.Hash is not { Length: 64 } hash
+            || _sent.TryGetValue(session, out var sent) && sent.Contains(hash))
             return;
 
         // Over the limit the request goes unanswered, and the client asks again later.
@@ -198,6 +310,9 @@ public sealed partial class PhotoStoreSystem : EntitySystem
         var stored = await GetAsync(hash);
         if (session.Status == SessionStatus.Disconnected)
             return;
+
+        if (stored != null)
+            _sent.GetOrNew(session).Add(hash);
 
         RaiseNetworkEvent(new PhotoImageEvent(hash, stored?.Png), session);
     }

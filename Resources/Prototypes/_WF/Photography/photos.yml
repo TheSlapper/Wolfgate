@@ -1,15 +1,15 @@
 - type: Tag
-  id: Photo
+  id: WFPhoto
 
 - type: soundCollection
-  id: PhotoShutter
+  id: WFPhotoShutter
   files:
   - /Audio/_WF/Photography/polaroid1.ogg
   - /Audio/_WF/Photography/polaroid2.ogg
 
 - type: entity
   parent: BaseItem
-  id: Photo
+  id: WFPhoto
   name: photo
   components:
   - type: Sprite
@@ -32,7 +32,7 @@
         type: PhotoBoundUserInterface
   - type: Tag
     tags:
-    - Photo
+    - WFPhoto
   - type: EmitSoundOnPickup
     sound:
       path: /Audio/_Goobstation/Items/handling/paper_pickup.ogg
@@ -85,7 +85,7 @@
 
 - type: entity
   parent: BaseStorageItem
-  id: PhotoAlbum
+  id: WFPhotoAlbum
   name: photo album
   description: A big book used to store photos and mementos.
   components:
@@ -102,37 +102,37 @@
     - 0,0,9,4
     whitelist:
       tags:
-      - Photo
+      - WFPhoto
   - type: StaticPrice
     price: 20
 
 - type: entity
-  parent: PhotoAlbum
-  id: PhotoAlbumBlue
+  parent: WFPhotoAlbum
+  id: WFPhotoAlbumBlue
   suffix: Blue
   components:
   - type: Sprite
     state: album-blue
 
 - type: entity
-  parent: PhotoAlbum
-  id: PhotoAlbumRed
+  parent: WFPhotoAlbum
+  id: WFPhotoAlbumRed
   suffix: Red
   components:
   - type: Sprite
     state: album-red
 
 - type: entity
-  parent: PhotoAlbum
-  id: PhotoAlbumGreen
+  parent: WFPhotoAlbum
+  id: WFPhotoAlbumGreen
   suffix: Green
   components:
   - type: Sprite
     state: album-green
 
 - type: entity
-  parent: PhotoAlbumGreen
-  id: PhotoAlbumPersonal
+  parent: WFPhotoAlbumGreen
+  id: WFPhotoAlbumPersonal
   name: personal photo album
   suffix: Personal
   description: A photographer's own album, filled over many shifts.

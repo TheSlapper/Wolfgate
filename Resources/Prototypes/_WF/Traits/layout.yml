@@ -94,7 +94,7 @@
     - Pious
     - WFPseudobulbarAffect
     - Snoring
-    - Photographer
+    - WFPhotographer
   - name: wf-trait-group-body
     traits:
     - HighPainThreshold

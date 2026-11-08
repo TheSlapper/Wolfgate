@@ -1,7 +1,7 @@
 - type: entity
   abstract: true
   parent: BaseSign
-  id: BasePictureFrame
+  id: WFBasePictureFrame
   name: picture frame
   description: Every time you look it makes you laugh.
   components:
@@ -43,23 +43,23 @@
         acts: [ "Destruction" ]
 
 - type: entity
-  parent: BasePictureFrame
-  id: PictureFrame
+  parent: WFBasePictureFrame
+  id: WFPictureFrame
   description: The perfect showcase for your favorite deathtrap memories.
   components:
   - type: Construction
-    graph: PictureFrameGraph
+    graph: WFPictureFrameGraph
     node: PictureFrameNode
 
 - type: entity
-  parent: BasePictureFrame
-  id: PictureFrameShowroom
+  parent: WFBasePictureFrame
+  id: WFPictureFrameShowroom
   name: distinguished crew display
   description: "A photo frame to commemorate crewmembers that distinguished themselves in the line of duty. WARNING: unauthorized tampering will be severely punished."
 
 - type: entity
-  parent: BasePictureFrame
-  id: PictureFrameMonkey
+  parent: WFBasePictureFrame
+  id: WFPictureFrameMonkey
   name: Mr. Deempisi portrait
   description: "Under the portrait a plaque reads: 'While the meat grinder may not have spared you, fear not. Not one part of you has gone to waste... You were delicious.'"
   components:
@@ -81,8 +81,8 @@
     portraitDescription: wf-photo-portrait-monkey-description
 
 - type: entity
-  parent: PictureFrameMonkey
-  id: PictureFrameFruit
+  parent: WFPictureFrameMonkey
+  id: WFPictureFrameFruit
   name: picture of a fruit
   description: Ceci n'est pas une orange.
   components:
@@ -104,8 +104,8 @@
     portraitDescription: wf-photo-portrait-fruit-description
 
 - type: entity
-  parent: PictureFrameMonkey
-  id: PictureFrameRat
+  parent: WFPictureFrameMonkey
+  id: WFPictureFrameRat
   name: Tom portrait
   description: Jerry the cat is still not amused.
   components:
@@ -127,7 +127,7 @@
     portraitDescription: wf-photo-portrait-rat-description
 
 - type: constructionGraph
-  id: PictureFrameGraph
+  id: WFPictureFrameGraph
   start: start
   graph:
   - node: start
@@ -142,7 +142,7 @@
         amount: 1
         doAfter: 1
   - node: PictureFrameNode
-    entity: PictureFrame
+    entity: WFPictureFrame
     edges:
     - to: start
       completed:
@@ -162,10 +162,10 @@
         doAfter: 3
 
 - type: construction
-  id: PictureFrameConstruction
+  id: WFPictureFrameConstruction
   name: picture frame
   description: A wooden frame for a photo, hung on a wall.
-  graph: PictureFrameGraph
+  graph: WFPictureFrameGraph
   startNode: start
   targetNode: PictureFrameNode
   category: construction-category-misc

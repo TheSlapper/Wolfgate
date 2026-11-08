@@ -31,7 +31,7 @@ public sealed partial class PhotoAlbumSystem : EntitySystem
     [Dependency] private GameTicker _ticker = default!;
     [Dependency] private IGameTiming _timing = default!;
 
-    private static readonly EntProtoId Album = "PhotoAlbumPersonal";
+    private static readonly EntProtoId Album = "WFPhotoAlbumPersonal";
 
     private TimeSpan _lastSave;
 
@@ -56,6 +56,29 @@ public sealed partial class PhotoAlbumSystem : EntitySystem
             comp.Changed = true);
         SubscribeLocalEvent<PhotoAlbumOwnerComponent, EntRemovedFromContainerMessage>((_, comp, _) =>
             comp.Changed = true);
+        SubscribeLocalEvent<PhotoAlbumOwnerComponent, ComponentStartup>(OnOwnerStartup);
+    }
+
+    /// <summary>
+    /// Deletes a loaded album whose saved copy is already in the world, such as one taken out of a deposit box after
+    /// its character spawned with it.
+    /// </summary>
+    private void OnOwnerStartup(Entity<PhotoAlbumOwnerComponent> ent, ref ComponentStartup args)
+    {
+        var id = ent.Comp.AlbumId;
+        if (id.Length == 0)
+            return;
+
+        var query = EntityQueryEnumerator<PhotoAlbumOwnerComponent>();
+        while (query.MoveNext(out var uid, out var owner))
+        {
+            if (uid == ent.Owner || owner.AlbumId != id || TerminatingOrDeleted(uid))
+                continue;
+
+            Log.Warning($"Deleting {ToPrettyString(ent)}, a second copy of photo album {id}.");
+            QueueDel(ent);
+            return;
+        }
     }
 
     public override void Update(float frameTime)

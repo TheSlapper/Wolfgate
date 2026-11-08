@@ -30,7 +30,7 @@ public sealed partial class PhotoSystem : EntitySystem
     [Dependency] private TagSystem _tag = default!;
 
     private static readonly ProtoId<TagPrototype> WriteTag = "Write";
-    private static readonly EntProtoId PhotoPrototype = "Photo";
+    private static readonly EntProtoId PhotoPrototype = "WFPhoto";
     private static readonly SoundSpecifier WriteSound = new SoundCollectionSpecifier("PaperScribbles");
 
     public override void Initialize()
