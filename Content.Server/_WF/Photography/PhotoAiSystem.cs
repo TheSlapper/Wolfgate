@@ -17,11 +17,11 @@ public sealed partial class PhotoAiSystem : EntitySystem
     {
         base.Initialize();
 
-        SubscribeLocalEvent<StationAiHeldComponent, ComponentStartup>(OnHeldStartup);
+        SubscribeLocalEvent<StationAiHeldComponent, MapInitEvent>(OnHeldMapInit);
         SubscribeLocalEvent<StationAiHeldComponent, ComponentShutdown>(OnHeldShutdown);
     }
 
-    private void OnHeldStartup(Entity<StationAiHeldComponent> ent, ref ComponentStartup args)
+    private void OnHeldMapInit(Entity<StationAiHeldComponent> ent, ref MapInitEvent args)
     {
         if (!HasComp<PhotoCameraComponent>(ent))
         {

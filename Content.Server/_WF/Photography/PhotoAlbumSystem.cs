@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading.Tasks;
 using Content.Server._Mono.Persistence;
 using Content.Server.Database;
 using Content.Server.GameTicking;
@@ -37,13 +38,20 @@ public sealed partial class PhotoAlbumSystem : EntitySystem
     /// <summary>Spawned characters to give albums to next tick, once traits are in place.</summary>
     private readonly List<PlayerSpawnCompleteEvent> _queued = new();
 
+    /// <summary>Changed albums waiting to be saved, one per tick.</summary>
+    private readonly Queue<EntityUid> _saveQueue = new();
+    private readonly HashSet<EntityUid> _queuedSaves = new();
+
+    /// <summary>The last database write of each album, so its writes run one at a time and in order.</summary>
+    private readonly Dictionary<Guid, Task> _writes = new();
+
     public override void Initialize()
     {
         base.Initialize();
 
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(_queued.Add);
-        SubscribeLocalEvent<RoundEndedEvent>(_ => SaveChanged());
-        SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => SaveChanged());
+        SubscribeLocalEvent<RoundEndedEvent>(_ => QueueChanged());
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => SaveRemaining());
         SubscribeLocalEvent<PhotoAlbumOwnerComponent, EntInsertedIntoContainerMessage>((_, comp, _) =>
             comp.Changed = true);
         SubscribeLocalEvent<PhotoAlbumOwnerComponent, EntRemovedFromContainerMessage>((_, comp, _) =>
@@ -61,11 +69,13 @@ public sealed partial class PhotoAlbumSystem : EntitySystem
 
         _queued.Clear();
 
+        SaveNext();
+
         if (_timing.CurTime < _lastSave + TimeSpan.FromMinutes(_cfg.GetCVar(PhotoCVars.AlbumSaveMinutes)))
             return;
 
         _lastSave = _timing.CurTime;
-        SaveChanged();
+        QueueChanged();
     }
 
     /// <summary>Marks the album holding a photo as changed, after the photo was renamed or written on.</summary>
@@ -76,8 +86,36 @@ public sealed partial class PhotoAlbumSystem : EntitySystem
             owner.Changed = true;
     }
 
-    private void SaveChanged()
+    /// <summary>Queues every changed album that isn't queued yet.</summary>
+    private void QueueChanged()
     {
+        var query = EntityQueryEnumerator<PhotoAlbumOwnerComponent>();
+        while (query.MoveNext(out var uid, out var owner))
+        {
+            if (owner.Changed && _queuedSaves.Add(uid))
+                _saveQueue.Enqueue(uid);
+        }
+    }
+
+    /// <summary>Saves the next queued album that still exists and is still changed.</summary>
+    private void SaveNext()
+    {
+        while (_saveQueue.TryDequeue(out var uid))
+        {
+            _queuedSaves.Remove(uid);
+            if (!TryComp<PhotoAlbumOwnerComponent>(uid, out var owner) || !owner.Changed)
+                continue;
+
+            Save((uid, owner));
+            return;
+        }
+    }
+
+    /// <summary>Saves every changed album at once, before the round's entities are deleted.</summary>
+    private void SaveRemaining()
+    {
+        _saveQueue.Clear();
+        _queuedSaves.Clear();
         var query = EntityQueryEnumerator<PhotoAlbumOwnerComponent>();
         while (query.MoveNext(out var uid, out var owner))
         {
@@ -92,6 +130,7 @@ public sealed partial class PhotoAlbumSystem : EntitySystem
         if (!Guid.TryParse(album.Comp.AlbumId, out var albumId)
             || !_persistence.TrySerializeEntity(album, out var data))
         {
+            album.Comp.Changed = true;
             Log.Error($"Could not serialize photo album {ToPrettyString(album)}.");
             return;
         }
@@ -105,13 +144,30 @@ public sealed partial class PhotoAlbumSystem : EntitySystem
             UpdatedAt = DateTime.UtcNow,
         };
 
+        var write = Write(_writes.GetValueOrDefault(albumId), row);
+        _writes[albumId] = write;
+        if (!await write && !TerminatingOrDeleted(album))
+            album.Comp.Changed = true;
+
+        if (_writes.TryGetValue(albumId, out var last) && last == write)
+            _writes.Remove(albumId);
+    }
+
+    /// <summary>Writes an album once its earlier write has finished. Returns whether this write succeeded.</summary>
+    private async Task<bool> Write(Task? previous, WolfgatePhotoAlbum row)
+    {
+        if (previous != null)
+            await previous;
+
         try
         {
             await _db.SavePhotoAlbumAsync(row);
+            return true;
         }
         catch (Exception e)
         {
             Log.Error($"Saving photo album {row.AlbumId} threw: {e}");
+            return false;
         }
     }
 

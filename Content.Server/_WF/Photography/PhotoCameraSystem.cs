@@ -64,11 +64,9 @@ public sealed partial class PhotoCameraSystem : SharedPhotoCameraSystem
         ICommonSession Session,
         MapId Map,
         Vector2 Centre,
-        Angle Rotation,
         int Tiles,
-        bool[] Visible,
+        List<EntityUid> Seen,
         List<EntityUid> Ghosts,
-        HashSet<EntityUid> Hidden,
         TimeSpan Deadline);
 
     private readonly Dictionary<int, Pending> _pending = new();
@@ -201,6 +199,7 @@ public sealed partial class PhotoCameraSystem : SharedPhotoCameraSystem
             return false;
         }
 
+        var seen = new List<EntityUid>();
         var ghosts = new List<EntityUid>();
         var hidden = new HashSet<EntityUid>();
         foreach (var uid in InSquare(square, visible, targetCoords.MapId))
@@ -213,7 +212,10 @@ public sealed partial class PhotoCameraSystem : SharedPhotoCameraSystem
             else if (IsCloaked(uid))
             {
                 hidden.Add(uid);
+                continue;
             }
+
+            seen.Add(uid);
         }
 
         camera.NextShot = Timing.CurTime + camera.Cooldown;
@@ -229,8 +231,8 @@ public sealed partial class PhotoCameraSystem : SharedPhotoCameraSystem
 
         var id = ++_nextRequest;
         var deadline = Timing.CurTime + TimeSpan.FromSeconds(_cfg.GetCVar(PhotoCVars.CaptureTimeout));
-        _pending[id] = new Pending(ent, user, actor.PlayerSession, targetCoords.MapId, square.Centre, square.Rotation,
-            tiles, visible, ghosts, hidden, deadline);
+        _pending[id] = new Pending(ent, user, actor.PlayerSession, targetCoords.MapId, square.Centre, tiles, seen,
+            ghosts, deadline);
 
         RaiseNetworkEvent(new PhotoCaptureRequestEvent
         {
@@ -272,8 +274,7 @@ public sealed partial class PhotoCameraSystem : SharedPhotoCameraSystem
         var hash = Convert.ToHexString(SHA256.HashData(png));
         _store.Store(hash, png, size, size, args.SenderSession.UserId);
 
-        var square = new PhotoSquare(EntityUid.Invalid, pending.Centre, pending.Rotation, pending.Tiles);
-        var seen = InSquare(square, pending.Visible, pending.Map).Where(uid => !pending.Hidden.Contains(uid));
+        var seen = pending.Seen.Where(uid => !TerminatingOrDeleted(uid));
         var caption = _caption.Describe(seen, pending.Tiles, camera.SeeGhosts);
         var description = FormattedMessage.EscapeText(caption.Description);
 
@@ -366,8 +367,11 @@ public sealed partial class PhotoCameraSystem : SharedPhotoCameraSystem
     {
         foreach (var ghost in pending.Ghosts)
         {
-            if (!TerminatingOrDeleted(ghost))
-                _pvs.RemoveForceSend(ghost, pending.Session);
+            if (TerminatingOrDeleted(ghost)
+                || _pending.Values.Any(p => p.Session == pending.Session && p.Ghosts.Contains(ghost)))
+                continue;
+
+            _pvs.RemoveForceSend(ghost, pending.Session);
         }
     }
 

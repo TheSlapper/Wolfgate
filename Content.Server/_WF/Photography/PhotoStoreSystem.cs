@@ -185,15 +185,15 @@ public sealed partial class PhotoStoreSystem : EntitySystem
         if (msg.Hash is not { Length: 64 } hash)
             return;
 
+        // Over the limit the request goes unanswered, and the client asks again later.
+        if (!TakeDownload(session))
+            return;
+
         if (!IsShown(hash))
         {
             RaiseNetworkEvent(new PhotoImageEvent(hash, null), session);
             return;
         }
-
-        // Over the limit the request goes unanswered, and the client asks again later.
-        if (!TakeDownload(session))
-            return;
 
         var stored = await GetAsync(hash);
         if (session.Status == SessionStatus.Disconnected)
