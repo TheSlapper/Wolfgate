@@ -117,6 +117,9 @@ public sealed partial class SpeechVoiceSynth
 
         /// <summary>A consonant on its own with no vowel, such as a trailing hiss.</summary>
         public bool ConsonantOnly;
+
+        /// <summary>A consonant said alone inside a word, with no vowel of its own.</summary>
+        public bool Lone;
     }
 
     /// <summary>The quiet hum under a voiced stop's closure.</summary>
@@ -148,7 +151,6 @@ public sealed partial class SpeechVoiceSynth
     private static readonly Vector3 Oh = new(570, 840, 2410);
     private static readonly Vector3 Uu = new(440, 1020, 2240);
     private static readonly Vector3 Oo = new(335, 910, 2455);
-    private static readonly Vector3 WStart = new(300, 700, 2200);
 
     private static readonly Vector3 DefaultBandwidth = new(60, 90, 150);
 
@@ -200,6 +202,8 @@ public sealed partial class SpeechVoiceSynth
     private static readonly Consonant F = Hiss(SoundKind.Fricative, 400, 1200, 2400, false, FHiss, -20f, 0.02f);
     private static readonly Consonant V = Hiss(SoundKind.Fricative, 400, 1200, 2400, true, FHiss, -24f, 0.02f);
     private static readonly Consonant Th = Hiss(SoundKind.Fricative, 400, 1800, 2600, false, ThHiss, -23f, 0.02f);
+    private static readonly Consonant Sh = Hiss(SoundKind.Fricative, 300, 2000, 2700, false, ShHiss, -9f, 0.024f);
+    private static readonly Consonant Ch = Hiss(SoundKind.Affricate, 300, 2000, 2700, false, ShHiss, -9f, 0.045f);
     private static readonly Consonant H = new() { Kind = SoundKind.Aspirate, NoiseDb = -16f, Hold = 0.018f };
     private static readonly Consonant M = Voiced(SoundKind.Nasal, 280, 1000, 2300, 0.3f, 0.016f, 900f);
     private static readonly Consonant N = Voiced(SoundKind.Nasal, 280, 1780, 2600, 0.3f, 0.016f, 1700f);
@@ -210,52 +214,101 @@ public sealed partial class SpeechVoiceSynth
     private static readonly Consonant Y = Glide(260, 2490, 3100, new(40, 250, 500));
     private static readonly Consonant Silent = default;
 
-    /// <summary>The syllable for one lower-case letter, the same wherever it falls.</summary>
-    private static Blip Letter(char c, bool wordStart)
+    /// <summary>Single vowel letters as their short sounds. A y after a consonant counts as i.</summary>
+    private static readonly Dictionary<char, (Vector3 Start, Vector3 End)> Vowels = new()
     {
-        return c switch
-        {
-            'a' => Syllable(Silent, Ah),
-            'e' => Syllable(Silent, Eh),
-            'i' => Syllable(Silent, Ee),
-            'o' => Syllable(Silent, Oh),
-            'u' => Syllable(Silent, Oo),
-            'y' => wordStart ? Syllable(Y, Ee) : Syllable(Silent, Ih),
-            'b' => Syllable(B, Uh),
-            'p' => Syllable(P, Ah),
-            'd' => Syllable(D, Uh),
-            't' => Syllable(T, Ah),
-            'g' => Syllable(G, Ah),
-            'j' => Syllable(J, Uh),
-            's' => Syllable(S, Ah),
-            'z' => Syllable(Z, Uh),
-            'f' => Syllable(F, Ah),
-            'v' => Syllable(V, Uh),
-            'h' => Syllable(H, Ah),
-            'm' => Syllable(M, Ah),
-            'n' => Syllable(N, Ah),
-            'l' => Syllable(L, Ah),
-            'r' => Syllable(R, Ah),
-            'w' => Syllable(W, Ah),
-            'q' => Syllable(K, WStart, Ah),
-            'x' => Syllable(K, Ah, Ah, S),
-            _ => Syllable(K, Ah),
-        };
-    }
+        ['a'] = (Ah, Ah),
+        ['e'] = (Eh, Eh),
+        ['i'] = (Ih, Ih),
+        ['o'] = (Oh, Oh),
+        ['u'] = (Uh, Uh),
+        ['y'] = (Ih, Ih),
+    };
 
-    /// <summary>Each digit as one blip: its number word squeezed into a syllable.</summary>
-    private static readonly Blip[] Digits =
+    /// <summary>Vowel pairs that make one sound, some gliding from one vowel to another.</summary>
+    private static readonly Dictionary<string, (Vector3 Start, Vector3 End)> VowelPairs = new()
     {
-        Syllable(Z, Ee, Oh),
-        Syllable(W, Uh, Uh, N),
-        Syllable(T, Oo),
-        Syllable(Th, Ee),
-        Syllable(F, Oh, Oh, R),
-        Syllable(F, Ah, Ih, V),
-        Syllable(S, Ih, Ih, S),
-        Syllable(S, Eh, Eh, V),
-        Syllable(Silent, Eh, Ih, T),
-        Syllable(N, Ah, Ih, N),
+        ["ee"] = (Ee, Ee),
+        ["ea"] = (Ee, Ee),
+        ["ie"] = (Ee, Ee),
+        ["oo"] = (Oo, Oo),
+        ["ou"] = (Oo, Oo),
+        ["ai"] = (Eh, Ee),
+        ["ay"] = (Eh, Ee),
+        ["ei"] = (Eh, Ee),
+        ["oa"] = (Oh, Uu),
+        ["ow"] = (Oh, Uu),
+        ["au"] = (Oh, Oh),
+        ["aw"] = (Oh, Oh),
+    };
+
+    /// <summary>Consonant letters. c and x are handled where the next letter decides them.</summary>
+    private static readonly Dictionary<char, Consonant> Consonants = new()
+    {
+        ['b'] = B,
+        ['d'] = D,
+        ['f'] = F,
+        ['g'] = G,
+        ['h'] = H,
+        ['j'] = J,
+        ['k'] = K,
+        ['l'] = L,
+        ['m'] = M,
+        ['n'] = N,
+        ['p'] = P,
+        ['q'] = K,
+        ['r'] = R,
+        ['s'] = S,
+        ['t'] = T,
+        ['v'] = V,
+        ['w'] = W,
+        ['y'] = Y,
+        ['z'] = Z,
+    };
+
+    /// <summary>Consonant pairs that make one sound.</summary>
+    private static readonly Dictionary<string, Consonant> ConsonantPairs = new()
+    {
+        ["sh"] = Sh,
+        ["ch"] = Ch,
+        ["th"] = Th,
+        ["ck"] = K,
+        ["wh"] = W,
+    };
+
+    /// <summary>Number words as syllables, so numbers are said in full.</summary>
+    private static readonly Dictionary<string, Blip[]> NumberWords = new()
+    {
+        ["zero"] = new[] { Syllable(Z, Ee), Syllable(R, Oh, Uu) },
+        ["one"] = new[] { Syllable(W, Uh, Uh, N) },
+        ["two"] = new[] { Syllable(T, Oo) },
+        ["three"] = new[] { Syllable(Th, Ee) },
+        ["four"] = new[] { Syllable(F, Oh, Oh, R) },
+        ["five"] = new[] { Syllable(F, Ah, Ih, V) },
+        ["six"] = new[] { Syllable(S, Ih, Ih, S) },
+        ["seven"] = new[] { Syllable(S, Eh, Eh, V), Syllable(Silent, Uh, Uh, N) },
+        ["eight"] = new[] { Syllable(Silent, Eh, Ih, T) },
+        ["nine"] = new[] { Syllable(N, Ah, Ih, N) },
+        ["ten"] = new[] { Syllable(T, Eh, Eh, N) },
+        ["eleven"] = new[] { Syllable(Silent, Ih), Syllable(L, Eh, Eh, V), Syllable(Silent, Uh, Uh, N) },
+        ["twelve"] = new[] { Syllable(T, Eh, Eh, L) },
+        ["thirteen"] = new[] { Syllable(Th, Uh, Uh, R), Syllable(T, Ee, Ee, N) },
+        ["fourteen"] = new[] { Syllable(F, Oh, Oh, R), Syllable(T, Ee, Ee, N) },
+        ["fifteen"] = new[] { Syllable(F, Ih, Ih, F), Syllable(T, Ee, Ee, N) },
+        ["sixteen"] = new[] { Syllable(S, Ih, Ih, S), Syllable(T, Ee, Ee, N) },
+        ["seventeen"] = new[] { Syllable(S, Eh, Eh, V), Syllable(Silent, Uh, Uh, N), Syllable(T, Ee, Ee, N) },
+        ["eighteen"] = new[] { Syllable(Silent, Eh, Ih), Syllable(T, Ee, Ee, N) },
+        ["nineteen"] = new[] { Syllable(N, Ah, Ih, N), Syllable(T, Ee, Ee, N) },
+        ["twenty"] = new[] { Syllable(T, Eh, Eh, N), Syllable(T, Ee) },
+        ["thirty"] = new[] { Syllable(Th, Uh, Uh, R), Syllable(T, Ee) },
+        ["forty"] = new[] { Syllable(F, Oh, Oh, R), Syllable(T, Ee) },
+        ["fifty"] = new[] { Syllable(F, Ih, Ih, F), Syllable(T, Ee) },
+        ["sixty"] = new[] { Syllable(S, Ih, Ih, S), Syllable(T, Ee) },
+        ["seventy"] = new[] { Syllable(S, Eh, Eh, V), Syllable(Silent, Uh, Uh, N), Syllable(T, Ee) },
+        ["eighty"] = new[] { Syllable(Silent, Eh, Ih), Syllable(T, Ee) },
+        ["ninety"] = new[] { Syllable(N, Ah, Ih, N), Syllable(T, Ee) },
+        ["hundred"] = new[] { Syllable(H, Uh, Uh, N), Syllable(D, Uh, Uh, D) },
+        ["thousand"] = new[] { Syllable(Th, Ah, Uu), Syllable(Z, Uh, Uh, N) },
     };
 
     private static Consonant Stop(float f2,
@@ -350,10 +403,22 @@ public sealed partial class SpeechVoiceSynth
     /// <summary>The closure before an affricate's hiss.</summary>
     private const float AffricateClosure = 0.008f;
 
-    /// <summary>How much a consonant shrinks to fit a letter too short for its own length.</summary>
-    private static float Fit(in Consonant c, float slot, float stretch)
+    /// <summary>Most of a lone consonant's slot the consonant may take.</summary>
+    private const float LoneConsonantShare = 0.7f;
+
+    /// <summary>Length of a syllable's closing consonant, in seconds.</summary>
+    private const float CodaSeconds = 0.02f;
+
+    /// <summary>The seconds a blip's onset consonant may fill. A syllable's slot already holds it in full.</summary>
+    private static float ConsonantRoom(in Blip blip, float slotSeconds)
     {
-        var natural = c.Kind switch
+        return blip.Lone ? LoneConsonantShare * slotSeconds : slotSeconds;
+    }
+
+    /// <summary>A consonant's own length, in seconds, before any squeeze.</summary>
+    private static float NaturalSeconds(in Consonant c, float stretch)
+    {
+        return c.Kind switch
         {
             SoundKind.Plosive => c.Hold + c.Burst + c.Aspiration,
             SoundKind.Affricate => AffricateClosure + c.Hold,
@@ -361,14 +426,28 @@ public sealed partial class SpeechVoiceSynth
             SoundKind.Liquid => c.Hold + GlideSeconds,
             _ => c.Hold,
         };
+    }
 
-        return natural > 0f ? MathF.Min(1f, 0.7f * slot / natural) : 1f;
+    /// <summary>A syllable's onset time before its vowel sounds in full, the voice's return included.</summary>
+    private static float OnsetSeconds(in Consonant c, float stretch)
+    {
+        var back = c.Kind is SoundKind.Plosive or SoundKind.Affricate
+            ? c.Voiced ? VoicedReturn : VoicelessReturn
+            : 0f;
+        return NaturalSeconds(c, stretch) + back;
+    }
+
+    /// <summary>How much a consonant shrinks to fit room shorter than its own length.</summary>
+    private static float Fit(in Consonant c, float room, float stretch)
+    {
+        var natural = NaturalSeconds(c, stretch);
+        return natural > 0f ? MathF.Min(1f, room / natural) : 1f;
     }
 
     /// <summary>How long a letter's consonant holds before its vowel, in seconds.</summary>
-    private static float ConsonantSeconds(in Consonant sound, float slot, float stretch)
+    private static float ConsonantSeconds(in Consonant sound, float room, float stretch)
     {
-        var fit = Fit(sound, slot, stretch);
+        var fit = Fit(sound, room, stretch);
         return sound.Kind switch
         {
             SoundKind.Affricate => (AffricateClosure + sound.Hold) * fit,
@@ -379,15 +458,15 @@ public sealed partial class SpeechVoiceSynth
     }
 
     /// <summary>A letter's onset consonant at <paramref name="s"/> seconds into the letter.</summary>
-    private static Moment OnsetAt(in Consonant c, float s, float slot, float stretch)
+    private static Moment OnsetAt(in Consonant c, float s, float room, float stretch)
     {
-        var end = ConsonantSeconds(c, slot, stretch);
+        var end = ConsonantSeconds(c, room, stretch);
         switch (c.Kind)
         {
             case SoundKind.Plosive:
             case SoundKind.Affricate:
             {
-                var fit = Fit(c, slot, stretch);
+                var fit = Fit(c, room, stretch);
                 var release = (c.Kind == SoundKind.Affricate ? AffricateClosure : c.Hold) * fit;
                 if (s < release)
                     return new Moment { Voice = c.Voiced ? VoiceBar : 0f, AtLocus = true, Stopped = true };

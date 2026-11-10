@@ -71,6 +71,9 @@ public sealed partial class SpeechVoiceSynth
 
         /// <summary>A question's rise, reached by the end of its last letter.</summary>
         public float Rise;
+
+        /// <summary>Where in the slot the vowel sounds in full and the rise starts, from 0 to 1.</summary>
+        public float RiseFrom;
     }
 
     private const float MouthGlide = 0.012f;
@@ -191,7 +194,7 @@ public sealed partial class SpeechVoiceSynth
                     sound = blip.Onset;
                     moment = blip.ConsonantOnly
                         ? default
-                        : OnsetAt(sound, seconds, slotSeconds, style.FricativeStretch);
+                        : OnsetAt(sound, seconds, ConsonantRoom(blip, slotSeconds), style.FricativeStretch);
                 }
 
                 Vector3 mouthTarget;
@@ -227,7 +230,7 @@ public sealed partial class SpeechVoiceSynth
 
                 var sinceVowel = MathF.Max(0f, t - plan.OnsetEnd) * slotSeconds;
                 var f0 = plan.F0 * shape.F0 * (1f + plan.Bump * MathF.Exp(-sinceVowel / 0.03f))
-                         * (1f + (plan.Rise - 1f) * t);
+                         * (1f + (plan.Rise - 1f) * Ramp(t - plan.RiseFrom, 1f - plan.RiseFrom));
                 SetMouth(frame, mouth, bandwidth, formantScale, style.Bandwidth, f0, openB1);
                 frame[(int) Track.F0] = f0;
                 frame[(int) Track.Gain] = plan.Gain;
@@ -340,8 +343,13 @@ public sealed partial class SpeechVoiceSynth
 
             var gain = blip.Gain;
             var lastLift = 1f;
+            var questionRise = 1f;
             if (blip.Last && blip.Ending == '?')
-                lastLift = 1.13f + 0.17f * MathF.Min(1f, intonation / FullIntonation);
+            {
+                var share = MathF.Min(1f, intonation / FullIntonation);
+                lastLift = 1.13f + 0.17f * share;
+                questionRise = 1.2f + 0.3f * share;
+            }
             if (blip.Last && blip.Ending == '!')
                 gain *= 1.25f;
 
@@ -352,19 +360,24 @@ public sealed partial class SpeechVoiceSynth
             var slotSeconds = (starts[b + 1] - starts[b]) / (float) SampleRate;
             var consonantEnd = blip.ConsonantOnly
                 ? 0.8f * slotSeconds
-                : ConsonantSeconds(blip.Onset, slotSeconds, style.FricativeStretch);
+                : blip.Lone
+                ? slotSeconds
+                : ConsonantSeconds(blip.Onset, ConsonantRoom(blip, slotSeconds), style.FricativeStretch);
             var hasCoda = blip.Coda.Kind != SoundKind.None;
 
             plans[b] = new Plan
             {
                 F0 = BaseF0 * pitch * tune,
-                Rise = melody.Snap ? 1f : lastLift,
+                Rise = melody.Snap ? 1f : questionRise,
+                RiseFrom = blip.Lone || blip.ConsonantOnly
+                    ? 0f
+                    : MathF.Min(0.8f, OnsetSeconds(blip.Onset, style.FricativeStretch) / slotSeconds),
                 Gain = gain,
                 Formants = 1f + 0.03f * _noise.Next(),
                 WobblePhase = MathF.Tau * (0.5f + 0.5f * _noise.Next()),
                 Bump = blip.Onset.Kind == SoundKind.None || melody.Snap ? 0f : blip.Onset.Voiced ? -0.03f : 0.05f,
                 OnsetEnd = consonantEnd / slotSeconds,
-                CodaStart = hasCoda ? 1f - MathF.Min(0.4f, 0.02f / slotSeconds) : 1f,
+                CodaStart = hasCoda ? 1f - MathF.Min(0.4f, CodaSeconds / slotSeconds) : 1f,
                 Rd = style.Rd * (blip.Shout ? 0.7f : 1f),
                 NewWord = b == 0 || blips[b - 1].Gap,
             };

@@ -141,8 +141,13 @@ public sealed partial class SpeechVoiceSynth
         var starts = new int[blips.Count + 1];
         for (var i = 0; i < blips.Count; i++)
         {
-            var slots = blips[i].Gap ? blips[i].Length * style.GapScale : blips[i].Length;
-            starts[i + 1] = starts[i] + (int) (slot * slots);
+            var blip = blips[i];
+            var slots = blip.Gap ? blip.Length * style.GapScale : blip.Length;
+            var consonants = blip.Gap || blip.Lone || blip.ConsonantOnly
+                ? 0f
+                : OnsetSeconds(blip.Onset, style.FricativeStretch)
+                  + (blip.Coda.Kind != SoundKind.None ? CodaSeconds : 0f);
+            starts[i + 1] = starts[i] + (int) (slot * slots + consonants * SampleRate);
         }
 
         var tail = radio ? 0 : (int) (RoomTail * SampleRate);

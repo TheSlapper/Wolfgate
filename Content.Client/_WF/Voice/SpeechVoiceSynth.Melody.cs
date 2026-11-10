@@ -122,7 +122,7 @@ public sealed partial class SpeechVoiceSynth
                 {
                     blip.Length *= 0.7f;
                     blip.Gain *= 0.8f;
-                    if (!blip.ConsonantOnly)
+                    if (!blip.ConsonantOnly && !blip.Lone && blip.VowelStart == blip.VowelEnd)
                     {
                         blip.VowelStart = Vector3.Lerp(blip.VowelStart, Uh, 0.6f);
                         blip.VowelEnd = Vector3.Lerp(blip.VowelEnd, Uh, 0.6f);
