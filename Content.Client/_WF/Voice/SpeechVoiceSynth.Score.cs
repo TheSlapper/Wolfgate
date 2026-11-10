@@ -69,13 +69,10 @@ public sealed partial class SpeechVoiceSynth
         public float Rd;
         public bool NewWord;
 
-        /// <summary>A question's rise, reached by the end of its last letter rather than stepped to at its start.</summary>
+        /// <summary>A question's rise, reached by the end of its last letter.</summary>
         public float Rise;
     }
 
-    // Time constants of the glides between frames, in seconds. The mouth moves over about 12 ms, which carries b, d
-    // and g (Delattre 1955) and opens a glide in time. Pitch moves over 20 ms, near the fastest a person can change
-    // note (Xu and Sun 2002). Noise loudness moves fastest so a burst keeps its shape.
     private const float MouthGlide = 0.012f;
     private const float VoiceGlide = 0.005f;
 
@@ -88,7 +85,7 @@ public sealed partial class SpeechVoiceSynth
     private const float PitchGlide = 0.02f;
     private const float GainGlide = 0.008f;
 
-    /// <summary>A word fades in and out over these, on a smooth curve, so silence never meets sound at a step.</summary>
+    /// <summary>A word fades in and out over these on a smooth curve.</summary>
     private const float WordAttack = 0.008f;
     private const float WordRelease = 0.012f;
 
@@ -156,7 +153,6 @@ public sealed partial class SpeechVoiceSynth
                 b++;
             }
 
-            // A gap, or the tail after the last letter: silent, with the mouth and pitch already moving to the next word.
             var silent = b >= blips.Count || blips[b].Gap;
             var target = b;
             if (silent)
@@ -177,7 +173,8 @@ public sealed partial class SpeechVoiceSynth
                 var t = at / (float) slotLength;
                 var seconds = at / (float) SampleRate;
                 var slotSeconds = slotLength / (float) SampleRate;
-                var wordT = Math.Clamp((i - wordFrom[blip.Word]) / MathF.Max(1f, wordTo[blip.Word] - wordFrom[blip.Word]),
+                var wordT = Math.Clamp(
+                    (i - wordFrom[blip.Word]) / MathF.Max(1f, wordTo[blip.Word] - wordFrom[blip.Word]),
                     0f, 1f);
 
                 Moment moment;
@@ -192,7 +189,9 @@ public sealed partial class SpeechVoiceSynth
                 else
                 {
                     sound = blip.Onset;
-                    moment = blip.ConsonantOnly ? default : OnsetAt(sound, seconds, slotSeconds, style.FricativeStretch);
+                    moment = blip.ConsonantOnly
+                        ? default
+                        : OnsetAt(sound, seconds, slotSeconds, style.FricativeStretch);
                 }
 
                 Vector3 mouthTarget;
@@ -205,19 +204,20 @@ public sealed partial class SpeechVoiceSynth
                 }
                 else
                 {
-                    var vowelT = Math.Clamp((t - plan.OnsetEnd) / MathF.Max(1e-3f, plan.CodaStart - plan.OnsetEnd), 0f, 1f);
+                    var vowelT = Math.Clamp(
+                        (t - plan.OnsetEnd) / MathF.Max(1e-3f, plan.CodaStart - plan.OnsetEnd), 0f, 1f);
                     mouthTarget = Vector3.Lerp(Vector3.Lerp(blip.VowelStart, blip.VowelEnd, vowelT), style.VowelTarget,
                         style.VowelPull);
                 }
 
-                // An open glottis widens F1: about 300 Hz through an h (Klatt 1980).
                 var openB1 = sound.Kind == SoundKind.Aspirate ? 300f * moment.Breath : 0f;
 
                 var shape = ShapeFor(type, t, wordT);
                 var mouth = Vector3.Lerp(mouthTarget, shape.Formants, shape.Pull) * (formantScale * plan.Formants);
                 if (style.Wobble > 0f)
                 {
-                    var ripple = 1f + 0.12f * style.Wobble * MathF.Sin(MathF.Tau * 9f * i / SampleRate + plan.WobblePhase);
+                    var ripple = 1f + 0.12f * style.Wobble
+                        * MathF.Sin(MathF.Tau * 9f * i / SampleRate + plan.WobblePhase);
                     mouth.X *= ripple;
                     mouth.Y *= 2f - ripple;
                 }
@@ -232,7 +232,6 @@ public sealed partial class SpeechVoiceSynth
                 frame[(int) Track.F0] = f0;
                 frame[(int) Track.Gain] = plan.Gain;
 
-                // The folds tense as the pitch rises, so a lifted note keeps its upper harmonics.
                 frame[(int) Track.Rd] = plan.Rd * MathF.Sqrt(baseF0 / MathF.Max(f0, 1f));
 
                 if (sound.NoiseDb != 0f && sound.Kind != SoundKind.Aspirate)
@@ -249,7 +248,6 @@ public sealed partial class SpeechVoiceSynth
                 }
                 else
                 {
-                    // Letters inside a word keep the voice up as one stream, except where a stop has to go quiet.
                     var streamed = (!plan.NewWord || inCoda) && !moment.Stopped;
                     var voicing = streamed ? MathF.Max(moment.Voice, StreamFloor) : moment.Voice;
                     var rise = Ramp(i - wordFrom[blip.Word], attack);
@@ -261,7 +259,6 @@ public sealed partial class SpeechVoiceSynth
 
                     if (blip.ConsonantOnly)
                     {
-                        // A hissing voice's sentence-end hiss, faded in and out over a third each way.
                         frame[(int) Track.Hiss] = TailHissLevel * plan.Gain * Ramp(t, 0.33f) * Ramp(1f - t, 0.33f);
                     }
                     else
@@ -336,7 +333,6 @@ public sealed partial class SpeechVoiceSynth
             if (blip.Gap)
                 continue;
 
-            // Each letter gets its own note, kept a step away from the last one.
             var note = 1f + spread * _noise.Next();
             if (MathF.Abs(note - letterPitch) < step)
                 note = letterPitch + (note >= letterPitch ? step : -step);
@@ -349,7 +345,6 @@ public sealed partial class SpeechVoiceSynth
             if (blip.Last && blip.Ending == '!')
                 gain *= 1.25f;
 
-            // A sung note snaps to the scale with its rise included. Spoken, the rise glides up through the letter.
             var tune = letterPitch * Contour(blip, intonation) * blip.Lift * (melody.Snap ? lastLift : 1f);
             if (melody.Snap)
                 tune = SnapToScale(tune);
@@ -367,7 +362,6 @@ public sealed partial class SpeechVoiceSynth
                 Gain = gain,
                 Formants = 1f + 0.03f * _noise.Next(),
                 WobblePhase = MathF.Tau * (0.5f + 0.5f * _noise.Next()),
-                // Micro-prosody: pitch starts a little high after a voiceless consonant, a little low after a voiced one.
                 Bump = blip.Onset.Kind == SoundKind.None || melody.Snap ? 0f : blip.Onset.Voiced ? -0.03f : 0.05f,
                 OnsetEnd = consonantEnd / slotSeconds,
                 CodaStart = hasCoda ? 1f - MathF.Min(0.4f, 0.02f / slotSeconds) : 1f,
@@ -380,8 +374,6 @@ public sealed partial class SpeechVoiceSynth
     }
 
     /// <summary>Writes the four formants and their bandwidths for this mouth shape at this pitch.</summary>
-    // F1 never sits under the pitch, which is what singers do as the voice rises (Joliveau, Smith and Wolfe 2004),
-    // and bandwidths widen with the pitch of the moment (Hawks and Miller 1995).
     private static void SetMouth(float[] frame,
         Vector3 mouth,
         Vector3 bandwidth,
@@ -418,7 +410,7 @@ public sealed partial class SpeechVoiceSynth
         frame[(int) Track.NoiseFlat] = sound.NoiseFlat;
     }
 
-    /// <summary>Runs a one-pole glide along a track, so each frame eases toward its target instead of stepping.</summary>
+    /// <summary>Runs a one-pole glide along a track, easing each frame toward its target.</summary>
     private static void Glide(float[] track, float seconds)
     {
         Glide(track, seconds, seconds);

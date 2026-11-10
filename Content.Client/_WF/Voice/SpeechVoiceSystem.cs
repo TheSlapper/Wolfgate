@@ -72,7 +72,10 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
         SubscribeLocalEvent<SpeechVoiceComponent, ComponentShutdown>(OnComponentShutdown);
 
         Subs.CVar(_cfg, SpeechVoiceCVars.Enabled, value => _enabled = value, true);
-        Subs.CVar(_cfg, SpeechVoiceCVars.Volume, value => _volume = Math.Clamp(value, 0f, SpeechVoiceCVars.MaxVolume), true);
+        Subs.CVar(_cfg,
+            SpeechVoiceCVars.Volume,
+            value => _volume = Math.Clamp(value, 0f, SpeechVoiceCVars.MaxVolume),
+            true);
     }
 
     public override void Shutdown()
@@ -101,7 +104,6 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
             _rendering.RemoveAt(i);
             if (render.IsCompletedSuccessfully && (source == null || Exists(source)))
             {
-                // The task has finished, so Result returns at once.
 #pragma warning disable RA0004
                 Play(buffers.Pcm.AsSpan(0, render.Result), source, whisper, radio);
 #pragma warning restore RA0004
@@ -218,13 +220,11 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
 
     private void Queue(string text, SpeechVoice voice, EntityUid? source, bool whisper, bool radio)
     {
-        // Turned all the way down, so don't spend the render.
         if (_volume <= 0f || !CanQueue(source, radio))
             return;
 
         var buffers = _freeBuffers.Count > 0 ? _freeBuffers.Pop() : new SpeechVoiceBuffers();
 
-        // Caught inside the task, since a faulted task's exception type is not allowed by the sandbox.
         var render = Task.Run(() =>
         {
             try
@@ -269,7 +269,6 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
         if (radio && radioLines >= MaxRadio)
             return false;
 
-        // A line in the ear doesn't say who is talking, so only the radio limit applies to it.
         return source == null && radio || sameSource < MaxPerSource;
     }
 

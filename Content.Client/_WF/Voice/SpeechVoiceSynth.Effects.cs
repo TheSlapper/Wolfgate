@@ -113,7 +113,6 @@ public sealed partial class SpeechVoiceSynth
 
             x = MathF.Tanh(RadioDrive * x) * clip;
 
-            // The hiss follows the speech, so it can't sit in the gaps between words as static.
             hissGate = MathF.Max(MathF.Abs(x), hissGate * (1f - hissRelease));
             buffer[i] = x + 0.015f * MathF.Min(1f, 4f * hissGate) * _noise.Next();
         }

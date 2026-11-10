@@ -2,7 +2,6 @@ namespace Content.Client._WF.Voice;
 
 public sealed partial class SpeechVoiceSynth
 {
-    // Pauses, in letter slots, about 230 ms at a comma and 460 ms at a full stop for most voices.
     private const float WordGap = 1f;
     private const float CommaGap = 4f;
     private const float SentenceGap = 8f;
@@ -43,7 +42,6 @@ public sealed partial class SpeechVoiceSynth
             blips.Add(blip);
         }
 
-        // A word of two or more letters, all capitals, is shouted.
         void EndWord()
         {
             if (wordStart < 0)

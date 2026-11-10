@@ -104,7 +104,9 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
 
     private void OnSpoke(Entity<SpeechVoiceComponent> ent, ref EntitySpokeEvent args)
     {
-        if (!ent.Comp.Voice.Enabled || string.IsNullOrWhiteSpace(args.Message) || !args.Language.SpeechOverride.RequireSpeech)
+        if (!ent.Comp.Voice.Enabled
+            || string.IsNullOrWhiteSpace(args.Message)
+            || !args.Language.SpeechOverride.RequireSpeech)
             return;
 
         var line = LineFor((ent, FormattedMessage.EscapeText(args.Message)));
@@ -127,7 +129,6 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
             string text;
             if (!args.IsWhisper || InClearRange(session, ent))
             {
-                // Only clear listeners count as served, so a muffled one can still get the line by radio.
                 line.Served.Add(session);
                 text = understands ? args.Message : scrambled!;
             }
@@ -154,7 +155,6 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
         if (!TryComp<SpeechVoiceComponent>(args.MessageSource, out var talker) || !talker.Voice.Enabled)
             return;
 
-        // The same loudspeakers RadioDeviceSystem keeps quiet.
         if (_speakerQuery.TryComp(ent, out var speaker)
             && (ent.Owner == args.RadioSource || speaker.PowerRequired && !_power.IsPowered(ent.Owner)))
         {
@@ -184,7 +184,6 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
 
         foreach (var receiver in radio.Receivers)
         {
-            // Ghosts hear every channel, which would fill their voice cap. They still get the text.
             if (_ghostQuery.HasComp(receiver))
                 continue;
 
@@ -302,7 +301,6 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
         var query = EntityQueryEnumerator<SpeechVoiceComponent, MetaDataComponent>();
         while (query.MoveNext(out var uid, out var other, out var meta))
         {
-            // The lowest uid wins, so two characters with the same name always give the same answer.
             if (uid != speaker && meta.EntityName == ev.VoiceName && (match is not { } best || uid.Id < best.Id))
             {
                 match = uid;

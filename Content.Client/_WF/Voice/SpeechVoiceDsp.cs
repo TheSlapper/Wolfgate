@@ -34,11 +34,7 @@ internal struct NoiseBand
     }
 }
 
-/// <summary>
-/// Two-pole state-variable filter in Simper's trapezoidal form. It stays stable when retuned every few samples and
-/// keeps its state across retunes, so one filter can follow a sound across a whole line. <see cref="Low"/> has unity
-/// gain at 0 Hz and a peak of F/B at the centre, the shape of a Klatt formant resonator. <see cref="Band"/> peaks at 1.
-/// </summary>
+/// <summary>Two-pole state-variable filter that stays stable and keeps its state when retuned mid-line.</summary>
 internal struct Svf
 {
     private float _k;
@@ -98,17 +94,14 @@ internal struct NoiseSource
         return _state / (float) uint.MaxValue * 2f - 1f;
     }
 
-    /// <summary>Near-Gaussian noise with unit variance, the sum of four uniform values, with no offset on average.</summary>
+    /// <summary>Near-Gaussian noise with unit variance and no offset, the sum of four uniform values.</summary>
     public float Gaussian()
     {
         return 0.866f * (Next() + Next() + Next() + Next());
     }
 }
 
-/// <summary>
-/// One period of the LF glottal flow derivative from a single Rd value (Fant 1995), built the way Pink Trombone
-/// does. Low Rd is pressed and bright, high Rd soft and breathy. The pulse is scaled to unit RMS over a period.
-/// </summary>
+/// <summary>One period of the glottal pulse, shaped by Rd from pressed and bright to soft and breathy.</summary>
 internal struct Glottis
 {
     private float _te;

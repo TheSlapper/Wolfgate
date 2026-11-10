@@ -243,8 +243,6 @@ public sealed partial class SpeechVoiceSynth
                     style.Effect = VoiceEffect.Insect;
                     style.Bandwidth = 0.6f;
                     break;
-                // Measured from the moth emotes: a buzz near 450 to 650 Hz heard mostly in its upper harmonics,
-                // a rattle about 26 times a second and a pitch that falls through each call.
                 case SpeechVoiceType.Lepidopteran:
                     style.F0Scale = 2.1f;
                     style.FormantScale = 1.25f;

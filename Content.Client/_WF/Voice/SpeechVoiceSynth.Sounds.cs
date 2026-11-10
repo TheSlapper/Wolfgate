@@ -125,24 +125,21 @@ public sealed partial class SpeechVoiceSynth
     /// <summary>The lowest the voice dips at a consonant inside a word, so a word sounds as one stream.</summary>
     private const float StreamFloor = 0.8f;
 
-    // How long the voice takes to come back after a stop: slow after the breath of p, t and k, quick after b, d and g
-    // (Klatt's KA and TA tracks bring it in over about 25 ms).
     private const float VoicelessReturn = 0.015f;
     private const float VoicedReturn = 0.006f;
 
     /// <summary>How long a burst takes to reach full loudness, in seconds.</summary>
     private const float BurstRise = 0.0025f;
 
-    /// <summary>The shortest fade a hiss or breath gets at its end, in seconds, so the noise never stops with a step.</summary>
+    /// <summary>The shortest fade a hiss or breath gets at its end, in seconds.</summary>
     private const float NoiseFall = 0.006f;
 
     /// <summary>How long a glide (y, w, l, r) takes to open into its vowel, in seconds.</summary>
     private const float GlideSeconds = 0.022f;
 
-    /// <summary>Voice loudness of a glide against the vowel, 10 dB down (Klatt 1980, Holmes 1964).</summary>
+    /// <summary>Voice loudness of a glide against the vowel, 10 dB down.</summary>
     private const float GlideLevel = 0.32f;
 
-    // Vowel formants in Hz, F1 to F3, from Peterson and Barney 1952.
     private static readonly Vector3 Ee = new(290, 2540, 3160);
     private static readonly Vector3 Ih = new(410, 2230, 2810);
     private static readonly Vector3 Eh = new(570, 2090, 2730);
@@ -153,7 +150,6 @@ public sealed partial class SpeechVoiceSynth
     private static readonly Vector3 Oo = new(335, 910, 2455);
     private static readonly Vector3 WStart = new(300, 700, 2200);
 
-    // Bandwidths for the same vowels from Klatt 1980 Table II, which keeps front vowels wide so no one harmonic rings.
     private static readonly Vector3 DefaultBandwidth = new(60, 90, 150);
 
     private static Vector3 BandwidthOf(Vector3 vowel)
@@ -177,8 +173,6 @@ public sealed partial class SpeechVoiceSynth
         return DefaultBandwidth;
     }
 
-    // Burst and hiss colours. Lip bursts are low and flat, tongue-tip bursts high, back-of-tongue bursts one compact
-    // peak (Stevens and Blumstein 1978). s peaks near 6.8 kHz, sh near 3.8 kHz (Jongman et al. 2000).
     private static readonly (Vector3 F, Vector3 B, Vector3 Shape, float Flat) LipBurst =
         (new(800, 1800, 3200), new(800, 1200, 2000), new(1f, 0.35f, 0.15f), 0.5f);
     private static readonly (Vector3 F, Vector3 B, Vector3 Shape, float Flat) TipBurst =
@@ -194,10 +188,6 @@ public sealed partial class SpeechVoiceSynth
     private static readonly (Vector3 F, Vector3 B, Vector3 Shape, float Flat) ThHiss =
         (new(8000, 5000, 3000), new(4000, 3000, 2000), new(0.8f, 0.3f, 0.1f), 0.7f);
 
-    // Mouth shapes from Klatt 1980 and the Holmes et al. 1964 tables. Stops follow Klatt's PA, TA, KA and BA tracks:
-    // a silent closure, a burst of 8 to 20 ms (k the longest and the most compact), then for p, t and k breath with
-    // the voice still off. Lip bursts are the weakest (Narayan 2023). Fricatives sit 7 to 14 dB under the vowel with
-    // sibilants 10 to 15 dB over f and th (Jongman et al. 2000).
     private static readonly Consonant B = Stop(800, 2300, true, LipBurst, -15f, 0.008f, 0f);
     private static readonly Consonant P = Stop(800, 2300, false, LipBurst, -12f, 0.012f, 0.012f);
     private static readonly Consonant D = Stop(1800, 2700, true, TipBurst, -13f, 0.008f, 0f);
@@ -214,18 +204,13 @@ public sealed partial class SpeechVoiceSynth
     private static readonly Consonant M = Voiced(SoundKind.Nasal, 280, 1000, 2300, 0.3f, 0.016f, 900f);
     private static readonly Consonant N = Voiced(SoundKind.Nasal, 280, 1780, 2600, 0.3f, 0.016f, 1700f);
 
-    // Glides hold their shape briefly, then open into the vowel over GlideSeconds (Klatt 1980 rows, with y's F2 and F3
-    // set just under this module's "ee" since a real y barely moves them, and Klatt's wide y bandwidths).
     private static readonly Consonant L = Glide(310, 1050, 2880, new(50, 100, 280));
     private static readonly Consonant R = Glide(310, 1060, 1380, new(70, 100, 120));
     private static readonly Consonant W = Glide(290, 610, 2150, new(50, 80, 100));
     private static readonly Consonant Y = Glide(260, 2490, 3100, new(40, 250, 500));
     private static readonly Consonant Silent = default;
 
-    /// <summary>
-    /// The syllable for one lower-case letter, the same wherever it falls. Consonants carry "ah" or "uh", the vowels
-    /// that make them clearest on their own (Miller and Nicely 1955). A y opening a word is "yee".
-    /// </summary>
+    /// <summary>The syllable for one lower-case letter, the same wherever it falls.</summary>
     private static Blip Letter(char c, bool wordStart)
     {
         return c switch
@@ -365,10 +350,7 @@ public sealed partial class SpeechVoiceSynth
     /// <summary>The closure before an affricate's hiss.</summary>
     private const float AffricateClosure = 0.008f;
 
-    /// <summary>
-    /// How much a consonant shrinks to fit its letter. Consonants keep their own length in milliseconds, so they
-    /// sound the same in a short letter as in a long one. Only when the letter is too short do they take 70% of it.
-    /// </summary>
+    /// <summary>How much a consonant shrinks to fit a letter too short for its own length.</summary>
     private static float Fit(in Consonant c, float slot, float stretch)
     {
         var natural = c.Kind switch
@@ -397,10 +379,6 @@ public sealed partial class SpeechVoiceSynth
     }
 
     /// <summary>A letter's onset consonant at <paramref name="s"/> seconds into the letter.</summary>
-    // A stop is silent at its closure, then bursts, rising over BurstRise and fading over the rest of its length. After
-    // p, t and k the breath runs with the voice still off, then the voice fades back in. Hisses rise over a third of
-    // their length, since a fast rise turns s into ch (Howell and Rosen 1983), and every noise ends on a fade of at
-    // least NoiseFall, never a step.
     private static Moment OnsetAt(in Consonant c, float s, float slot, float stretch)
     {
         var end = ConsonantSeconds(c, slot, stretch);
@@ -424,7 +402,12 @@ public sealed partial class SpeechVoiceSynth
                     var affricateVoice = c.Voiced
                         ? c.Level + (1f - c.Level) * Ramp(since - hold, 0.005f)
                         : Ramp(since - hold + 0.003f, 0.005f);
-                    return new Moment { Voice = affricateVoice, Noise = MathF.Max(burst, hiss), AtLocus = since < hold };
+                    return new Moment
+                    {
+                        Voice = affricateVoice,
+                        Noise = MathF.Max(burst, hiss),
+                        AtLocus = since < hold,
+                    };
                 }
 
                 if (c.Voiced)
@@ -476,7 +459,7 @@ public sealed partial class SpeechVoiceSynth
         }
     }
 
-    /// <summary>A letter's coda consonant at <paramref name="s"/> seconds into a coda <paramref name="length"/> long.</summary>
+    /// <summary>A letter's coda consonant at a time into a coda of a given length.</summary>
     private static Moment CodaAt(in Consonant c, float s, float length)
     {
         switch (c.Kind)

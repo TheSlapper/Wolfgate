@@ -20,7 +20,7 @@ public sealed class SpeechVoiceSpokeEvent : EntityEventArgs
     /// <summary>A voice that replaces the speaker's own, such as the one a voice mask gives.</summary>
     public readonly SpeechVoice? Voice;
 
-    /// <summary>The speaker's message sound, for a listener with voices off. The client doesn't know it otherwise.</summary>
+    /// <summary>The speaker's message sound, for a listener with voices off.</summary>
     public readonly ProtoId<SpeechSoundsPrototype>? Sounds;
 
     public SpeechVoiceSpokeEvent(NetEntity source,

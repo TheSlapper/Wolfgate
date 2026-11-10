@@ -3,9 +3,6 @@ using Content.Shared._WF.Voice;
 namespace Content.Client._WF.Voice;
 
 /// <summary>Builds a line of babble from code alone, one short blip per letter.</summary>
-// One voice runs through the whole line: an LF glottal pulse and breath noise through a cascade of formant
-// resonators (Klatt 1980), with hisses and bursts as noise through their own resonances beside it. Letters only move
-// the targets the filters glide to, so nothing restarts between them.
 public sealed partial class SpeechVoiceSynth
 {
     /// <summary>Output samples per second.</summary>
@@ -42,12 +39,10 @@ public sealed partial class SpeechVoiceSynth
 
     private const int MaxPops = 4;
 
-    // Measured on the Human "ah" through the cascade: the pulse comes out at 1.65 times its own RMS, white noise at
-    // 1.48. VoiceLevel puts a full vowel at VowelRms, under the limiter's knee, and the hisses are set against that.
     private const float VoiceLevel = 0.12f;
     private const float VowelRms = 0.2f;
 
-    /// <summary>Scales breath noise into the mouth so, at the same loudness as the voice, it comes out as loud.</summary>
+    /// <summary>Scales breath noise into the mouth so it comes out as loud as the voice.</summary>
     private const float AspirationUnit = 1.11f;
 
     /// <summary>Loudness of a whispered voice's noise against the voice it replaces.</summary>
@@ -87,10 +82,7 @@ public sealed partial class SpeechVoiceSynth
     private NoiseSource _noise;
     private int _seed;
 
-    /// <summary>
-    /// Renders a message into <see cref="SpeechVoiceBuffers.Pcm"/>, capped at eight seconds, and returns how many
-    /// samples it wrote. Zero when it has no letters or digits.
-    /// </summary>
+    /// <summary>Renders a message into the buffers, up to eight seconds, and returns the samples written.</summary>
     /// <param name="radio">Plays it as heard through a radio, on top of the voice.</param>
     public int Render(string text, SpeechVoice voice, bool radio, SpeechVoiceBuffers buffers)
     {
@@ -104,7 +96,6 @@ public sealed partial class SpeechVoiceSynth
         if (blips.Count == 0)
             return 0;
 
-        // Seeded from the text, so every listener renders the same line the same way.
         _seed = (int) SpeechVoice.Hash(text);
         _noise = new NoiseSource(_seed);
         var style = Style.For(voice.Type);
@@ -159,8 +150,6 @@ public sealed partial class SpeechVoiceSynth
         var buffer = buffers.Samples.AsSpan(0, length);
         buffer.Clear();
 
-        // The mouth grows with the pitch about as a child's does against a man's (Peterson and Barney 1952), not
-        // one to one, and the Size slider scales it on its own.
         var pitch = voice.Pitch * style.F0Scale;
         var formantScale = BaseFormantScale * MathF.Min(1.5f, MathF.Pow(voice.Pitch, 0.4f)) * style.FormantScale
                            / voice.Size;
@@ -181,7 +170,6 @@ public sealed partial class SpeechVoiceSynth
             }
         }
 
-        // A line cut at the cap fades out over 20 ms rather than stopping with a click.
         if (starts[^1] > length)
         {
             var fade = Math.Min(length, SampleRate / 50);
@@ -209,7 +197,7 @@ public sealed partial class SpeechVoiceSynth
         return buffer.Length;
     }
 
-    /// <summary>Renders the line from its control tracks, one continuous voice from the first sample to the last.</summary>
+    /// <summary>Renders the line from its control tracks as one continuous voice.</summary>
     private void Speak(Span<float> buffer,
         List<Blip> blips,
         int[] starts,
@@ -225,7 +213,6 @@ public sealed partial class SpeechVoiceSynth
         var noiseOn = (parts & Parts.Noise) != 0;
         var intonation = style.Intonation * voice.Intonation * melody.Intonation;
 
-        // Separate noise for breath and hiss, so the two never cancel or add as one (d'Heureuse, KlattSyn).
         var breathNoise = new NoiseSource(_seed ^ 0x3C6EF372);
         var hissNoise = new NoiseSource(_seed ^ 0x1B873593);
 
@@ -259,7 +246,6 @@ public sealed partial class SpeechVoiceSynth
         var shake = 0f;
         var shakeStep = MathF.Tau * style.VibratoRate / SampleRate;
 
-        // A slow pitch and loudness swing, each cycle 0.33 to 0.47 s long.
         var swingPhase = 0f;
         var swingStep = MathF.Tau / (0.4f * SampleRate);
         var swingDepth = (0.03f + 0.08f * intonation) * melody.Swing;
@@ -284,7 +270,6 @@ public sealed partial class SpeechVoiceSynth
 
             if (i % Retune == 0)
             {
-                // F1 widens while the folds are open in each cycle (Klatt and Klatt 1990), which softens its ring.
                 cascade[0].Tune(frame[(int) Track.F1], frame[(int) Track.B1] + OpenWiden * formantScale * open,
                     SampleRate);
                 cascade[1].Tune(frame[(int) Track.F2], frame[(int) Track.B2], SampleRate);
@@ -305,7 +290,6 @@ public sealed partial class SpeechVoiceSynth
                 hissNorm = power > 0f ? 1f / MathF.Sqrt(power) : 0f;
             }
 
-            // Pitch: the track, a slow swing, vibrato, a growl's wobble and a trill on glides.
             shake += shakeStep;
             swingPhase += swingStep;
             if (swingPhase >= MathF.Tau)
@@ -348,12 +332,9 @@ public sealed partial class SpeechVoiceSynth
             tilted += (pulse - tilted) * tiltK;
             pulse += tiltMix * (tilted - pulse);
 
-            // Breath rides on the open phase of each glottal cycle (Klatt and Klatt 1990), and every noise dips in the
-            // second half of the period while the voice sounds (Klatt 1980), so it blends in rather than sitting on top.
             open = phase < glottis.Closing ? MathF.Sin(MathF.PI * phase / glottis.Closing) : 0f;
             var noiseMod = 1f - 0.5f * MathF.Min(1f, 2f * av) * (1f - MathF.Max(0f, MathF.Sin(MathF.Tau * phase)));
 
-            // More breath as the pitch rises, which keeps a high note from turning into a bare tone (Klatt 1980).
             var breathAmount = style.Breath * MathF.Min(3f, MathF.Pow(f0 / baseF0, 1.5f));
             if (style.BreathGust > 0f)
             {
@@ -377,7 +358,6 @@ public sealed partial class SpeechVoiceSynth
                 x = cascade[k].Low;
             }
 
-            // A nasal resonance, and the anti-resonance that tells m, n and ng apart. A closed mouth also hums dark.
             var nasal = frame[(int) Track.Nasal];
             var nasalMix = MathF.Max(nasal, styleNasal);
             if (nasalMix > 0.001f)
@@ -430,7 +410,6 @@ public sealed partial class SpeechVoiceSynth
             if (style.Growl > 0f)
                 sample *= 1f - 0.35f * style.Growl * (0.5f + 0.5f * growl);
 
-            // Runs across word gaps, so a short letter still gets whole purr cycles.
             if (style.Purr > 0f)
                 sample *= 1f - 0.3f * style.Purr * (0.5f + 0.5f * MathF.Sin(MathF.Tau * 25f * i / SampleRate));
 
@@ -467,7 +446,7 @@ public sealed partial class SpeechVoiceSynth
         }
     }
 
-    /// <summary>A small bubble pop: a damped sine that rises as it fades (van den Doel 2005).</summary>
+    /// <summary>A small bubble pop: a damped sine that rises as it fades.</summary>
     private struct Pop
     {
         public int Start;
@@ -513,7 +492,7 @@ public sealed partial class SpeechVoiceSynth
         return pops.ToArray();
     }
 
-    /// <summary>Takes any offset out of the line and rounds off peaks above the knee, so no edge reaches the output.</summary>
+    /// <summary>Takes any offset out of the line and rounds off peaks above the knee.</summary>
     private static void Settle(Span<float> buffer)
     {
         const float pole = 0.995f;
@@ -533,14 +512,13 @@ public sealed partial class SpeechVoiceSynth
         }
     }
 
-    /// <summary>Scales a peak-gain-1 band-pass of this bandwidth so white noise through it comes out at unit RMS.</summary>
+    /// <summary>Scales a band-pass of this bandwidth so white noise through it comes out at unit RMS.</summary>
     private static float BandUnit(float bandwidth)
     {
         return bandwidth > 0f ? MathF.Sqrt(0.5f * SampleRate / (MathF.PI / 2f * bandwidth)) : 0f;
     }
 
-    /// <summary>Makes letters that open on s, sh, f or th longer, so their hiss lasts long enough to be heard.</summary>
-    // s and sh need about 30 ms of noise, f and th about 50 ms (Jongman 1989).
+    /// <summary>Makes letters that open on s, sh, f or th longer so their hiss can be heard.</summary>
     private static void StretchHisses(List<Blip> blips)
     {
         for (var i = 0; i < blips.Count; i++)
@@ -562,14 +540,12 @@ public sealed partial class SpeechVoiceSynth
     }
 
     /// <summary>16-bit samples levelled by loudness, so one loud burst doesn't make the whole line quiet.</summary>
-    // RMS is taken over the sounding part only, then the gain is capped so the peak stays under TargetPeak.
     private static void ToPcm(ReadOnlySpan<float> buffer, short[] pcm)
     {
         var peak = 0f;
         var power = 0.0;
         var counted = 0;
 
-        // Loudness is weighted toward the treble, as ears hear it, so bright voices aren't levelled louder.
         var shelf = OnePole(1500f);
         var low = 0f;
         foreach (var sample in buffer)

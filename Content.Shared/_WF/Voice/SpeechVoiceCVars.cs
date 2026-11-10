@@ -6,7 +6,7 @@ namespace Content.Shared._WF.Voice;
 [CVarDefs]
 public sealed class SpeechVoiceCVars
 {
-    /// <summary>Plays characters' voices. Off, they all use their message sounds. The creator's Test button plays either way.</summary>
+    /// <summary>Plays characters' voices. Off, they all use their message sounds.</summary>
     public static readonly CVarDef<bool> Enabled =
         CVarDef.Create("wf.voice.enabled", true, CVar.CLIENTONLY | CVar.ARCHIVE);
 

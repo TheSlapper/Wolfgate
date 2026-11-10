@@ -5,7 +5,7 @@ using Robust.Client.UserInterface.Controls;
 
 namespace Content.Client._WF.Voice;
 
-/// <summary>Creator card with the choice of voice or message sound, the base voice, its sliders and a Test button.</summary>
+/// <summary>Creator card for the voice or message sound choice, the voice, its sliders and a Test button.</summary>
 public sealed partial class SpeechVoicePicker : PanelContainer
 {
     private const int ModeVoice = 0;
@@ -164,7 +164,7 @@ public sealed partial class SpeechVoicePicker : PanelContainer
         if (tooltip != null)
         {
             name.ToolTip = tooltip;
-            name.MouseFilter = MouseFilterMode.Stop; // labels ignore the mouse by default, so no hover without this
+            name.MouseFilter = MouseFilterMode.Stop;
         }
 
         row.AddChild(name);
