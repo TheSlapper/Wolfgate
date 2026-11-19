@@ -896,6 +896,8 @@
     noRot: false
     sprite: _WG/DecorImport/Structures/Decoration/billboard_tg.rsi
     offset: 0,0.5
+  - type: CameraShape
+    shape: Card
   - type: Fixtures
     fixtures:
       fix1:

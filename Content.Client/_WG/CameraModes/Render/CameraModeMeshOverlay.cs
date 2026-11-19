@@ -1,8 +1,10 @@
 using System.Numerics;
 using Content.Client._WG.CameraModes.Atlas;
 using Content.Client._WG.CameraModes.Fold;
+using Content.Client._WG.Vehicles.Turret;
 using Content.Client.Parallax;
 using Content.Shared._WG.CameraModes;
+using Content.Shared._WG.Vehicles.Turret;
 using Content.Shared.Maps;
 using Robust.Shared.Configuration;
 using Robust.Shared.Timing;
@@ -164,6 +166,7 @@ public sealed partial class CameraModeMeshOverlay : Overlay
     private Vector2 _lookAhead;
     private readonly SharedMapSystem _mapSystem;
     private readonly SharedTransformSystem _transformSystem;
+    private readonly VehicleTurretVisualSystem _turretVisuals;
     private readonly CameraModeBackdropOverlay _backdrop;
 
     public override OverlaySpace Space => OverlaySpace.WorldSpace;
@@ -216,6 +219,7 @@ public sealed partial class CameraModeMeshOverlay : Overlay
         _parallax = _entities.System<ParallaxSystem>();
         _mapSystem = _entities.System<SharedMapSystem>();
         _transformSystem = _entities.System<SharedTransformSystem>();
+        _turretVisuals = _entities.System<VehicleTurretVisualSystem>();
         // Under the post-process overlays, over everything else in world space.
         ZIndex = -20;
 
@@ -799,6 +803,7 @@ public sealed partial class CameraModeMeshOverlay : Overlay
     /// <summary>Draws new looks on their own and reads them back to build their solids.</summary>
     private void RequestAnalysis(DrawingHandleWorld handle, IRenderHandle render)
     {
+        RequestFootings(handle, render);
         foreach (var obj in _system.Analyse)
         {
             if (!_entities.EntityExists(obj.Uid))
@@ -827,7 +832,7 @@ public sealed partial class CameraModeMeshOverlay : Overlay
             var south = new SceneObject
             {
                 Uid = obj.Uid, Kind = obj.Kind, ViewFrame = prism, FrameAngle = obj.FrameAngle, SlotSize = size,
-                Frill = obj.Frill,
+                Frill = obj.Frill, Chain = obj.Chain,
             };
             handle.RenderInRenderTarget(target, () =>
             {
@@ -858,6 +863,8 @@ public sealed partial class CameraModeMeshOverlay : Overlay
             var rest = obj.OnSurface ? CameraModesSystem.TableHeight * EyeManager.PixelsPerMeter : 0f;
             var footprint = obj.Footprint;
             var fence = obj.Fence;
+            var joined = obj.Chain != null;
+            var cutout = obj.Shape == CameraShape.Cutout;
             var lieOn = obj.LieOn;
             var seat = obj.Seat;
             var item = obj.Kind == SceneKind.Flat || obj.Low;
@@ -973,9 +980,14 @@ public sealed partial class CameraModeMeshOverlay : Overlay
                 {
                     mesh = BlockBuilder.BuildPainted(analysis, origin);
                 }
+                else if (cutout && footprint is { } area && !analysis.Empty)
+                {
+                    mesh = FootprintBuilder.BuildCutout(analysis, area);
+                    SilhouetteFold.Path = "cut-out";
+                }
                 else if (fence != null && !analysis.Empty)
                 {
-                    mesh = FenceBuilder.Build(analysis, fence);
+                    mesh = FenceBuilder.Build(analysis, fence, joined);
                 }
                 else if (!analysis.Empty)
                 {
@@ -1021,6 +1033,45 @@ public sealed partial class CameraModeMeshOverlay : Overlay
         }
     }
 
+    /// <summary>Reads back the picture each card shows, for the lowest pixel row it stands on.</summary>
+    private void RequestFootings(DrawingHandleWorld handle, IRenderHandle render)
+    {
+        foreach (var obj in _system.Footings)
+        {
+            if (!_entities.EntityExists(obj.Uid))
+                continue;
+
+            var size = obj.SlotSize;
+            var staging = size + StagingStep;
+            if (!_staging.TryGetValue(staging, out var target))
+            {
+                target = _clyde.CreateRenderTarget((size, size),
+                    new RenderTargetFormatParameters(RenderTargetColorFormat.Rgba8Srgb),
+                    new TextureSampleParameters { Filter = false },
+                    nameof(CameraModeMeshOverlay));
+                _staging[staging] = target;
+            }
+
+            var shown = new SceneObject
+            {
+                Uid = obj.Uid, Kind = obj.Kind, ViewFrame = obj.ViewFrame, FrameAngle = obj.FrameAngle,
+                SlotSize = size, Frill = obj.Frill, Chain = obj.Chain,
+            };
+            handle.RenderInRenderTarget(target, () =>
+            {
+                handle.SetTransform(Matrix3x2.Identity);
+                DrawSprite(render, shown, new Vector2(size / 2f));
+            }, new Color(0, 0, 0, 0));
+
+            var key = obj.FootingKey;
+            target.CopyPixelsToMemory<Rgba32>(image =>
+            {
+                var analysis = new SpriteAnalysis(image.Width, image.Height, image.GetPixelSpan());
+                _system.SetFooting(key, analysis.Empty ? 0f : analysis.Y1);
+            });
+        }
+    }
+
     /// <summary>Keeps staging targets of one size but different image counts apart.</summary>
     private const int StagingStep = 100000;
 
@@ -1058,6 +1109,15 @@ public sealed partial class CameraModeMeshOverlay : Overlay
             return;
         }
 
+        // A joining fence is its straight art, whichever piece it is.
+        if (obj.Chain is { } chain)
+        {
+            var art = _sprite.Frame0(chain);
+            render.DrawingHandleWorld.DrawTextureRect(art,
+                Box2.FromDimensions(centre - (Vector2) art.Size / 2f, art.Size), sprite.Color.WithAlpha(1f));
+            return;
+        }
+
         var color = sprite.Color;
         var offset = sprite.Offset;
         // The hover outline's shader can't draw into the atlas, and the view shows hover by its own glow.
@@ -1085,6 +1145,8 @@ public sealed partial class CameraModeMeshOverlay : Overlay
 
         render.DrawEntity(obj.Uid, centre, Vector2.One, steered ? Angle.Zero : angle, Angle.Zero,
             steered ? angle.GetCardinalDir() : null, sprite);
+        if (obj.Riders.Count > 0)
+            DrawRiders(render, obj, centre, angle);
         if (steered)
         {
             for (var i = 0; i < _turns.Count; i++)
@@ -1097,6 +1159,32 @@ public sealed partial class CameraModeMeshOverlay : Overlay
         sprite.PostShader = post;
         if (obj.Kind == SceneKind.Mob)
             _sprite.SetOffset((obj.Uid, sprite), offset);
+    }
+
+    /// <summary>
+    /// Paints a vehicle's turret overlays onto its picture, placed and turned as an eye that sees the vehicle in the
+    /// picture's frame would see them.
+    /// </summary>
+    private void DrawRiders(IRenderHandle render, SceneObject obj, Vector2 centre, Angle frame)
+    {
+        var eyeTurn = frame - _transformSystem.GetWorldRotation(obj.Uid);
+        foreach (var uid in obj.Riders)
+        {
+            if (!_entities.TryGetComponent(uid, out VehicleTurretVisualComponent? visual)
+                || !_entities.TryGetComponent(uid, out SpriteComponent? sprite)
+                || !_turretVisuals.TryGetOverlayPose((uid, visual), eyeTurn, out var offset, out var turn))
+            {
+                continue;
+            }
+
+            // The picture's rows run down, the world's north up.
+            var at = frame.RotateVec(offset) * EyeManager.PixelsPerMeter;
+            var color = sprite.Color;
+            _sprite.SetColor((uid, sprite), color.WithAlpha(1f));
+            render.DrawEntity(uid, centre + new Vector2(at.X, -at.Y), Vector2.One, frame + turn, Angle.Zero, null,
+                sprite);
+            _sprite.SetColor((uid, sprite), color);
+        }
     }
 
     /// <summary>Draws only a computer's keyboard layer, by hiding the others for the draw.</summary>
@@ -1382,13 +1470,22 @@ public sealed partial class CameraModeMeshOverlay : Overlay
         }
     }
 
-    /// <summary>A camera-facing sprite standing on the entity's position, shown at its true size.</summary>
+    /// <summary>
+    /// A sprite standing on the entity's position, shown at its true size. A standing card stays fixed across its own
+    /// facing (<see cref="AddStandingCard"/>). Anything else faces the camera.
+    /// </summary>
     private void AddBillboard(SceneObject obj, AtlasSlot slot)
     {
+        if (obj.Standing)
+        {
+            AddStandingCard(obj, slot);
+            return;
+        }
+
         var s = obj.SlotSize;
         var half = s / 2f / PixelsPerTile;
-        var top = obj.FrameBottom / PixelsPerTile + obj.Offset.Y;
-        var bottom = (obj.FrameBottom - s) / PixelsPerTile + obj.Offset.Y;
+        var top = obj.Foot / PixelsPerTile + obj.Offset.Y;
+        var bottom = (obj.Foot - s) / PixelsPerTile + obj.Offset.Y;
         var lean = 1f / _profile.Squash;
         var glow = obj.Uid == _system.Hovered ? _system.HoverGlow : 1f;
         var color = new Color(glow, Rain(obj), 0f, obj.Alpha);
@@ -1402,6 +1499,39 @@ public sealed partial class CameraModeMeshOverlay : Overlay
         Put(at + _right * half + _up * (bottom * lean), obj.Position, SpriteAtlas.Uv(slot, new Vector2(s, s)), color, zb);
         Put(at + _right * half + _up * (top * lean), obj.Position, SpriteAtlas.Uv(slot, new Vector2(s, 0)), color, zt);
         Put(at - _right * half + _up * (top * lean), obj.Position, SpriteAtlas.Uv(slot, Vector2.Zero), color, zt);
+    }
+
+    /// <summary>
+    /// A sprite standing upright across its own facing, fixed in the world, read the right way round from the side the
+    /// camera is on.
+    /// </summary>
+    private void AddStandingCard(SceneObject obj, AtlasSlot slot)
+    {
+        var stretch = _profile.Height / _profile.Squash;
+        var right = obj.Rotation.RotateVec(Vector2.UnitX);
+        if (Vector2.Dot(obj.Rotation.RotateVec(-Vector2.UnitY), -_up) < 0f)
+            right = -right;
+
+        var s = obj.SlotSize;
+        var half = s / 2f / PixelsPerTile;
+        var top = obj.Foot / PixelsPerTile + obj.Offset.Y;
+        var bottom = (obj.Foot - s) / PixelsPerTile + obj.Offset.Y;
+        var glow = obj.Uid == _system.Hovered ? _system.HoverGlow : 1f;
+        var color = new Color(glow, Rain(obj), 0f, obj.Alpha);
+        var rise = Rise(obj);
+        var at = obj.Position + right * obj.Offset.X;
+        EnsureRoom();
+        Corner(-half, bottom, new Vector2(0, s));
+        Corner(half, bottom, new Vector2(s, s));
+        Corner(half, top, new Vector2(s, 0));
+        Corner(-half, top, Vector2.Zero);
+
+        void Corner(float across, float height, Vector2 pixel)
+        {
+            var ground = at + right * across;
+            var z = height + rise;
+            Put(ground + _up * (z * stretch), obj.Position, SpriteAtlas.Uv(slot, pixel), color, z);
+        }
     }
 
     /// <summary>

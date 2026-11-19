@@ -24,6 +24,7 @@
     sprite: _WG/Vehicles/Props/vehicle_pileup.rsi
     state: car_pileup
     offset: 1.5, 1
+  - type: CameraShape
   - type: Clickable
   - type: InteractionOutline
   - type: Damageable

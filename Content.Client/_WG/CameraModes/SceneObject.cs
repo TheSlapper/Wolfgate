@@ -1,6 +1,7 @@
 using System.Numerics;
 using Content.Client._WG.CameraModes.Atlas;
 using Content.Client._WG.CameraModes.Fold;
+using Content.Shared._WG.CameraModes;
 using Robust.Shared.Map;
 using Robust.Shared.Utility;
 
@@ -52,11 +53,23 @@ public sealed class SceneObject
     /// <summary>Whether the image is the sprite as the view sees it, not facing south.</summary>
     public bool ViewFrame;
 
-    /// <summary>Drawn as an upright card facing the camera, by the Billboards option or because it is always one.</summary>
+    /// <summary>Drawn as an upright card, by the Billboards option or because it is always one.</summary>
     public bool Billboard;
 
-    /// <summary>A plant, tree, rock or open fire, always drawn as a card whatever the Billboards option says.</summary>
+    /// <summary>A plant, tree, rock, open fire or vehicle, always drawn as a card whatever the Billboards option says.</summary>
     public bool Card;
+
+    /// <summary>The shape its prototype asks for, overriding the one picked from its sprite and collision.</summary>
+    public CameraShape? Shape;
+
+    /// <summary>The turret overlays painted into this vehicle's picture this frame.</summary>
+    public readonly List<EntityUid> Riders = new();
+
+    /// <summary>For a turret overlay, the vehicle whose picture it is painted into.</summary>
+    public EntityUid Rides;
+
+    /// <summary>A card fixed in the world across its own facing, read from whichever side the eye is on.</summary>
+    public bool Standing;
 
     /// <summary>Mounted on the wall tile it stands on, like an APC or a wall ATM.</summary>
     public bool OnWall;
@@ -75,6 +88,15 @@ public sealed class SceneObject
     /// cap on top and the unjoined front on every side.
     /// </summary>
     public ResPath? Frill;
+
+    /// <summary>
+    /// The straight east-west art of a fence that joins its neighbours side by side, drawn on every piece of it, or
+    /// null for anything else.
+    /// </summary>
+    public SpriteSpecifier.Rsi? Chain;
+
+    /// <summary>The sides such a fence joins: north 1, south 2, east 4, west 8.</summary>
+    public int Joins;
 
     /// <summary>A low wall that can be climbed and doesn't block sight, as tall as its drawn front.</summary>
     public bool LowWall;
@@ -138,6 +160,15 @@ public sealed class SceneObject
 
     /// <summary>Pixel row of the bottom of the sprite's frame.</summary>
     public float FrameBottom;
+
+    /// <summary>Pixel row the drawn picture's lowest opaque pixel ends on, or 0 until it is read back.</summary>
+    public float Footing;
+
+    /// <summary>The key the footing of the drawn picture is stored under.</summary>
+    public ulong FootingKey;
+
+    /// <summary>The pixel row a card stands on: its picture's lowest pixel once read, its frame's bottom before.</summary>
+    public float Foot => Footing > 0f ? Footing : FrameBottom;
 
     public Vector2 Position;
 

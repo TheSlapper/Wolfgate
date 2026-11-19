@@ -4,7 +4,9 @@ using Content.Client.Viewport;
 using Content.Client._WG.CameraModes.Fold;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._WG.BitmaskWalls;
+using Content.Shared._WG.CameraModes;
 using Content.Shared._WG.Vehicles.Core;
+using Content.Shared._WG.Vehicles.Turret;
 using Content.Shared._WG.WolfWeather;
 using Content.Shared.Buckle.Components;
 using Content.Shared.Climbing.Components;
@@ -29,6 +31,7 @@ using Robust.Shared.Physics;
 using Robust.Shared.Physics.Collision.Shapes;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Utility;
 using DrawDepth = Content.Shared.DrawDepth.DrawDepth;
 
 namespace Content.Client._WG.CameraModes;
@@ -78,6 +81,8 @@ public sealed partial class CameraModesSystem
     private EntityQuery<AppearanceComponent> _appearanceQuery;
     private EntityQuery<IconSmoothComponent> _smoothQuery;
     private EntityQuery<WolfThunderboltComponent> _boltQuery;
+    private EntityQuery<CameraShapeComponent> _shapeQuery;
+    private EntityQuery<VehicleTurretVisualComponent> _riderQuery;
     private EntityQuery<PlaceableSurfaceComponent> _surfaceQuery;
     private EntityQuery<ClimbableComponent> _climbQuery;
     private EntityQuery<WallFrillComponent> _frillQuery;
@@ -98,7 +103,7 @@ public sealed partial class CameraModesSystem
     private const int LowerSortBase = 8;
 
     /// <summary>How much further a story up sorts in first person, more than any nudge within a tile.</summary>
-    private const float LevelTie = 0.01f;
+    public const float LevelTie = 0.01f;
 
     /// <summary>The least share of its tile a soft fixture covers for its owner to count as ground cover.</summary>
     private const float GroundCoverSpan = 0.9f;
@@ -147,6 +152,21 @@ public sealed partial class CameraModesSystem
     /// <summary>Solids whose shape still has to be read from their image.</summary>
     public readonly List<SceneObject> Analyse = new();
 
+    /// <summary>Turret overlays found this frame, each painted into its vehicle's picture.</summary>
+    private readonly List<SceneObject> _riders = new();
+
+    /// <summary>Degrees a turret overlay turns by before its vehicle's picture is drawn again.</summary>
+    private const double RiderTurnStep = 2;
+
+    /// <summary>Cards whose drawn picture still has to be read for where it meets the ground.</summary>
+    public readonly List<SceneObject> Footings = new();
+
+    /// <summary>The lowest opaque pixel row of each card picture read, by footing key. 0 while it is pending.</summary>
+    private readonly Dictionary<ulong, float> _footing = new();
+
+    /// <summary>Most card pictures whose footing is kept before the record starts over.</summary>
+    private const int FootingCap = 4096;
+
     /// <summary>Count of main passes collected, used to age cached shapes and atlas cells.</summary>
     public int Frame { get; private set; }
 
@@ -171,6 +191,8 @@ public sealed partial class CameraModesSystem
         _appearanceQuery = GetEntityQuery<AppearanceComponent>();
         _smoothQuery = GetEntityQuery<IconSmoothComponent>();
         _boltQuery = GetEntityQuery<WolfThunderboltComponent>();
+        _shapeQuery = GetEntityQuery<CameraShapeComponent>();
+        _riderQuery = GetEntityQuery<VehicleTurretVisualComponent>();
         _surfaceQuery = GetEntityQuery<PlaceableSurfaceComponent>();
         _climbQuery = GetEntityQuery<ClimbableComponent>();
         _frillQuery = GetEntityQuery<WallFrillComponent>();
@@ -187,16 +209,18 @@ public sealed partial class CameraModesSystem
 
     /// <summary>
     /// Whether an overlay pass is the player's own view in the main viewport. Between two levels, as on stairs, CE
-    /// draws the player's own level through a z-level eye of its own.
+    /// draws the player's own level through a z-level eye of its own, made from the main viewport's eye. The engine
+    /// gives world overlays no viewport control, so that eye is matched by where it stands and how it is turned.
     /// </summary>
     public bool IsMainPass(in OverlayDrawArgs args)
     {
-        if (args.Viewport.Eye is not { } eye || MainViewport() is not { } main)
+        if (args.Viewport.Eye is not { } eye || MainViewport() is not { Eye: { } mainEye })
             return false;
 
         return eye is ScalingViewport.ZEye zEye
-            ? zEye.Primary && args.ViewportControl == main
-            : eye == main.Eye;
+            ? zEye.Primary && zEye.Position.Position == mainEye.Position.Position
+                           && zEye.Rotation == mainEye.Rotation
+            : eye == mainEye;
     }
 
     /// <summary>Gathers the raised sprites in view and hides the ones drawn as solids from the stock render.</summary>
@@ -205,6 +229,8 @@ public sealed partial class CameraModesSystem
         Frame++;
         Drawn.Clear();
         Analyse.Clear();
+        Footings.Clear();
+        _riders.Clear();
         _blockTiles.Clear();
         _doorTiles.Clear();
         _windowTiles.Clear();
@@ -244,6 +270,7 @@ public sealed partial class CameraModesSystem
         CollectLower(eyeRot, args.WorldAABB);
 
         CollectHeld(eyeRot);
+        AttachRiders();
 
         var redraws = 0;
         _atlas?.BeginFrame();
@@ -744,6 +771,64 @@ public sealed partial class CameraModesSystem
             obj.Frill = rsi.Path;
             obj.SlotSize = Math.Max(obj.SlotSize, FrillSlot);
         }
+
+        obj.Chain = obj.Kind == SceneKind.Solid ? Chain(sprite, out obj.Joins) : null;
+    }
+
+    /// <summary>The state number of a joining fence's straight east-west piece, east 4 and west 8.</summary>
+    private const int ChainStraight = 12;
+
+    /// <summary>
+    /// The straight east-west art of a fence whose art joins its neighbours side by side, and the sides the shown piece
+    /// joins. Null when the sprite is no such fence or has no straight piece.
+    /// </summary>
+    private SpriteSpecifier.Rsi? Chain(Entity<SpriteComponent> sprite, out int joins)
+    {
+        joins = 0;
+        if (!_smoothQuery.TryComp(sprite, out var smooth) || smooth.Mode != IconSmoothingMode.CardinalFlags
+            || sprite.Comp.BaseRSI is not { } rsi || !rsi.TryGetState(smooth.StateBase + ChainStraight, out _))
+        {
+            return null;
+        }
+
+        foreach (var layerI in sprite.Comp.AllLayers)
+        {
+            if (layerI is SpriteComponent.Layer { Visible: true, ActualState.StateId.Name: { } name }
+                && name.StartsWith(smooth.StateBase)
+                && int.TryParse(name.AsSpan(smooth.StateBase.Length), out joins))
+            {
+                return new SpriteSpecifier.Rsi(rsi.Path, smooth.StateBase + ChainStraight);
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>Half the thickness of a joining fence's strips, in tiles. They only give the panels their line.</summary>
+    private const float ChainHalf = 0.02f;
+
+    /// <summary>Half the width of a fence piece that joins nothing, in tiles, as wide as its art draws it.</summary>
+    private const float ChainLone = 0.34f;
+
+    /// <summary>
+    /// The strips a joining fence stands on, in the grid's frame: one from the middle of its tile to each side it joins.
+    /// </summary>
+    private static Box2[] ChainStrips(int joins)
+    {
+        if (joins == 0)
+            return new[] { new Box2(-ChainLone, -ChainHalf, ChainLone, ChainHalf) };
+
+        var strips = new List<Box2>();
+        if ((joins & 1) != 0)
+            strips.Add(new Box2(-ChainHalf, 0f, ChainHalf, 0.5f));
+        if ((joins & 2) != 0)
+            strips.Add(new Box2(-ChainHalf, -0.5f, ChainHalf, 0f));
+        if ((joins & 4) != 0)
+            strips.Add(new Box2(0f, -ChainHalf, 0.5f, ChainHalf));
+        if ((joins & 8) != 0)
+            strips.Add(new Box2(-0.5f, -ChainHalf, 0f, ChainHalf));
+
+        return strips.ToArray();
     }
 
     /// <summary>The unjoined wall state of a frill wall, whose front shows on every side.</summary>
@@ -769,6 +854,9 @@ public sealed partial class CameraModesSystem
         if (obj.LieOn || obj.Seat)
             obj.GeometryKey = Mix(obj.GeometryKey, obj.LieOn ? 13 : 17);
 
+        if (obj.Shape is { } shape)
+            obj.GeometryKey = Mix(obj.GeometryKey, 97 + (int) shape);
+
         if (obj.Decal || obj.Tall)
             obj.GeometryKey = Mix(obj.GeometryKey, obj.Decal ? 29 : 31);
 
@@ -790,9 +878,22 @@ public sealed partial class CameraModesSystem
                 obj.GeometryKey = Mix(obj.GeometryKey, 19 + obj.Fence.Length);
         }
 
-        // A vehicle is always a card. A parked car is anchored on one end tile, its body reaching past it.
+        // A joining fence stands its straight art on a panel to each side it joins, so every piece meets the next.
+        if (obj.Chain is { } chain && obj.Footprint != null && obj.Fence == null)
+        {
+            obj.Fence = ChainStrips(obj.Joins);
+            obj.GeometryKey = Mix(Mix(Mix(Mix(KeySeed, chain.RsiPath.GetHashCode()), chain.RsiState.GetHashCode()),
+                obj.SlotSize), 89 + obj.Joins);
+        }
+        else
+        {
+            obj.Chain = null;
+        }
+
+        // A vehicle is a card facing the eye, unless its prototype makes it a cut-out. A parked car is anchored on one
+        // end tile, its body reaching past it.
         obj.Vehicle = obj.Footprint is { } body && Math.Max(body.Width, body.Height) >= VehicleLength
-                      && !obj.Seat && !obj.LieOn
+                      && !obj.Seat && !obj.LieOn && obj.Shape != CameraShape.Cutout
                       && (!Transform(obj.Uid).Anchored || body.Center.Length() > VehicleOffCentre);
         obj.Card |= obj.Vehicle;
         switch (obj.Kind)
@@ -924,9 +1025,9 @@ public sealed partial class CameraModesSystem
             case SceneKind.Solid:
             case SceneKind.Flat:
                 // An entity keeps its first shape while its image size holds, so an opened crate shows its open art
-                // on the same box rather than growing a new one.
+                // on the same box rather than growing a new one. A joining fence takes the shape of its joins.
                 var look = obj.GeometryKey;
-                if (obj.KeptKey != 0 && obj.KeptSize == obj.SlotSize && obj.KeptKind == obj.Kind)
+                if (obj.KeptKey != 0 && obj.KeptSize == obj.SlotSize && obj.KeptKind == obj.Kind && obj.Chain == null)
                     obj.GeometryKey = obj.KeptKey;
 
                 if (!_geometry.TryGetValue(obj.GeometryKey, out var entry))
@@ -977,21 +1078,30 @@ public sealed partial class CameraModesSystem
         obj.Billboard = obj.Card
                         || Billboards && obj.Kind == SceneKind.Solid && !obj.Low && !obj.Decal && !obj.OnWall
                         && !obj.Hung && !obj.Cladding && !obj.Stair && !obj.Panel && !obj.Ceiling;
+        // A card its prototype marks, like a billboard sign, stands fixed in the world across its own facing.
+        obj.Standing = obj.Billboard && obj.Shape == CameraShape.Card;
         if (obj.Billboard)
             obj.ViewFrame = true;
+
+        if (obj.Standing)
+            obj.Rotation = Snap(worldRot, gridRot);
 
         // Billboards use the nearest straight-on frame, so a turned view never shows them at a slant. A sprite with
         // one direction stays upright, since turning its image would only lay it on its side.
         // A diagonal keeps the frame for its turn on the grid.
-        // A card fixed in the first-person world, like a sign, keeps its own south frame.
+        // A card fixed in the first-person world, like a sign, keeps its own south frame. A standing card shows the
+        // frame for its facing on the grid.
         if (obj.Prism == null)
         {
             var fixedCard = FirstPerson && obj.Kind == SceneKind.Solid && !obj.Billboard
                             && obj.Mesh is { Fixed: false };
-            obj.FrameAngle = !fixedCard && (obj.Kind == SceneKind.Mob || Directional(sprite.Comp))
-                ? obj.Vehicle ? SnapSide(worldRot + eyeRot) : SnapView(worldRot + eyeRot)
-                : Angle.Zero;
+            obj.FrameAngle = fixedCard || obj.Kind != SceneKind.Mob && !Directional(sprite.Comp) ? Angle.Zero
+                : obj.Standing ? SnapView(worldRot - gridRot)
+                : SnapView(worldRot + eyeRot);
         }
+        if (obj.Chain != null)
+            obj.Rotation = gridRot;
+
         obj.Views = obj.Mesh is { Views: true };
         if (obj.Views)
         {
@@ -1011,6 +1121,33 @@ public sealed partial class CameraModesSystem
         // A frill wall is drawn from its sheet's unjoined art, the same for every wall of that sheet and tint.
         if (obj.Frill is { } sheet)
             obj.TextureKey = Mix(Mix(Mix(KeySeed, sheet.GetHashCode()), Quantise(sprite.Comp.Color)), obj.SlotSize);
+
+        // A joining fence is drawn from its straight art, the same for every piece of it.
+        if (obj.Chain is { } straight)
+        {
+            obj.TextureKey = Mix(Mix(Mix(Mix(KeySeed, straight.RsiPath.GetHashCode()),
+                straight.RsiState.GetHashCode()), Quantise(sprite.Comp.Color)), obj.SlotSize);
+        }
+
+        // A card stands on the lowest pixel of the picture it shows, not on the bottom of its sprite's frame. Each
+        // picture is read back once.
+        obj.Footing = 0f;
+        if (obj.Billboard && obj.Kind != SceneKind.Mob)
+        {
+            obj.FootingKey = Mix(obj.TextureKey, 211);
+            if (_footing.TryGetValue(obj.FootingKey, out var row))
+            {
+                obj.Footing = row;
+            }
+            else if (Analyse.Count + Footings.Count < AnalysisBudget)
+            {
+                if (_footing.Count >= FootingCap)
+                    _footing.Clear();
+
+                _footing[obj.FootingKey] = 0f;
+                Footings.Add(obj);
+            }
+        }
     }
 
     /// <summary>
@@ -1093,12 +1230,6 @@ public sealed partial class CameraModesSystem
     {
         var quarter = Math.Round((angle.Theta + 0.01) / (Math.PI / 2));
         return new Angle(quarter * Math.PI / 2);
-    }
-
-    /// <summary>The nearer of the two side frames, the only ones a vehicle's wheels are drawn in.</summary>
-    private static Angle SnapSide(Angle angle)
-    {
-        return new Angle(Math.Sin(angle.Theta + 0.01) >= 0 ? Math.PI / 2 : -Math.PI / 2);
     }
 
     /// <summary>
@@ -1243,6 +1374,12 @@ public sealed partial class CameraModesSystem
         entry.Analysis = analysis;
         entry.Mesh = mesh;
         entry.Path = path;
+    }
+
+    /// <summary>Stores the lowest opaque pixel row of a card picture, 0 when it has none.</summary>
+    public void SetFooting(ulong key, float row)
+    {
+        _footing[key] = row;
     }
 
     /// <summary>The cached shape for a geometry key, or null.</summary>
@@ -1438,6 +1575,21 @@ public sealed partial class CameraModesSystem
 
         foreach (var (uid, sprite, xform) in _query)
         {
+            // A turret's overlay is painted into its vehicle's picture, not drawn on its own.
+            if (_riderQuery.HasComp(uid))
+            {
+                if (!_objects.TryGetValue(uid, out var rider))
+                {
+                    rider = new SceneObject { Uid = uid };
+                    _objects[uid] = rider;
+                }
+
+                rider.Seen = Frame;
+                rider.Rides = xform.ParentUid;
+                _riders.Add(rider);
+                continue;
+            }
+
             if (Classify(uid, sprite, xform) is not { } kind)
                 continue;
 
@@ -1464,6 +1616,7 @@ public sealed partial class CameraModesSystem
             obj.Level = level;
             obj.Drop = drop;
             obj.Hand = 0;
+            obj.Riders.Clear();
             obj.Seen = Frame;
             obj.Draw = false;
             obj.Faded = false;
@@ -1473,8 +1626,10 @@ public sealed partial class CameraModesSystem
             obj.Low = kind == SceneKind.Solid
                       && (sprite.DrawDepth <= (int) DrawDepth.HighFloorObjects || GroundCover(uid, xform));
             obj.Decal = obj.Low && !Blocks(uid);
-            obj.Card = kind == SceneKind.Solid && !obj.Decal
-                       && (IsFlora(sprite) || _hotQuery.HasComp(uid) || _boltQuery.HasComp(uid));
+            obj.Shape = _shapeQuery.TryComp(uid, out var shape) ? shape.Shape : null;
+            obj.Card = kind == SceneKind.Solid && !obj.Decal && obj.Shape != CameraShape.Cutout
+                       && (obj.Shape == CameraShape.Card || IsFlora(sprite) || _hotQuery.HasComp(uid)
+                           || _boltQuery.HasComp(uid));
             obj.Prism = kind is SceneKind.Block or SceneKind.Window ? Prism(uid) : null;
             // Doors keep their clear doorway and grilles their gaps. Walls block sight, windows hold glass.
             obj.SolidSides = kind == SceneKind.Window
@@ -1552,6 +1707,33 @@ public sealed partial class CameraModesSystem
             // The stock view never draws what the player holds.
             if (obj.Hand == 0)
                 HideObject(obj);
+
+            foreach (var rider in obj.Riders)
+            {
+                if (_objects.TryGetValue(rider, out var overlay))
+                    HideObject(overlay);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Adds each turret overlay to its vehicle's picture. The overlay's look and turn become part of the picture's key,
+    /// so the picture is drawn again as the turret turns.
+    /// </summary>
+    private void AttachRiders()
+    {
+        foreach (var rider in _riders)
+        {
+            if (!_objects.TryGetValue(rider.Rides, out var vehicle) || vehicle.Seen != Frame
+                || !TryComp<SpriteComponent>(rider.Uid, out var sprite))
+            {
+                continue;
+            }
+
+            vehicle.Riders.Add(rider.Uid);
+            var turn = (int) Math.Round(Transform(rider.Uid).LocalRotation.Degrees / RiderTurnStep);
+            vehicle.TextureKey = Mix(Mix(vehicle.TextureKey,
+                SpriteKey(sprite, true, Angle.Zero, vehicle.SlotSize, false).GetHashCode()), turn);
         }
     }
 
@@ -1617,5 +1799,7 @@ public sealed partial class CameraModesSystem
         _tables.Clear();
         Drawn.Clear();
         Analyse.Clear();
+        Footings.Clear();
+        _footing.Clear();
     }
 }

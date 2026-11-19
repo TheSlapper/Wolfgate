@@ -95,6 +95,10 @@ break_into:
 # Per-entity changes after translation: entity id -> component -> fields that replace the component's own. A component
 # missing from the entity is added; `null` removes it.
 set:
+  # Road signs and billboards stand fixed in the 3D views, as a sign does, instead of turning to the camera.
+  RMCOverheadRoadsign:
+    CameraShape:
+      shape: Card
   # Lit layers glow in the dark, since no reactor turns them on and off.
   RMCTallFloodlight:
     Sprite:

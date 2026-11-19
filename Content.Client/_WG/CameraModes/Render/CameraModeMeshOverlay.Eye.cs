@@ -49,9 +49,9 @@ public sealed partial class CameraModeMeshOverlay
 
     /// <summary>
     /// Fills the vertex buffer for first person in draw order: what stands on the levels below, deepest first, then
-    /// everything on the player's level and above, far to near, with each level above's floor tiles put in before the
-    /// first object on or under that level, then what the player holds. Weather slice breaks are noted between
-    /// objects by distance.
+    /// everything on the player's level and above, far to near, with each floor tile of a level above put in by its
+    /// distance, after what stands on it and before what stands under it, then what the player holds. Weather slice
+    /// breaks are noted between objects by distance.
     /// </summary>
     private void BuildEye()
     {
@@ -60,7 +60,16 @@ public sealed partial class CameraModeMeshOverlay
         _sheetBreaks.Clear();
         _nextSheet = 0;
         _lowerRuns.Clear();
-        var pending = Math.Max(_system.LevelsAbove, 1);
+        _ceilingOrder.Clear();
+        for (var i = 0; i < _system.Ceiling.Count; i++)
+        {
+            var tile = _system.Ceiling[i];
+            _ceilingOrder.Add((Vector2.Distance(tile.Centre, _eye) + (tile.Level - 0.5f) * CameraModesSystem.LevelTie
+                               - CeilingNudge, i));
+        }
+
+        _ceilingOrder.Sort((a, b) => b.Key.CompareTo(a.Key));
+        var nextTile = 0;
         foreach (var obj in _system.Drawn)
         {
             // The levels below come first, deepest first, each in a run of its own.
@@ -70,9 +79,9 @@ public sealed partial class CameraModeMeshOverlay
                 continue;
             }
 
-            for (; pending >= Math.Max(obj.Level, 1); pending--)
+            for (; nextTile < _ceilingOrder.Count && _ceilingOrder[nextTile].Key > obj.SortKey; nextTile++)
             {
-                AddCeiling(pending);
+                AddCeilingTile(_system.Ceiling[_ceilingOrder[nextTile].Index]);
             }
 
             // The weather sheets farther off than this object are drawn before it. Both go by flat distance from the eye,
@@ -109,9 +118,9 @@ public sealed partial class CameraModeMeshOverlay
             obj.Bounds = VertexBounds(obj.VertexStart, _count);
         }
 
-        for (; pending >= 1; pending--)
+        for (; nextTile < _ceilingOrder.Count; nextTile++)
         {
-            AddCeiling(pending);
+            AddCeilingTile(_system.Ceiling[_ceilingOrder[nextTile].Index]);
         }
 
         BreakForSheets(0f);
@@ -154,24 +163,30 @@ public sealed partial class CameraModeMeshOverlay
         return CameraModesSystem.StoryRise(obj);
     }
 
-    /// <summary>The floor tiles of a level above, seen from below. Level 1 is the ceiling of the room.</summary>
-    private void AddCeiling(int level)
-    {
-        var height = _system.CeilingHeight * level;
-        var color = new Color(CeilingShade, CeilingShade, 0f, 1f);
-        foreach (var tile in _system.Ceiling)
-        {
-            if (tile.Level != level || Vector2.Dot(tile.Centre - _eye, _up) < -BehindReach)
-                continue;
+    /// <summary>
+    /// How much nearer a floor tile of a level above sorts than its level's half step, so a door or slab nudged within
+    /// its tile stays on its own side of the tile.
+    /// </summary>
+    private const float CeilingNudge = 0.001f;
 
-            var east = tile.Rotation.RotateVec(new Vector2(0.5f, 0f));
-            var north = tile.Rotation.RotateVec(new Vector2(0f, 0.5f));
-            AddEyeQuad(
-                TileCorner(tile.Centre - east - north, height, tile.Slot, new Vector2(0f, TilePixels), color),
-                TileCorner(tile.Centre - east + north, height, tile.Slot, Vector2.Zero, color),
-                TileCorner(tile.Centre + east + north, height, tile.Slot, new Vector2(TilePixels, 0f), color),
-                TileCorner(tile.Centre + east - north, height, tile.Slot, new Vector2(TilePixels, TilePixels), color));
-        }
+    /// <summary>Floor tiles of the levels above with their sort keys, farthest first, refilled each frame.</summary>
+    private readonly List<(float Key, int Index)> _ceilingOrder = new();
+
+    /// <summary>A floor tile of a level above, seen from below. Level 1 is the ceiling of the room.</summary>
+    private void AddCeilingTile(CeilingTile tile)
+    {
+        if (Vector2.Dot(tile.Centre - _eye, _up) < -BehindReach)
+            return;
+
+        var height = _system.CeilingHeight * tile.Level;
+        var color = new Color(CeilingShade, CeilingShade, 0f, 1f);
+        var east = tile.Rotation.RotateVec(new Vector2(0.5f, 0f));
+        var north = tile.Rotation.RotateVec(new Vector2(0f, 0.5f));
+        AddEyeQuad(
+            TileCorner(tile.Centre - east - north, height, tile.Slot, new Vector2(0f, TilePixels), color),
+            TileCorner(tile.Centre - east + north, height, tile.Slot, Vector2.Zero, color),
+            TileCorner(tile.Centre + east + north, height, tile.Slot, new Vector2(TilePixels, 0f), color),
+            TileCorner(tile.Centre + east - north, height, tile.Slot, new Vector2(TilePixels, TilePixels), color));
     }
 
     private EyeVertex TileCorner(Vector2 ground, float height, AtlasSlot slot, Vector2 pixel, Color color)
@@ -393,9 +408,9 @@ public sealed partial class CameraModeMeshOverlay
     }
 
     /// <summary>
-    /// An upright sprite standing on the position of the entity. Mobs, flora, fires and option billboards turn square to
-    /// the first-person view. Anything else, like a sign, stays fixed across its own facing, read from the side the eye
-    /// is on.
+    /// An upright sprite standing on the position of the entity. Mobs, flora, fires, vehicles with direction frames and
+    /// option billboards turn square to the first-person view. Anything else, like a sign, stays fixed across its own
+    /// facing, read from the side the eye is on.
     /// </summary>
     private void AddEyeBillboard(SceneObject obj, AtlasSlot slot)
     {
@@ -403,7 +418,7 @@ public sealed partial class CameraModeMeshOverlay
             return;
 
         var right = _right;
-        if (obj.Kind != SceneKind.Mob && !obj.Billboard)
+        if (obj.Kind != SceneKind.Mob && (!obj.Billboard || obj.Standing))
         {
             right = obj.Rotation.RotateVec(Vector2.UnitX);
             if (Vector2.Dot(_eye - obj.Position, obj.Rotation.RotateVec(-Vector2.UnitY)) < 0f)
@@ -413,8 +428,8 @@ public sealed partial class CameraModeMeshOverlay
         var s = obj.SlotSize;
         var half = s / 2f / PixelsPerTile;
         var rise = LevelRise(obj);
-        var top = obj.FrameBottom / PixelsPerTile + obj.Offset.Y + rise;
-        var bottom = (obj.FrameBottom - s) / PixelsPerTile + obj.Offset.Y + rise;
+        var top = obj.Foot / PixelsPerTile + obj.Offset.Y + rise;
+        var bottom = (obj.Foot - s) / PixelsPerTile + obj.Offset.Y + rise;
         var glow = obj.Uid == _system.Hovered ? _system.HoverGlow : 1f;
         var color = new Color(glow, glow, 0f, obj.Alpha);
         var at = obj.Position + right * obj.Offset.X;

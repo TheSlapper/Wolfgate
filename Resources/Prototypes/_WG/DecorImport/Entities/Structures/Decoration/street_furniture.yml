@@ -24,6 +24,8 @@
   - type: Sprite
     sprite: _WG/DecorImport/Structures/Decoration/junk_coyote.rsi
     state: mailbox
+  - type: CameraShape
+    shape: Card
 
 - type: entity
   parent: BaseUrbanWallSign

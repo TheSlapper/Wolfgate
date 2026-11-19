@@ -318,6 +318,8 @@
     state: vat1
     noRot: true
     offset: "0,0.25"
+  - type: CameraShape
+    shape: Card
   - type: InteractionOutline
   - type: Damageable
     damageContainer: StructuralInorganic
@@ -355,6 +357,8 @@
     state: billboard_blank
     offset: "0,0.5"
     drawdepth: Overdoors
+  - type: CameraShape
+    shape: Card
   - type: InteractionOutline
   - type: Fixtures
     fixtures:

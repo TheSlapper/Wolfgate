@@ -43,21 +43,10 @@ public sealed partial class VehicleTurretVisualSystem : EntitySystem
             if (!TryComp(turretUid, out VehicleTurretComponent? turret))
                 continue;
 
-            if (!TryComputeRenderedTransform((EntityUid) turretUid,
-                    turret,
-                    out var vehicleUid,
-                    out _,
-                    out var localOffset,
+            if (!TryGetPose((EntityUid) turretUid, turret, _eye.CurrentEye.Rotation, out var localOffset,
                     out var localRotation))
             {
                 continue;
-            }
-
-            if (turret.OffsetSpritePivot)
-            {
-                var facing = (_transform.GetWorldRotation(vehicleUid) + localRotation + _eye.CurrentEye.Rotation).Reduced();
-                var pivot = _turret.GetPixelOffset(turret, facing) / PixelsPerMeter;
-                localOffset -= localRotation.RotateVec(VehicleTurretDirectionHelpers.GetLocalOffsetForRenderDirection(pivot, facing));
             }
 
             var visualXform = Transform(uid);
@@ -65,6 +54,41 @@ public sealed partial class VehicleTurretVisualSystem : EntitySystem
             _transform.SetLocalRotationNoLerp(uid, localRotation, visualXform);
             _transform.SetLocalPositionNoLerp(uid, localOffset, visualXform);
         }
+    }
+
+    /// <summary>
+    /// Where an overlay sprite sits on its vehicle and how it is turned, for a picture of the vehicle drawn as an eye
+    /// turned by <paramref name="eyeRot"/> sees it.
+    /// </summary>
+    public bool TryGetOverlayPose(Entity<VehicleTurretVisualComponent> visual, Angle eyeRot, out Vector2 localOffset,
+        out Angle localRotation)
+    {
+        localOffset = Vector2.Zero;
+        localRotation = Angle.Zero;
+        return TryGetEntity(visual.Comp.Turret, out var turretUid)
+               && TryComp(turretUid, out VehicleTurretComponent? turret)
+               && TryGetPose(turretUid.Value, turret, eyeRot, out localOffset, out localRotation);
+    }
+
+    /// <summary>An overlay's offset and turn on its vehicle, its sprite's pivot moved onto the turret's.</summary>
+    private bool TryGetPose(EntityUid turretUid, VehicleTurretComponent turret, Angle eyeRot, out Vector2 localOffset,
+        out Angle localRotation)
+    {
+        if (!TryComputeRenderedTransform(turretUid, turret, eyeRot, out var vehicleUid, out _, out localOffset,
+                out localRotation))
+        {
+            return false;
+        }
+
+        if (turret.OffsetSpritePivot)
+        {
+            var facing = (_transform.GetWorldRotation(vehicleUid) + localRotation + eyeRot).Reduced();
+            var pivot = _turret.GetPixelOffset(turret, facing) / PixelsPerMeter;
+            localOffset -= localRotation.RotateVec(
+                VehicleTurretDirectionHelpers.GetLocalOffsetForRenderDirection(pivot, facing));
+        }
+
+        return true;
     }
 
     /// <summary>Where a turret's sprite is drawn now and which way it points.</summary>
@@ -78,6 +102,7 @@ public sealed partial class VehicleTurretVisualSystem : EntitySystem
 
         if (!TryComputeRenderedTransform(turretUid,
                 turret,
+                _eye.CurrentEye.Rotation,
                 out var vehicle,
                 out var vehicleRotation,
                 out var localOffset,
@@ -185,6 +210,7 @@ public sealed partial class VehicleTurretVisualSystem : EntitySystem
     private bool TryComputeRenderedTransform(
         EntityUid turretUid,
         VehicleTurretComponent turret,
+        Angle eyeRot,
         out EntityUid vehicle,
         out Angle vehicleRot,
         out Vector2 localOffset,
@@ -201,7 +227,6 @@ public sealed partial class VehicleTurretVisualSystem : EntitySystem
         _turret.TryGetAnchorTurret(turretUid, turret, out var anchorUid, out var anchorTurret);
 
         vehicleRot = _transform.GetWorldRotation(vehicle);
-        var eyeRot = _eye.CurrentEye.Rotation;
         var baseFacingAngle = _turret.GetVehicleFacingAngle(vehicle, vehicleRot);
         var anchorFacingAngle = GetRenderFacing(anchorTurret, anchorTurret, vehicleRot, baseFacingAngle, eyeRot);
         var anchorPixelOffset = _turret.GetPixelOffset(anchorTurret, anchorFacingAngle) / PixelsPerMeter;

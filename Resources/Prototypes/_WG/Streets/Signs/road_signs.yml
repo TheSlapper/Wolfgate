@@ -18,6 +18,8 @@
     state: roadsign_1
   - type: Anchorable
   - type: Clickable
+  - type: CameraShape
+    shape: Card
 
 - type: entity
   parent: RMCOverheadRoadsign

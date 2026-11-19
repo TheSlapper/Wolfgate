@@ -313,6 +313,8 @@
   - type: Sprite
     noRot: false
     sprite: _WG/DecorImport/Structures/Decoration/billboard_aurora.rsi
+  - type: CameraShape
+    shape: Card
   - type: Fixtures
     fixtures:
       fix1:

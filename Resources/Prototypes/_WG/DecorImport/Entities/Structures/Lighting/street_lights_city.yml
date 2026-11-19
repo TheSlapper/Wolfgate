@@ -616,6 +616,8 @@
   components:
   - type: Sprite
     state: traffic
+  - type: CameraShape
+    shape: Card
   - type: PointLight
     radius: 1.5
     energy: 0.5

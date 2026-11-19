@@ -445,7 +445,7 @@ public static class ExtrudeBuilder
     }
 
     /// <summary>Runs of opaque pixels in a row whose neighbour in the row above or below is clear.</summary>
-    private static void Runs(SpriteAnalysis a, int r, int dr, Action<int, int> add)
+    internal static void Runs(SpriteAnalysis a, int r, int dr, Action<int, int> add)
     {
         var start = -1;
         for (var c = a.X0; c <= a.X1; c++)
@@ -463,7 +463,7 @@ public static class ExtrudeBuilder
     }
 
     /// <summary>Runs of opaque pixels in a column whose neighbour to the left or right is clear.</summary>
-    private static void Columns(SpriteAnalysis a, int c, int dc, Action<int, int> add)
+    internal static void Columns(SpriteAnalysis a, int c, int dc, Action<int, int> add)
     {
         var start = -1;
         for (var r = a.Y0; r <= a.Y1; r++)
