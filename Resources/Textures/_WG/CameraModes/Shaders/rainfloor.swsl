@@ -1,0 +1,41 @@
+// Which floors are solid at each point of the first-person picture, for the weather to stop on. Red holds a bit for
+// the player's own floor and one for each of the nearest seven levels below, green the eighth level.
+light_mode unshaded;
+
+uniform sampler2D MASK_TEXTURE;
+uniform sampler2D LOWER_TEX0;
+uniform sampler2D LOWER_TEX1;
+uniform sampler2D LOWER_TEX2;
+uniform sampler2D LOWER_TEX3;
+uniform sampler2D LOWER_TEX4;
+uniform sampler2D LOWER_TEX5;
+uniform sampler2D LOWER_TEX6;
+uniform sampler2D LOWER_TEX7;
+uniform highp float LOWER_COUNT;
+uniform highp vec2 SIZE;
+
+highp float solid(sampler2D tex, highp vec2 uv) {
+    return texture2D(tex, uv).a > 0.5 ? 1.0 : 0.0;
+}
+
+void fragment() {
+    highp vec2 uv = FRAGCOORD.xy / SIZE;
+    highp float bits = texture2D(MASK_TEXTURE, uv).r > 0.5 ? 1.0 : 0.0;
+    if (LOWER_COUNT > 0.5)
+        bits += 2.0 * solid(LOWER_TEX0, uv);
+    if (LOWER_COUNT > 1.5)
+        bits += 4.0 * solid(LOWER_TEX1, uv);
+    if (LOWER_COUNT > 2.5)
+        bits += 8.0 * solid(LOWER_TEX2, uv);
+    if (LOWER_COUNT > 3.5)
+        bits += 16.0 * solid(LOWER_TEX3, uv);
+    if (LOWER_COUNT > 4.5)
+        bits += 32.0 * solid(LOWER_TEX4, uv);
+    if (LOWER_COUNT > 5.5)
+        bits += 64.0 * solid(LOWER_TEX5, uv);
+    if (LOWER_COUNT > 6.5)
+        bits += 128.0 * solid(LOWER_TEX6, uv);
+
+    highp float last = LOWER_COUNT > 7.5 ? solid(LOWER_TEX7, uv) : 0.0;
+    COLOR = vec4(bits / 255.0, last, 0.0, 1.0);
+}

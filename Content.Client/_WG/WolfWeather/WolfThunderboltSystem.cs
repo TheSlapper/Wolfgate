@@ -51,7 +51,9 @@ public sealed class WolfThunderboltSystem : EntitySystem
             return null;
 
         var xform = Transform(player);
-        if (xform.MapUid != map || xform.GridUid is not { } gridUid || !TryComp<MapGridComponent>(gridUid, out var grid))
+        if (xform.MapUid is not { } own
+            || own != map && (!_wolfWeather.TryGetWeatherMap(own, out var weather) || weather.Owner != map)
+            || xform.GridUid is not { } gridUid || !TryComp<MapGridComponent>(gridUid, out var grid))
             return null;
 
         TryComp<RoofComponent>(gridUid, out var roof);

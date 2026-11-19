@@ -9,9 +9,11 @@ Planets: WolfWeather is how planet weather looks, sounds, blows and strikes. `WG
 the stock `weather` prototypes, which name the weather for the timepiece, reports and admin panel; each world's
 `wgPlanetWeather` maps them to wolfWeathers with `wolfWeathers`, and the ground layer gets that state, open-ended so
 each storm phase cross-fades into the next. A map with WolfWeather state never draws the stock overlay or plays its
-loop. Weather falls on a surface only (`IsSurface`): caverns, cellars, the air above and the orbit get none, and
-`SetWeather` refuses them. A viewer below the ground sees none even with the ground drawn above them. On a planet roofs decide what is open, and a vessel is under
-cover throughout, as for stock weather.
+loop. Weather is set on a surface only (`IsSurface`): caverns, cellars and the orbit get none, and `SetWeather`
+refuses the rest. A story above a surface takes the surface's weather (`TryGetWeatherMap` walks down to it, stopping
+at a cloud layer): rain, sound, light tint, flashes, lightning, wind and wetness all reach its open roofs, and a level
+below shows its rain through the holes in the one above. A viewer below the ground sees none even with the ground drawn
+above them. On a planet roofs decide what is open, and a vessel is under cover throughout, as for stock weather.
 
 Elsewhere admins use `wolfweather <map> <weather|clear> [seconds]` and `wolfweather_schedule` (Fun flag). A schedule
 (`WeatherSchedule` component, `weatherSchedule` prototypes such as `WGTemperate`) rolls weather on a map that isn't a
@@ -49,6 +51,7 @@ Entry points: `SharedWolfWeatherSystem.SetWeather`, `WGPlanetWeatherSystem.Resol
 
 - [`Content.Shared/_WG/WolfWeather/SharedWolfWeatherSystem.cs`](../../../Content.Shared/_WG/WolfWeather/SharedWolfWeatherSystem.cs)
 - [`Content.Shared/_WG/WolfWeather/SharedWolfWeatherSystem.Interiors.cs`](../../../Content.Shared/_WG/WolfWeather/SharedWolfWeatherSystem.Interiors.cs)
+- [`Content.Shared/_WG/WolfWeather/SharedWolfWeatherSystem.Levels.cs`](../../../Content.Shared/_WG/WolfWeather/SharedWolfWeatherSystem.Levels.cs)
 - [`Content.Shared/_WG/WolfWeather/SharedWolfWeatherSystem.Surface.cs`](../../../Content.Shared/_WG/WolfWeather/SharedWolfWeatherSystem.Surface.cs)
 - [`Content.Shared/_WG/WolfWeather/WeatherScheduleComponent.cs`](../../../Content.Shared/_WG/WolfWeather/WeatherScheduleComponent.cs)
 - [`Content.Shared/_WG/WolfWeather/WeatherSchedulePrototype.cs`](../../../Content.Shared/_WG/WolfWeather/WeatherSchedulePrototype.cs)

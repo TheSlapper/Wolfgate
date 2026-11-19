@@ -1,0 +1,707 @@
+meta:
+  format: 7
+  category: Map
+  engineVersion: 291.0.4
+  forkId: ""
+  forkVersion: ""
+  time: 11/19/2026 13:21:08
+  entityCount: 75
+maps:
+- 1
+grids:
+- 2
+- 3
+- 20
+orphans: []
+nullspace: []
+tilemap:
+  1: Space
+  3: AuroraFloorExoplanetRoofingTiles
+  2: FloorSteel
+  0: Plating
+entities:
+- proto: ""
+  entities:
+  - uid: 1
+    components:
+    - type: MetaData
+      name: Mapping WGZLevelCameraTest [6]
+    - type: Transform
+    - type: Map
+    - type: GridTree
+    - type: Broadphase
+    - type: OccluderTree
+    - type: Gravity
+      inherent: True
+      gravityShakeSound: !type:SoundPathSpecifier
+        path: /Audio/Effects/alert.ogg
+      enabled: True
+    - type: ChunkContainer
+      chunkEntities: []
+  - uid: 2
+    components:
+    - type: MetaData
+      name: grid
+    - type: Transform
+      parent: 1
+      pos: 46,3
+    - type: WGPlanetCityGrid
+    - type: MapGrid
+      chunks:
+        0,0:
+          ind: 0,0
+          tiles: AwAAAAAAAAMAAAAAAAADAAAAAAAAAwAAAAAAAAMAAAAAAAADAAAAAAAAAwAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAMAAAAAAAADAAAAAAAAAwAAAAAAAAMAAAAAAAADAAAAAAAAAwAAAAAAAAMAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAADAAAAAAAAAwAAAAAAAAMAAAAAAAADAAAAAAAAAwAAAAAAAAMAAAAAAAADAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAwAAAAAAAAMAAAAAAAADAAAAAAAAAwAAAAAAAAMAAAAAAAADAAAAAAAAAwAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAMAAAAAAAADAAAAAAAAAwAAAAAAAAMAAAAAAAADAAAAAAAAAwAAAAAAAAMAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAA==
+          version: 7
+    - type: Broadphase
+    - type: Physics
+      linearDamping: 3
+      fixedRotation: False
+      bodyType: Dynamic
+    - type: Fixtures
+      fixtures: {}
+    - type: GridSplitNode
+    - type: ChunkContainer
+      chunkEntities: []
+    - type: OccluderTree
+    - type: ThermalSignature
+    - type: Shuttle
+      dampingModifier: 0.25
+    - type: GridPathfinding
+    - type: Gravity
+      gravityShakeSound: !type:SoundPathSpecifier
+        path: /Audio/Effects/alert.ogg
+    - type: DecalGrid
+      chunkCollection:
+        version: 2
+        nodes: []
+    - type: CEZPhysics
+      currentZLevel: 6
+    - type: GridAtmosphere
+      version: 2
+      data:
+        uniqueMixes:
+        - temperature: 293.15
+          volume: 2500
+          moles:
+            Oxygen: 21.824879
+            Nitrogen: 82.10312
+        - temperature: 293.15
+          volume: 2500
+          moles:
+            Oxygen: 21.824879
+            Nitrogen: 82.10312
+          immutable: True
+        tiles:
+          0,0:
+            0: 65535
+          0,1:
+            0: 15
+            1: 240
+          1,0:
+            0: 30583
+            1: 34952
+          1,1:
+            0: 7
+            1: 120
+          0,-1:
+            1: 61440
+          -1,0:
+            1: 34952
+          -1,1:
+            1: 8
+          1,-1:
+            1: 28672
+        chunkSize: 4
+    - type: GasTileOverlay
+    - type: Roof
+      data: {}
+  - uid: 3
+    components:
+    - type: MetaData
+      name: grid
+    - type: Transform
+      parent: 1
+      pos: 28,3
+    - type: WGPlanetCityGrid
+    - type: MapGrid
+      chunks:
+        0,0:
+          ind: 0,0
+          tiles: AgAAAAACAAIAAAAAAwACAAAAAAMAAgAAAAABAAIAAAAAAQABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAIAAAAAAwACAAAAAAIAAgAAAAABAAIAAAAAAwACAAAAAAEAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAACAAAAAAAAAgAAAAADAAIAAAAAAgACAAAAAAEAAgAAAAACAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAgAAAAAAAAIAAAAAAQACAAAAAAIAAgAAAAABAAIAAAAAAwABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAIAAAAAAAACAAAAAAAAAgAAAAAAAAIAAAAAAAACAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAA==
+          version: 7
+    - type: Broadphase
+    - type: Physics
+      linearDamping: 3
+      fixedRotation: False
+      bodyType: Dynamic
+    - type: Fixtures
+      fixtures: {}
+    - type: GridSplitNode
+    - type: ChunkContainer
+      chunkEntities: []
+    - type: OccluderTree
+    - type: ThermalSignature
+    - type: Shuttle
+      dampingModifier: 0.25
+    - type: GridPathfinding
+    - type: Gravity
+      gravityShakeSound: !type:SoundPathSpecifier
+        path: /Audio/Effects/alert.ogg
+    - type: DecalGrid
+      chunkCollection:
+        version: 2
+        nodes: []
+    - type: CEZPhysics
+      currentZLevel: 6
+    - type: GridAtmosphere
+      version: 2
+      data:
+        uniqueMixes:
+        - temperature: 293.15
+          volume: 2500
+          moles:
+            Oxygen: 21.824879
+            Nitrogen: 82.10312
+        - temperature: 293.15
+          volume: 2500
+          moles:
+            Oxygen: 21.824879
+            Nitrogen: 82.10312
+          immutable: True
+        tiles:
+          0,0:
+            0: 61152
+          0,-1:
+            1: 61440
+          -1,0:
+            1: 34952
+          0,1:
+            1: 240
+          -1,1:
+            1: 8
+          1,-1:
+            1: 4096
+          1,0:
+            1: 8738
+          1,1:
+            1: 18
+        chunkSize: 4
+    - type: GasTileOverlay
+    - type: RadiationGridResistance
+    - type: ExplosionAirtightGrid
+    - type: Roof
+      data:
+        0,0: 133666119455
+  - uid: 20
+    components:
+    - type: MetaData
+      name: grid
+    - type: Transform
+      parent: 1
+      pos: 56,3
+    - type: WGPlanetCityGrid
+    - type: MapGrid
+      chunks:
+        0,0:
+          ind: 0,0
+          tiles: AgAAAAADAAIAAAAAAgACAAAAAAIAAgAAAAAAAAIAAAAAAAACAAAAAAMAAgAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAIAAAAAAQACAAAAAAIAAgAAAAABAAIAAAAAAwACAAAAAAAAAgAAAAACAAIAAAAAAgABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAACAAAAAAMAAgAAAAACAAIAAAAAAAACAAAAAAMAAgAAAAAAAAIAAAAAAwACAAAAAAMAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAgAAAAAAAAIAAAAAAAACAAAAAAIAAgAAAAADAAIAAAAAAwACAAAAAAEAAgAAAAABAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAIAAAAAAwACAAAAAAEAAgAAAAAAAAIAAAAAAAACAAAAAAAAAgAAAAADAAIAAAAAAQABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAACAAAAAAMAAgAAAAAAAAIAAAAAAQACAAAAAAMAAgAAAAACAAIAAAAAAgACAAAAAAIAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAgAAAAAAAAIAAAAAAQACAAAAAAMAAgAAAAADAAIAAAAAAgACAAAAAAAAAgAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAAABAAAAAAAAAQAAAAAAAA==
+          version: 7
+    - type: Broadphase
+    - type: Physics
+      linearDamping: 3
+      fixedRotation: False
+      bodyType: Dynamic
+    - type: Fixtures
+      fixtures: {}
+    - type: GridSplitNode
+    - type: ChunkContainer
+      chunkEntities: []
+    - type: OccluderTree
+    - type: ThermalSignature
+    - type: Shuttle
+      dampingModifier: 0.25
+    - type: GridPathfinding
+    - type: Gravity
+      gravityShakeSound: !type:SoundPathSpecifier
+        path: /Audio/Effects/alert.ogg
+    - type: DecalGrid
+      chunkCollection:
+        version: 2
+        nodes: []
+    - type: CEZPhysics
+      currentZLevel: 6
+    - type: GridAtmosphere
+      version: 2
+      data:
+        uniqueMixes:
+        - temperature: 293.15
+          volume: 2500
+          moles:
+            Oxygen: 21.824879
+            Nitrogen: 82.10312
+        - temperature: 293.15
+          volume: 2500
+          moles:
+            Oxygen: 21.824879
+            Nitrogen: 82.10312
+          immutable: True
+        tiles:
+          0,0:
+            0: 8928
+          0,1:
+            0: 226
+            1: 61440
+          1,0:
+            0: 8752
+            1: 34952
+          1,1:
+            0: 50
+            1: 30856
+          0,-1:
+            1: 61440
+          -1,0:
+            1: 34952
+          -1,1:
+            1: 2184
+          1,-1:
+            1: 28672
+        chunkSize: 4
+    - type: GasTileOverlay
+    - type: ExplosionAirtightGrid
+    - type: RadiationGridResistance
+    - type: Roof
+      data:
+        0,0: 35887507618889599
+- proto: CoyoteHandrailYellow
+  entities:
+  - uid: 59
+    components:
+    - type: Transform
+      parent: 2
+      rot: 3.141592653589793 rad
+      pos: 0.5,4.5
+  - uid: 60
+    components:
+    - type: Transform
+      parent: 2
+      rot: 3.141592653589793 rad
+      pos: 1.5,4.5
+  - uid: 61
+    components:
+    - type: Transform
+      parent: 2
+      rot: 3.141592653589793 rad
+      pos: 2.5,4.5
+  - uid: 62
+    components:
+    - type: Transform
+      parent: 2
+      rot: 3.141592653589793 rad
+      pos: 3.5,4.5
+  - uid: 63
+    components:
+    - type: Transform
+      parent: 2
+      rot: 3.141592653589793 rad
+      pos: 4.5,4.5
+  - uid: 64
+    components:
+    - type: Transform
+      parent: 2
+      rot: 3.141592653589793 rad
+      pos: 5.5,4.5
+  - uid: 65
+    components:
+    - type: Transform
+      parent: 2
+      rot: 3.141592653589793 rad
+      pos: 6.5,4.5
+  - uid: 66
+    components:
+    - type: Transform
+      parent: 2
+      rot: -1.5707963267948966 rad
+      pos: 0.5,0.5
+  - uid: 67
+    components:
+    - type: Transform
+      parent: 2
+      rot: -1.5707963267948966 rad
+      pos: 0.5,1.5
+  - uid: 68
+    components:
+    - type: Transform
+      parent: 2
+      rot: -1.5707963267948966 rad
+      pos: 0.5,2.5
+  - uid: 69
+    components:
+    - type: Transform
+      parent: 2
+      rot: -1.5707963267948966 rad
+      pos: 0.5,3.5
+  - uid: 70
+    components:
+    - type: Transform
+      parent: 2
+      rot: -1.5707963267948966 rad
+      pos: 0.5,4.5
+  - uid: 71
+    components:
+    - type: Transform
+      parent: 2
+      rot: 1.5707963267948966 rad
+      pos: 6.5,0.5
+  - uid: 72
+    components:
+    - type: Transform
+      parent: 2
+      rot: 1.5707963267948966 rad
+      pos: 6.5,1.5
+  - uid: 73
+    components:
+    - type: Transform
+      parent: 2
+      rot: 1.5707963267948966 rad
+      pos: 6.5,2.5
+  - uid: 74
+    components:
+    - type: Transform
+      parent: 2
+      rot: 1.5707963267948966 rad
+      pos: 6.5,3.5
+  - uid: 75
+    components:
+    - type: Transform
+      parent: 2
+      rot: 1.5707963267948966 rad
+      pos: 6.5,4.5
+- proto: DarkPackBillboardRedNews
+  entities:
+  - uid: 54
+    components:
+    - type: Transform
+      parent: 2
+      pos: 3.5,0.5
+- proto: DarkPackRoofVent
+  entities:
+  - uid: 56
+    components:
+    - type: Transform
+      parent: 2
+      pos: 5.5,3.5
+- proto: DarkPackRoofVentRound
+  entities:
+  - uid: 58
+    components:
+    - type: Transform
+      parent: 2
+      pos: 0.5,4.5
+- proto: DarkPackVampwallMetalAlt
+  entities:
+  - uid: 50
+    components:
+    - type: Transform
+      parent: 20
+      pos: 0.5,0.5
+  - uid: 51
+    components:
+    - type: Transform
+      parent: 20
+      pos: 0.5,6.5
+  - uid: 52
+    components:
+    - type: Transform
+      parent: 20
+      pos: 6.5,0.5
+  - uid: 53
+    components:
+    - type: Transform
+      parent: 20
+      pos: 6.5,6.5
+- proto: DarkPackVampwallMetalReinforced
+  entities:
+  - uid: 21
+    components:
+    - type: Transform
+      parent: 20
+      pos: 4.5,2.5
+  - uid: 27
+    components:
+    - type: Transform
+      parent: 20
+      pos: 3.5,4.5
+  - uid: 38
+    components:
+    - type: Transform
+      parent: 20
+      pos: 4.5,4.5
+  - uid: 44
+    components:
+    - type: Transform
+      parent: 20
+      pos: 2.5,2.5
+  - uid: 45
+    components:
+    - type: Transform
+      parent: 20
+      pos: 2.5,3.5
+  - uid: 46
+    components:
+    - type: Transform
+      parent: 20
+      pos: 3.5,3.5
+  - uid: 47
+    components:
+    - type: Transform
+      parent: 20
+      pos: 3.5,2.5
+  - uid: 48
+    components:
+    - type: Transform
+      parent: 20
+      pos: 4.5,3.5
+  - uid: 49
+    components:
+    - type: Transform
+      parent: 20
+      pos: 2.5,4.5
+- proto: RMCMachinePropBig4
+  entities:
+  - uid: 55
+    components:
+    - type: Transform
+      parent: 2
+      pos: 1.5,2.5
+- proto: WallSolid
+  entities:
+  - uid: 4
+    components:
+    - type: Transform
+      parent: 3
+      pos: 0.5,0.5
+  - uid: 5
+    components:
+    - type: Transform
+      parent: 3
+      pos: 1.5,0.5
+  - uid: 6
+    components:
+    - type: Transform
+      parent: 3
+      pos: 2.5,0.5
+  - uid: 7
+    components:
+    - type: Transform
+      parent: 3
+      pos: 3.5,0.5
+  - uid: 8
+    components:
+    - type: Transform
+      parent: 3
+      pos: 4.5,0.5
+  - uid: 9
+    components:
+    - type: Transform
+      parent: 3
+      pos: 0.5,1.5
+  - uid: 10
+    components:
+    - type: Transform
+      parent: 3
+      pos: 4.5,1.5
+  - uid: 11
+    components:
+    - type: Transform
+      parent: 3
+      pos: 0.5,2.5
+  - uid: 12
+    components:
+    - type: Transform
+      parent: 3
+      pos: 4.5,2.5
+  - uid: 13
+    components:
+    - type: Transform
+      parent: 3
+      pos: 0.5,3.5
+  - uid: 14
+    components:
+    - type: Transform
+      parent: 3
+      pos: 4.5,3.5
+  - uid: 15
+    components:
+    - type: Transform
+      parent: 3
+      pos: 0.5,4.5
+  - uid: 16
+    components:
+    - type: Transform
+      parent: 3
+      pos: 1.5,4.5
+  - uid: 17
+    components:
+    - type: Transform
+      parent: 3
+      pos: 2.5,4.5
+  - uid: 18
+    components:
+    - type: Transform
+      parent: 3
+      pos: 3.5,4.5
+  - uid: 19
+    components:
+    - type: Transform
+      parent: 3
+      pos: 4.5,4.5
+- proto: WGGreebleBigDish
+  entities:
+  - uid: 57
+    components:
+    - type: Transform
+      parent: 2
+      pos: 3.5,3.5
+- proto: Window
+  entities:
+  - uid: 22
+    components:
+    - type: Transform
+      parent: 20
+      pos: 1.5,0.5
+    - type: DeltaPressure
+      gridUid: 20
+  - uid: 23
+    components:
+    - type: Transform
+      parent: 20
+      pos: 2.5,0.5
+    - type: DeltaPressure
+      gridUid: 20
+  - uid: 24
+    components:
+    - type: Transform
+      parent: 20
+      pos: 3.5,0.5
+    - type: DeltaPressure
+      gridUid: 20
+  - uid: 25
+    components:
+    - type: Transform
+      parent: 20
+      pos: 4.5,0.5
+    - type: DeltaPressure
+      gridUid: 20
+  - uid: 26
+    components:
+    - type: Transform
+      parent: 20
+      pos: 5.5,0.5
+    - type: DeltaPressure
+      gridUid: 20
+  - uid: 28
+    components:
+    - type: Transform
+      parent: 20
+      pos: 0.5,1.5
+    - type: DeltaPressure
+      gridUid: 20
+  - uid: 29
+    components:
+    - type: Transform
+      parent: 20
+      pos: 6.5,1.5
+    - type: DeltaPressure
+      gridUid: 20
+  - uid: 30
+    components:
+    - type: Transform
+      parent: 20
+      pos: 0.5,2.5
+    - type: DeltaPressure
+      gridUid: 20
+  - uid: 31
+    components:
+    - type: Transform
+      parent: 20
+      pos: 6.5,2.5
+    - type: DeltaPressure
+      gridUid: 20
+  - uid: 32
+    components:
+    - type: Transform
+      parent: 20
+      pos: 0.5,3.5
+    - type: DeltaPressure
+      gridUid: 20
+  - uid: 33
+    components:
+    - type: Transform
+      parent: 20
+      pos: 6.5,3.5
+    - type: DeltaPressure
+      gridUid: 20
+  - uid: 34
+    components:
+    - type: Transform
+      parent: 20
+      pos: 0.5,4.5
+    - type: DeltaPressure
+      gridUid: 20
+  - uid: 35
+    components:
+    - type: Transform
+      parent: 20
+      pos: 6.5,4.5
+    - type: DeltaPressure
+      gridUid: 20
+  - uid: 36
+    components:
+    - type: Transform
+      parent: 20
+      pos: 0.5,5.5
+    - type: DeltaPressure
+      gridUid: 20
+  - uid: 37
+    components:
+    - type: Transform
+      parent: 20
+      pos: 6.5,5.5
+    - type: DeltaPressure
+      gridUid: 20
+  - uid: 39
+    components:
+    - type: Transform
+      parent: 20
+      pos: 1.5,6.5
+    - type: DeltaPressure
+      gridUid: 20
+  - uid: 40
+    components:
+    - type: Transform
+      parent: 20
+      pos: 2.5,6.5
+    - type: DeltaPressure
+      gridUid: 20
+  - uid: 41
+    components:
+    - type: Transform
+      parent: 20
+      pos: 3.5,6.5
+    - type: DeltaPressure
+      gridUid: 20
+  - uid: 42
+    components:
+    - type: Transform
+      parent: 20
+      pos: 4.5,6.5
+    - type: DeltaPressure
+      gridUid: 20
+  - uid: 43
+    components:
+    - type: Transform
+      parent: 20
+      pos: 5.5,6.5
+    - type: DeltaPressure
+      gridUid: 20
+...

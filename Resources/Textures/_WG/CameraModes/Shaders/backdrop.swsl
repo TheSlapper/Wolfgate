@@ -1,0 +1,41 @@
+// The background the flat view draws under the world, redrawn so each mode shows it with the flat view's shape. Each
+// picture pixel takes the colour at the screen point that pixel ends up on: through the inverse of the perspective
+// warp, then with the view's axes made equal at the longer one's scale, so circles stay round and no point needs
+// more of the background than the picture holds. With no warp and equal axes it copies.
+light_mode unshaded;
+
+uniform sampler2D SCREEN_TEXTURE;
+// The eye in the picture, and one tile right and one tile up from it, in picture UV.
+uniform highp vec2 PIVOT;
+uniform highp vec2 AXIS_R;
+uniform highp vec2 AXIS_U;
+// The perspective warp, as in perspective.swsl. LAMBDA 0 and SIGMA 1 for none.
+uniform highp float LAMBDA;
+uniform highp float SIGMA;
+
+// The screen point a picture point lands on once the perspective warp has run.
+highp vec2 shown(highp vec2 uv, highp vec2 size) {
+    highp vec2 o = (uv - 0.5) * size;
+    return 0.5 + o / (1.0 + LAMBDA * o.y) * SIGMA / size;
+}
+
+void fragment() {
+    highp vec2 size = 1.0 / SCREEN_PIXEL_SIZE;
+    highp vec2 uv = FRAGCOORD.xy * SCREEN_PIXEL_SIZE;
+    highp vec2 d = (shown(uv, size) - shown(PIVOT, size)) * size;
+    highp vec2 a = AXIS_R * size;
+    highp vec2 b = AXIS_U * size;
+    highp float scale = max(length(a), length(b));
+    highp vec2 fa = normalize(a) * scale;
+    highp vec2 fb = normalize(b) * scale;
+    highp float det = fa.x * fb.y - fa.y * fb.x;
+    highp vec2 at = uv;
+    if (abs(det) > 0.000001) {
+        // The offset in tiles right and up on the even axes, then where the view put that point.
+        highp float r = (d.x * fb.y - d.y * fb.x) / det;
+        highp float u = (fa.x * d.y - fa.y * d.x) / det;
+        at = PIVOT + (a * r + b * u) / size;
+    }
+
+    COLOR = vec4(texture2D(SCREEN_TEXTURE, clamp(at, vec2(0.0), vec2(1.0))).rgb, 1.0);
+}

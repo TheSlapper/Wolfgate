@@ -131,10 +131,10 @@ public sealed partial class WolfWeatherSoundSystem : EntitySystem
         // Inside a vehicle the weather is the world around its hull, heard from indoors.
         var xform = Transform(player);
         var inVehicle = _wolfWeather.TryGetHull(player, out var hull);
-        if ((inVehicle ? Transform(hull).MapUid : xform.MapUid) is not { } mapUid
-            || !_wolfWeather.IsSurface(mapUid)
-            || !_weatherQuery.TryComp(mapUid, out var weather)
-            || !_proto.TryIndex(weather.Settings, out var settings))
+        // On a story the weather is the surface's below it.
+        if ((inVehicle ? Transform(hull).MapUid : xform.MapUid) is not { } skyMap
+            || !_wolfWeather.TryGetWeatherMap(skyMap, out var resolved)
+            || !_proto.TryIndex(resolved.Comp.Settings, out var settings))
         {
             _hasIndoor = false;
             return;
@@ -156,7 +156,7 @@ public sealed partial class WolfWeatherSoundSystem : EntitySystem
         _indoorMuffle = _indoor * settings.IndoorMuffle;
 
         var now = _timing.CurTime;
-        foreach (var entry in weather.Weathers)
+        foreach (var entry in resolved.Comp.Weathers)
         {
             if (!_proto.TryIndex(entry.Weather, out var proto))
                 continue;

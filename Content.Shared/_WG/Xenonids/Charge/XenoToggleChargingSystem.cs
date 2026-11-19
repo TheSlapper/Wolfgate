@@ -515,7 +515,7 @@ public sealed partial class XenoToggleChargingSystem : EntitySystem
 
         var parentRotation = _moverController.GetParentGridAngle(moverComp);
         var total = DirVecForButtons(button);
-        var wishDir = _relativeMovement ? parentRotation.RotateVec(total) : total;
+        var wishDir = _moverController.CameraModeWish(mover, _relativeMovement ? parentRotation.RotateVec(total) : total);
         return wishDir.GetDir().AsFlag();
     }
 

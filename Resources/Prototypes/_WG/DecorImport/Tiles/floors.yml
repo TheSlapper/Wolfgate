@@ -1856,6 +1856,7 @@
   sprite: /Textures/_WG/DecorImport/Tiles/bubber/catwalk_floor_wood_smooth.png
   baseTurf: Plating
   isSubfloor: false
+  transparent: true
   deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepWood
@@ -5193,6 +5194,7 @@
   sprite: /Textures/_WG/DecorImport/Tiles/skyrat/catwalk_floor_iron.png
   baseTurf: Plating
   isSubfloor: false
+  transparent: true
   deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepFloor
@@ -5205,6 +5207,7 @@
   sprite: /Textures/_WG/DecorImport/Tiles/skyrat/catwalk_floor_iron_dark.png
   baseTurf: Plating
   isSubfloor: false
+  transparent: true
   deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepFloor
@@ -5217,6 +5220,7 @@
   sprite: /Textures/_WG/DecorImport/Tiles/skyrat/catwalk_floor_iron_white.png
   baseTurf: Plating
   isSubfloor: false
+  transparent: true
   deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepFloor
@@ -5253,6 +5257,7 @@
   sprite: /Textures/_WG/DecorImport/Tiles/skyrat/floor_catwalk_floor.png
   baseTurf: Plating
   isSubfloor: false
+  transparent: true
   deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepFloor
@@ -5656,6 +5661,7 @@
   sprite: /Textures/_WG/DecorImport/Tiles/yogstation/catwalk_floor_titanium.png
   baseTurf: Plating
   isSubfloor: false
+  transparent: true
   deconstructTools: [ Prying ]
   footstepSounds:
     collection: FootstepFloor

@@ -29,7 +29,6 @@ public sealed partial class WindPushSystem : EntitySystem
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private SharedItemSystem _item = default!;
     [Dependency] private WolfWeatherSystem _wolfWeather = default!;
-    [Dependency] private EntityQuery<WolfWeatherMapComponent> _weatherQuery = default!;
     [Dependency] private EntityQuery<PhysicsComponent> _physicsQuery = default!;
     [Dependency] private EntityQuery<MapGridComponent> _gridQuery = default!;
     [Dependency] private EntityQuery<RoofComponent> _roofQuery = default!;
@@ -63,8 +62,10 @@ public sealed partial class WindPushSystem : EntitySystem
         var actors = EntityQueryEnumerator<ActorComponent, TransformComponent>();
         while (actors.MoveNext(out _, out _, out var xform))
         {
-            if (xform.MapUid is not { } mapUid || !_weatherQuery.TryComp(mapUid, out var weather))
+            if (xform.MapUid is not { } own || !_wolfWeather.TryGetWeatherMap(own, out var resolved))
                 continue;
+
+            var (mapUid, weather) = resolved;
 
             if (settingsMap != mapUid)
             {

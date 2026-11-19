@@ -63,6 +63,9 @@ public sealed class WGTileGlowOverlay : Overlay
         _map.FindGridsIntersecting(args.MapId, args.WorldAABB, ref _grids, approx: true);
         foreach (var grid in _grids)
         {
+            if (!_glows.HasGlowTiles(grid.Owner))
+                continue;
+
             handle.SetTransform(_transform.GetWorldMatrix(grid.Owner));
             var tiles = _map.GetTilesIntersecting(grid.Owner, grid, args.WorldAABB);
             while (tiles.MoveNext(out var tileRef))
@@ -90,6 +93,12 @@ public sealed class WGTileGlowOverlay : Overlay
         var bounds = lightOverlay.EnlargedBounds;
         _grids.Clear();
         _map.FindGridsIntersecting(args.MapId, bounds, ref _grids, approx: true);
+        for (var i = _grids.Count - 1; i >= 0; i--)
+        {
+            if (!_glows.HasGlowTiles(_grids[i].Owner))
+                _grids.RemoveAt(i);
+        }
+
         if (_grids.Count == 0)
             return;
 

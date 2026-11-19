@@ -156,6 +156,7 @@ public abstract partial class SharedWolfWeatherSystem : EntitySystem
                       || planet == null && !((ContentTileDefinition) _tileDefs[tile.Tile.TypeId]).Weather
                       || grid.Comp2 != null && InRoofMask(grid.Comp2, tile.GridIndices);
         var coveredPastDiagonals = covered;
+        var sky = !covered;
         var result = WolfWeatherTile.None;
 
         var anchored = _map.GetAnchoredEntities(grid.Owner, grid.Comp1, tile.GridIndices);
@@ -169,6 +170,9 @@ public abstract partial class SharedWolfWeatherSystem : EntitySystem
             if (blocker)
                 result |= WolfWeatherTile.Blocker;
 
+            if (roof)
+                sky = false;
+
             covered = true;
             if (!_tag.HasTag(ent.Value, DiagonalTag))
                 coveredPastDiagonals = true;
@@ -179,6 +183,9 @@ public abstract partial class SharedWolfWeatherSystem : EntitySystem
 
         if (!coveredPastDiagonals)
             result |= WolfWeatherTile.ExposedPastDiagonals;
+
+        if (sky)
+            result |= WolfWeatherTile.OpenSky;
 
         return result;
     }
@@ -216,4 +223,7 @@ public enum WolfWeatherTile : byte
 
     /// <summary>A wall, window, door or other weather blocker is anchored on the tile.</summary>
     Blocker = 4,
+
+    /// <summary>Nothing but its blockers covers the tile: no roof, vessel or indoor floor is over it.</summary>
+    OpenSky = 8,
 }

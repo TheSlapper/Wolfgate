@@ -105,11 +105,16 @@ highp float splash(highp vec2 cell, highp vec2 f, highp float h) {
 }
 
 // The mask is blurred ahead of time. Red is cover that fades softly, green is walls that cut almost hard, blue is open
-// ground. Splashes invert the open ground, so they fade out where the ground stops.
+// ground, and half blue a wall under open sky, which rain falls in front of. Splashes invert the open ground, so they
+// fade out where the ground stops. Over a level with holes, rain falls only on its open ground and walls.
 highp float cover(highp vec2 pos) {
+    // The 2.5D views' picture of the rain for walls takes no cover.
+    if (invert > 2.5)
+        return 0.0;
+
     highp vec2 uv = pos / maskSize;
     highp vec3 m = texture(mask, uv).rgb;
-    highp float soft = invert > 0.5 ? 1.0 - m.b : m.r;
+    highp float soft = invert > 1.5 ? 1.0 - clamp(m.b * 2.0, 0.0, 1.0) : invert > 0.5 ? 1.0 - m.b : m.r;
     return max(soft, m.g);
 }
 

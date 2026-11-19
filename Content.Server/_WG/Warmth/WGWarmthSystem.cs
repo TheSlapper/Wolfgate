@@ -207,7 +207,8 @@ public sealed partial class WGWarmthSystem : SharedWGWarmthSystem
     {
         wetting = 0f;
         wind = 0f;
-        if (!TryComp(xform.MapUid, out WolfWeatherMapComponent? weather) ||
+        if (xform.MapUid is not { } map ||
+            !_wolfWeather.TryGetWeatherMap(map, out var resolved) ||
             _container.IsEntityOrParentInContainer(body) ||
             xform.GridUid is not { } gridUid ||
             !TryComp(gridUid, out MapGridComponent? grid))
@@ -218,6 +219,7 @@ public sealed partial class WGWarmthSystem : SharedWGWarmthSystem
             return false;
 
         var now = _timing.CurTime;
+        var weather = resolved.Comp;
         var weathers = weather.Weathers;
         var mapWind = weather.Wind;
         foreach (var entry in weathers)

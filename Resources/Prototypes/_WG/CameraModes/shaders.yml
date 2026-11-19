@@ -1,0 +1,44 @@
+- type: shader
+  id: WGCameraModeMesh
+  kind: source
+  path: "/Textures/_WG/CameraModes/Shaders/mesh.swsl"
+
+- type: shader
+  id: WGCameraModeClear
+  kind: source
+  path: "/Textures/_WG/CameraModes/Shaders/clear.swsl"
+
+- type: shader
+  id: WGCameraModeFade
+  kind: source
+  path: "/Textures/_WG/CameraModes/Shaders/fade.swsl"
+
+- type: shader
+  id: WGCameraModePerspective
+  kind: source
+  path: "/Textures/_WG/CameraModes/Shaders/perspective.swsl"
+
+- type: shader
+  id: WGCameraModeBackdrop
+  kind: source
+  path: "/Textures/_WG/CameraModes/Shaders/backdrop.swsl"
+
+- type: shader
+  id: WGCameraModeFirstPerson
+  kind: source
+  path: "/Textures/_WG/CameraModes/Shaders/firstperson.swsl"
+
+- type: shader
+  id: WGCameraModeWeather
+  kind: source
+  path: "/Textures/_WG/CameraModes/Shaders/weather3d.swsl"
+
+- type: shader
+  id: WGCameraModeRainFloor
+  kind: source
+  path: "/Textures/_WG/CameraModes/Shaders/rainfloor.swsl"
+
+- type: shader
+  id: WGCameraModeFogField
+  kind: source
+  path: "/Textures/_WG/CameraModes/Shaders/fogfield.swsl"

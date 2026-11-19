@@ -1,0 +1,14 @@
+- type: entity
+  id: WGActionMouselook
+  name: Mouselook
+  description: Switches the mouse between its normal use and turning your view.
+  components:
+  - type: InstantAction
+    clientExclusive: true
+    checkCanInteract: false
+    checkConsciousness: false
+    temporary: true
+    icon:
+      sprite: _CE/Actions/zLevels.rsi
+      state: eye
+    event: !type:WGMouselookActionEvent

@@ -23,6 +23,14 @@
                 <ui:OptionSlider Name="HeatHazeStrengthSlider" Title="{Loc 'ui-options-wg-heat-haze-strength'}" />
                 <CheckBox Name="ShockwaveCheckBox" Text="{Loc 'ui-options-wg-shockwave'}" />
                 <ui:OptionSlider Name="ShockwaveStrengthSlider" Title="{Loc 'ui-options-wg-shockwave-strength'}" />
+                <Label Text="{Loc 'ui-options-wg-graphics'}" StyleClasses="LabelKeyText"/>
+                <CheckBox Name="CameraPerspectiveCheckBox" Text="{Loc 'ui-options-wg-camera-perspective'}" />
+                <CheckBox Name="CameraIsometricCheckBox" Text="{Loc 'ui-options-wg-camera-isometric'}" />
+                <CheckBox Name="CameraFirstPersonCheckBox" Text="{Loc 'ui-options-wg-camera-first-person'}" />
+                <ui:OptionSlider Name="CameraFovSlider" Title="{Loc 'ui-options-wg-camera-fov'}" />
+                <ui:OptionSlider Name="CameraLookSensitivitySlider" Title="{Loc 'ui-options-wg-camera-look-sensitivity'}" />
+                <CheckBox Name="CameraRetroCheckBox" Text="{Loc 'ui-options-wg-camera-retro'}" />
+                <CheckBox Name="CameraBillboardsCheckBox" Text="{Loc 'ui-options-wg-camera-billboards'}" />
                 <Label Text="{Loc 'ui-options-wg-medical'}" StyleClasses="LabelKeyText"/>
                 <CheckBox Name="CritHeartbeatCheckBox" Text="{Loc 'ui-options-wg-crit-heartbeat'}" />
                 <CheckBox Name="DyingEffectsCheckBox" Text="{Loc 'ui-options-wg-dying-effects'}" />

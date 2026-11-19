@@ -1,0 +1,7 @@
+// Empties an atlas cell before a sprite is drawn into it.
+light_mode unshaded;
+blend_mode none;
+
+void fragment() {
+    COLOR = vec4(0.0);
+}

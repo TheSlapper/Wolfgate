@@ -3,11 +3,15 @@ using System.Runtime.InteropServices;
 using Content.Client.Graphics;
 using Content.Client.Viewport;
 using Content.Client.Parallax;
+using Content.Client._WG.CameraModes;
+using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._WG.WolfWeather;
 using Content.Shared.Light.Components;
+using Content.Shared.Maps;
 using Content.Shared.Tag;
 using Content.Shared.Weather;
 using Robust.Client.Graphics;
+using Robust.Client.Player;
 using Robust.Shared.Enums;
 using Robust.Shared.Graphics;
 using Robust.Shared.Map;
@@ -40,6 +44,12 @@ public sealed partial class WolfWeatherOverlay : Overlay
 
     private const int MaxMaskSize = 768;
 
+    /// <summary>A level below draws its mask at this share of the view's own density.</summary>
+    private const float LowerMaskShare = 0.5f;
+
+    /// <summary>How long a viewport keeps a mask it has stopped drawing, for a level that drops out of view for a moment.</summary>
+    private static readonly TimeSpan MaskKeep = TimeSpan.FromSeconds(2);
+
     /// <summary>Tiles drawn into the mask past the view's edge, snapped so small camera moves keep the mask.</summary>
     private const float MaskMargin = 4f;
 
@@ -54,14 +64,20 @@ public sealed partial class WolfWeatherOverlay : Overlay
     private static readonly Color Soft = new(1f, 0f, 0f);
     private static readonly Color Hard = new(0f, 1f, 0f);
     private static readonly Color Open = new(0f, 0f, 1f);
+
+    /// <summary>A wall under open sky or on a building's edge: rain falls in front of it, but no splash lands on it.</summary>
+    private static readonly Color OpenWall = new(0f, 0f, 0.5f);
     private static readonly Color ClearColor = new(0f, 0f, 0f, 0f);
 
     [Dependency] private IClyde _clyde = default!;
     [Dependency] private IEntityManager _entManager = default!;
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private ITileDefinitionManager _tileDefs = default!;
+    [Dependency] private IPlayerManager _player = default!;
 
     private readonly WolfWeatherSystem _wolfWeather;
+    private readonly CameraModesSystem _camera;
     private readonly EntityLookupSystem _lookup;
     private readonly SharedMapSystem _map;
     private readonly SharedTransformSystem _xform;
@@ -69,15 +85,20 @@ public sealed partial class WolfWeatherOverlay : Overlay
     private readonly EntityQuery<BlockWeatherComponent> _blockQuery;
     private readonly EntityQuery<RoofComponent> _roofQuery;
     private readonly EntityQuery<TransformComponent> _xformQuery;
-    private readonly EntityQuery<WolfWeatherMapComponent> _weatherQuery;
-    private readonly OverlayResourceCache<MaskTargets> _masks = new();
+    private readonly OverlayResourceCache<MaskSet> _masks = new();
     private readonly List<Vector2i> _diagonalTiles = new();
     private readonly List<Vector2> _wallHalves = new();
     private readonly List<WorldRect> _rects = new();
     private List<Entity<MapGridComponent>> _grids = new();
-    private readonly Dictionary<(ProtoId<WolfWeatherPrototype>, TimeSpan, int), ShaderInstance> _shaders = new();
-    private readonly HashSet<(ProtoId<WolfWeatherPrototype>, TimeSpan, int)> _usedShaders = new();
-    private readonly List<(ProtoId<WolfWeatherPrototype>, TimeSpan, int)> _unusedShaders = new();
+    private readonly Dictionary<ShaderKey, ShaderInstance> _shaders = new();
+    private readonly HashSet<ShaderKey> _usedShaders = new();
+    private readonly List<ShaderKey> _unusedShaders = new();
+    private readonly List<MapId> _staleMasks = new();
+    private readonly EntityQuery<CEZTransitMapComponent> _transitQuery;
+    private uint _frame = uint.MaxValue;
+
+    /// <summary>Whether a level below has already redrawn its mask this frame. One a frame keeps the cost even.</summary>
+    private bool _lowerRebuilt;
     private readonly ShaderInstance _blurH;
     private readonly ShaderInstance _blurV;
     private readonly ShaderInstance _unshaded;
@@ -87,6 +108,21 @@ public sealed partial class WolfWeatherOverlay : Overlay
     private Matrix3x2 _maskMatrix;
     private MapId _maskMapId;
     private Box2 _maskRect;
+    private bool _maskHoles;
+    private Box2? _maskOpen;
+
+    private IRenderTexture? _rainPicture;
+    private readonly List<IRenderTexture> _retired = new();
+    private readonly Action _drawPicture;
+    private DrawingHandleWorld _pictureHandle = default!;
+    private MapId _pictureMap;
+    private Box2 _pictureBounds;
+    private WolfWeatherMapComponent _pictureWeather = default!;
+    private WolfWeatherMapState _pictureState = default!;
+    private MaskEntry _pictureMask = default!;
+    private TimeSpan _pictureNow;
+    private float _pictureTime;
+    private Matrix3x2 _pictureMatrix;
 
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
 
@@ -95,6 +131,7 @@ public sealed partial class WolfWeatherOverlay : Overlay
         IoCManager.InjectDependencies(this);
         ZIndex = ParallaxSystem.ParallaxZIndex + 2;
         _wolfWeather = _entManager.System<WolfWeatherSystem>();
+        _camera = _entManager.System<CameraModesSystem>();
         _lookup = _entManager.System<EntityLookupSystem>();
         _map = _entManager.System<SharedMapSystem>();
         _xform = _entManager.System<SharedTransformSystem>();
@@ -102,16 +139,24 @@ public sealed partial class WolfWeatherOverlay : Overlay
         _blockQuery = _entManager.GetEntityQuery<BlockWeatherComponent>();
         _roofQuery = _entManager.GetEntityQuery<RoofComponent>();
         _xformQuery = _entManager.GetEntityQuery<TransformComponent>();
-        _weatherQuery = _entManager.GetEntityQuery<WolfWeatherMapComponent>();
+        _transitQuery = _entManager.GetEntityQuery<CEZTransitMapComponent>();
         _blurH = _proto.Index(BlurShader).InstanceUnique();
         _blurV = _proto.Index(BlurShader).InstanceUnique();
         _unshaded = _proto.Index(UnshadedShader).Instance();
         _drawMask = DrawMask;
+        _drawPicture = DrawPicture;
     }
 
     protected override void DisposeBehavior()
     {
         _masks.Dispose();
+        _rainPicture?.Dispose();
+        foreach (var target in _retired)
+        {
+            target.Dispose();
+        }
+
+        _retired.Clear();
         foreach (var shader in _shaders.Values)
         {
             shader.Dispose();
@@ -125,35 +170,125 @@ public sealed partial class WolfWeatherOverlay : Overlay
 
     protected override void Draw(in OverlayDrawArgs args)
     {
-        // Only the view's own level: the ground seen from a cavern below it is drawn in a pass of its own, with no rain.
-        if (_wolfWeather.Quality <= 0 || args.MapId == MapId.Nullspace || args.Viewport.Eye is ScalingViewport.ZEye { Primary: false })
+        if (_wolfWeather.Quality <= 0 || args.MapId == MapId.Nullspace)
             return;
 
+        // A level below the view gets its weather in its own pass, under that level's blur, but only the weather the
+        // viewer stands under: never the ground seen from a cavern, never a level above.
         var mapUid = _map.GetMapOrInvalid(args.MapId);
-        if (!_wolfWeather.IsSurface(mapUid)
-            || !_weatherQuery.TryComp(mapUid, out var weather)
-            || weather.Weathers.Count == 0
-            || !_wolfWeather.TryGetState(mapUid, out var state))
+        var zEye = args.Viewport.Eye as ScalingViewport.ZEye;
+        var lower = zEye is { Primary: false };
+        if (lower && (zEye!.Depth >= 0f || _transitQuery.HasComp(mapUid)))
             return;
 
-        var mask = GetMask(args);
+        if (!_wolfWeather.TryGetWeatherMap(mapUid, out var resolved)
+            || resolved.Comp.Weathers.Count == 0
+            || !_wolfWeather.TryGetState(resolved.Owner, out var state))
+            return;
+
+        if (lower && (_player.LocalEntity is not { } viewer
+                      || !_wolfWeather.TryGetSkyWeather(viewer, out var sky) || sky.Owner != resolved.Owner))
+            return;
+
+        NextFrame();
+
+        // On a story a gap shows the level below, which has the rain falling through it, so the gap stays dry here.
+        var holes = mapUid != resolved.Owner;
+        var mask = GetMask(args, holes, lower);
         var handle = args.WorldHandle;
         handle.SetTransform(Matrix3x2.Identity);
 
         var now = _timing.CurTime;
         var time = (float) (_timing.RealTime.TotalSeconds % SplashPeriod);
-        _usedShaders.Clear();
+        var bounds = holes && mask.Open is { } open ? args.WorldAABB.Intersect(open.Enlarged(1f)) : args.WorldAABB;
+        if (bounds.IsEmpty())
+            return;
 
-        DrawWeathers(args, weather, state, mask, now, time, false);
+        // First person stands the falling layers up in front of the eye itself, down through the levels below too.
+        // Splashes stay on the ground here.
+        var firstPerson = _camera.FirstPerson;
+        if (firstPerson && _camera.IsMainPass(args))
+            _wolfWeather.SetViewMask(mask.Blurred!.Texture, mask.Rect, args.MapId);
+        else if (!firstPerson)
+            DrawWeathers(handle, args.MapId, resolved.Comp, state, mask, bounds, now, time, false, holes, lower);
+
+        // The 2.5D views stand walls up over the floor's rain, so the solids under the sky take it from a picture of
+        // the falling layers with no cover.
+        if (_camera.Active && !firstPerson && _camera.IsMainPass(args))
+            DrawRainPicture(args, resolved.Comp, state, mask, now, time);
+
         if (_wolfWeather.Quality >= 2)
-            DrawWeathers(args, weather, state, mask, now, time, true);
+            DrawWeathers(handle, args.MapId, resolved.Comp, state, mask, bounds, now, time, true, holes, lower);
 
         handle.UseShader(null);
         handle.SetTransform(Matrix3x2.Identity);
-        DropUnusedShaders();
     }
 
-    private void DrawWeathers(in OverlayDrawArgs args, WolfWeatherMapComponent weather, WolfWeatherMapState state, MaskTargets mask, TimeSpan now, float time, bool splashes)
+    /// <summary>On the first draw of a frame, drops the shaders and masks the last frames didn't use.</summary>
+    private void NextFrame()
+    {
+        var frame = _timing.CurFrame;
+        if (frame == _frame)
+            return;
+
+        _frame = frame;
+        _lowerRebuilt = false;
+        foreach (var target in _retired)
+        {
+            target.Dispose();
+        }
+
+        _retired.Clear();
+        DropUnusedShaders();
+        _usedShaders.Clear();
+    }
+
+    /// <summary>Draws the falling layers over the whole view, with no cover, into the picture the 2.5D solids read.</summary>
+    private void DrawRainPicture(in OverlayDrawArgs args, WolfWeatherMapComponent weather, WolfWeatherMapState state,
+        MaskEntry mask, TimeSpan now, float time)
+    {
+        var size = (Vector2i) args.Viewport.Size;
+        if (size.X <= 0 || size.Y <= 0)
+            return;
+
+        if (_rainPicture == null || _rainPicture.Size != size)
+        {
+            // A lower level's pass may still hold the old one this frame, so it goes at the next.
+            if (_rainPicture != null)
+                _retired.Add(_rainPicture);
+
+            _rainPicture = _clyde.CreateRenderTarget(size,
+                new RenderTargetFormatParameters(RenderTargetColorFormat.Rgba8Srgb),
+                new TextureSampleParameters { Filter = false },
+                "wolfweather-rain-picture");
+        }
+
+        _pictureHandle = args.WorldHandle;
+        _pictureMap = args.MapId;
+        _pictureBounds = args.WorldAABB;
+        _pictureWeather = weather;
+        _pictureState = state;
+        _pictureMask = mask;
+        _pictureNow = now;
+        _pictureTime = time;
+        _pictureMatrix = args.Viewport.GetWorldToLocalMatrix();
+        args.WorldHandle.RenderInRenderTarget(_rainPicture, _drawPicture, new Color(0f, 0f, 0f, 0f));
+        _wolfWeather.SetRainPicture(_rainPicture.Texture);
+    }
+
+    private void DrawPicture()
+    {
+        var handle = _pictureHandle;
+        handle.SetTransform(_pictureMatrix);
+        DrawWeathers(handle, _pictureMap, _pictureWeather, _pictureState, _pictureMask, _pictureBounds, _pictureNow,
+            _pictureTime, false, false, false, true);
+        handle.UseShader(null);
+        handle.SetTransform(Matrix3x2.Identity);
+    }
+
+    private void DrawWeathers(DrawingHandleWorld handle, MapId mapId, WolfWeatherMapComponent weather,
+        WolfWeatherMapState state, MaskEntry mask, Box2 bounds, TimeSpan now, float time, bool splashes, bool holes,
+        bool lower, bool picture = false)
     {
         foreach (var entry in weather.Weathers)
         {
@@ -172,19 +307,30 @@ public sealed partial class WolfWeatherOverlay : Overlay
                 if (layer.MinQuality > _wolfWeather.Quality || (layer.Kind == WolfWeatherLayerKind.Splash) != splashes)
                     continue;
 
-                var shader = GetShader((entry.Weather, entry.Start, i), layer, entry.Seed + i * 31);
-                SetMovingParameters(shader, args.WorldAABB, layer, state.Wind, _wolfWeather.Down, offsets.X[i], offsets.Y[i], strength, time);
+                // Fog hangs round the viewer only, so a level below doesn't add a second layer of it.
+                var fog = layer.Kind == WolfWeatherLayerKind.Fog;
+                if (fog && lower)
+                    continue;
+
+                // The picture is drawn without fog and with shaders of its own, as a shader reads its values when drawn.
+                if (fog && picture)
+                    continue;
+
+                var shader = GetShader(new ShaderKey(entry.Weather, entry.Start, i, mapId, picture), layer,
+                    entry.Seed + i * 31);
+                SetMovingParameters(shader, bounds, layer, state.Wind, _wolfWeather.Down, offsets.X[i], offsets.Y[i], strength, time);
+                shader.SetParameter("invert", picture ? 3f : splashes ? 1f : holes && !fog ? 2f : 0f);
                 shader.SetParameter("mask", mask.Blurred!.Texture);
-                shader.SetParameter("maskOffset", args.WorldAABB.BottomLeft - mask.Rect.BottomLeft);
+                shader.SetParameter("maskOffset", bounds.BottomLeft - mask.Rect.BottomLeft);
                 shader.SetParameter("maskSize", mask.Rect.Size);
-                args.WorldHandle.UseShader(shader);
-                args.WorldHandle.DrawRect(args.WorldAABB, Color.White);
+                handle.UseShader(shader);
+                handle.DrawRect(bounds, Color.White);
             }
         }
     }
 
-    /// <summary>A layer's shader, made with its fixed parameters the first time the layer draws.</summary>
-    private ShaderInstance GetShader((ProtoId<WolfWeatherPrototype>, TimeSpan, int) key, WolfWeatherLayer layer, int seed)
+    /// <summary>A layer's shader on one map, made with its fixed parameters the first time the layer draws there.</summary>
+    private ShaderInstance GetShader(ShaderKey key, WolfWeatherLayer layer, int seed)
     {
         _usedShaders.Add(key);
         if (_shaders.TryGetValue(key, out var shader))
@@ -201,7 +347,6 @@ public sealed partial class WolfWeatherOverlay : Overlay
         shader.SetParameter("soft", layer.Softness);
         shader.SetParameter("mode", (float) layer.Kind);
         shader.SetParameter("seed", (float) seed);
-        shader.SetParameter("invert", layer.Kind == WolfWeatherLayerKind.Splash ? 1f : 0f);
         _shaders[key] = shader;
         return shader;
     }
@@ -270,21 +415,37 @@ public sealed partial class WolfWeatherOverlay : Overlay
         return r < 0 ? r + CellPeriod : r;
     }
 
-    /// <summary>The viewport's world-space cover mask, redrawn only when the view leaves it, tiles change or it ages.</summary>
-    private MaskTargets GetMask(in OverlayDrawArgs args)
+    /// <summary>
+    /// The viewport's world-space cover mask of the drawn map, redrawn only when the view leaves it, the map's tiles
+    /// change or it ages. A level below draws its mask coarser, and at most one of them redraws a frame.
+    /// </summary>
+    private MaskEntry GetMask(in OverlayDrawArgs args, bool holes, bool lower)
     {
-        var mask = _masks.GetForViewport(args.Viewport, static _ => new MaskTargets());
-        var view = args.WorldAABB.Enlarged(MaskMargin * 0.5f);
+        var set = _masks.GetForViewport(args.Viewport, static _ => new MaskSet());
         var real = _timing.RealTime;
+        PruneMasks(set, real);
+        if (!set.Entries.TryGetValue(args.MapId, out var mask))
+        {
+            mask = new MaskEntry();
+            set.Entries[args.MapId] = mask;
+        }
 
-        if (mask.Blurred != null
-            && mask.MapId == args.MapId
-            && mask.Rect.Contains(view.BottomLeft)
-            && mask.Rect.Contains(view.TopRight)
-            && (mask.Version == _wolfWeather.MaskVersion || real < mask.BuiltAt + MaskMinAge)
+        mask.LastUsed = real;
+        var version = _wolfWeather.MaskVersionOf(args.MapId);
+        var view = args.WorldAABB.Enlarged(MaskMargin * 0.5f);
+        var usable = mask.Blurred != null
+                     && mask.Holes == holes
+                     && mask.Rect.Contains(view.BottomLeft)
+                     && mask.Rect.Contains(view.TopRight);
+        if (usable
+            && (mask.Version == version || real < mask.BuiltAt + MaskMinAge)
             && real < mask.BuiltAt + MaskRefresh)
             return mask;
 
+        if (usable && lower && _lowerRebuilt)
+            return mask;
+
+        _lowerRebuilt |= lower;
         var outer = args.WorldAABB.Enlarged(MaskMargin);
         var rect = new Box2(
             MathF.Floor(outer.Left / MaskSnap) * MaskSnap,
@@ -292,24 +453,28 @@ public sealed partial class WolfWeatherOverlay : Overlay
             MathF.Ceiling(outer.Right / MaskSnap) * MaskSnap,
             MathF.Ceiling(outer.Top / MaskSnap) * MaskSnap);
 
-        var texels = MathF.Min(MaskTexelsPerTile, MaxMaskSize / MathF.Max(rect.Width, rect.Height));
+        var density = lower ? MaskTexelsPerTile * LowerMaskShare : MaskTexelsPerTile;
+        var texels = MathF.Min(density, MaxMaskSize / MathF.Max(rect.Width, rect.Height));
         var size = new Vector2i((int) MathF.Ceiling(rect.Width * texels), (int) MathF.Ceiling(rect.Height * texels));
 
         EnsureTarget(ref mask.Raw, size, "wolfweather-mask-raw");
         EnsureTarget(ref mask.Across, size, "wolfweather-mask-across");
         EnsureTarget(ref mask.Blurred, size, "wolfweather-mask");
 
-        mask.MapId = args.MapId;
+        mask.Holes = holes;
         mask.Rect = rect;
-        mask.Version = _wolfWeather.MaskVersion;
+        mask.Version = version;
         mask.BuiltAt = real;
 
         var handle = args.WorldHandle;
         _maskHandle = handle;
         _maskMapId = args.MapId;
         _maskRect = rect;
+        _maskHoles = holes;
+        _maskOpen = null;
         _maskMatrix = Matrix3x2.CreateTranslation(-rect.Left, -rect.Top) * Matrix3x2.CreateScale(texels, -texels);
         handle.RenderInRenderTarget(mask.Raw!, _drawMask, ClearColor);
+        mask.Open = _maskOpen;
 
         var radius = new Vector3(Feather, HardFeather, Feather) * texels;
         Blur(handle, mask.Raw!, mask.Across!, _blurH, new Vector2(1f / size.X, 0f), radius);
@@ -317,10 +482,33 @@ public sealed partial class WolfWeatherOverlay : Overlay
         return mask;
     }
 
+    /// <summary>Drops the masks of maps this viewport hasn't drawn for a while.</summary>
+    private void PruneMasks(MaskSet set, TimeSpan real)
+    {
+        _staleMasks.Clear();
+        foreach (var (map, entry) in set.Entries)
+        {
+            if (real > entry.LastUsed + MaskKeep)
+                _staleMasks.Add(map);
+        }
+
+        foreach (var map in _staleMasks)
+        {
+            set.Entries.Remove(map, out var entry);
+            if (entry?.Blurred != null)
+                _wolfWeather.ForgetViewMask(entry.Blurred.Texture);
+
+            entry?.Dispose();
+        }
+    }
+
     private void EnsureTarget(ref IRenderTexture? target, Vector2i size, string name)
     {
         if (target != null && target.Texture.Size == size)
             return;
+
+        if (target != null)
+            _wolfWeather.ForgetViewMask(target.Texture);
 
         target?.Dispose();
         target = _clyde.CreateRenderTarget(size,
@@ -373,21 +561,39 @@ public sealed partial class WolfWeatherOverlay : Overlay
         _rects.Clear();
         _diagonalTiles.Clear();
 
+        Box2? open = null;
         var tiles = _map.GetTilesIntersecting(grid.Owner, grid, _maskRect);
         while (tiles.MoveNext(out var tile))
         {
-            if (MaskColor(roofed, tile) is { } color)
-                _rects.Add(new WorldRect(_lookup.GetLocalBounds(tile, grid.Comp.TileSize), color));
+            if (MaskColor(roofed, tile) is not { } color)
+                continue;
+
+            var bounds = _lookup.GetLocalBounds(tile, grid.Comp.TileSize);
+            _rects.Add(new WorldRect(bounds, color));
+            if (color == Open)
+                open = open?.Union(bounds) ?? bounds;
+        }
+
+        if (open is { } local)
+        {
+            var world = _xform.GetWorldMatrix(grid.Owner).TransformBox(local);
+            _maskOpen = _maskOpen?.Union(world) ?? world;
         }
 
         handle.DrawRectsUnmodulated(CollectionsMarshal.AsSpan(_rects));
         MaskDiagonals(handle, grid);
     }
 
-    /// <summary>Open ground in blue, walls in green, other cover in red. Diagonal edge tiles are left for MaskDiagonals.</summary>
+    /// <summary>
+    /// Open ground in blue, walls in green, other cover in red. Diagonal edge tiles are left for MaskDiagonals. With
+    /// holes on, a see-through tile counts as a gap, as the level under it shows there.
+    /// </summary>
     private Color? MaskColor(Entity<MapGridComponent, RoofComponent?> grid, TileRef tile)
     {
         if (tile.Tile.IsEmpty)
+            return null;
+
+        if (_maskHoles && _tileDefs[tile.Tile.TypeId] is ContentTileDefinition def && (def.MapAtmosphere || def.Transparent))
             return null;
 
         var flags = _wolfWeather.Classify(grid, tile);
@@ -399,6 +605,11 @@ public sealed partial class WolfWeatherOverlay : Overlay
             _diagonalTiles.Add(tile.GridIndices);
             return null;
         }
+
+        // Rain falls in front of a wall, door or window under open sky or on a building's outer edge.
+        if ((flags & WolfWeatherTile.Blocker) != 0
+            && ((flags & WolfWeatherTile.OpenSky) != 0 || BordersExposed(grid, tile)))
+            return OpenWall;
 
         return (flags & WolfWeatherTile.Blocker) != 0 ? Hard : Soft;
     }
@@ -448,15 +659,34 @@ public sealed partial class WolfWeatherOverlay : Overlay
         _diagonalTiles.Clear();
     }
 
-    private sealed class MaskTargets : IDisposable
+    /// <summary>A viewport's cover masks, one for each map it draws weather on.</summary>
+    private sealed class MaskSet : IDisposable
+    {
+        public readonly Dictionary<MapId, MaskEntry> Entries = new();
+
+        public void Dispose()
+        {
+            foreach (var entry in Entries.Values)
+            {
+                entry.Dispose();
+            }
+
+            Entries.Clear();
+        }
+    }
+
+    /// <summary>One map's cover mask, the world box it covers, and the box of its open ground.</summary>
+    private sealed class MaskEntry : IDisposable
     {
         public IRenderTexture? Raw;
         public IRenderTexture? Across;
         public IRenderTexture? Blurred;
-        public MapId MapId;
         public Box2 Rect;
+        public Box2? Open;
+        public bool Holes;
         public int Version;
         public TimeSpan BuiltAt;
+        public TimeSpan LastUsed;
 
         public void Dispose()
         {
@@ -465,4 +695,7 @@ public sealed partial class WolfWeatherOverlay : Overlay
             Blurred?.Dispose();
         }
     }
+
+    private readonly record struct ShaderKey(ProtoId<WolfWeatherPrototype> Weather, TimeSpan Start, int Layer, MapId Map,
+        bool Picture);
 }

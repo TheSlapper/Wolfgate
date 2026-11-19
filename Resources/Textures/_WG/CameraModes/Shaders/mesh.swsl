@@ -1,0 +1,268 @@
+// Draws a mesh face from the sprite atlas. Each vertex carries the step from this pixel to the floor point it stands
+// on, in screen UV, so light and line of sight come from that floor point as in the flat view.
+#include "/Shaders/Internal/shadow_cast_shared.swsl"
+
+const highp float g_MinVariance = 0.0;
+
+uniform sampler2D LIGHT_TEXTURE;
+uniform sampler2D FOV_TEXTURE;
+uniform highp vec3 WORLD_ROW_X;
+uniform highp vec3 WORLD_ROW_Y;
+uniform highp vec2 EYE_POS;
+uniform highp float USE_LIGHT;
+uniform highp float USE_FOV;
+// 1 when faces carry their depth, so the image is drawn in true perspective.
+uniform highp float DEPTH;
+// 1 in first person, and one tile of the stock picture as a share of it.
+uniform highp float EDGE;
+uniform highp vec2 TILE_UV;
+// First person shows the flat view's rectangle turned with the look: the eye in the picture, two rows that take a
+// picture offset to tiles across and ahead of the look, and the rectangle's half size in tiles.
+uniform highp vec2 EYE_UV;
+uniform highp vec2 LOOK_ACROSS;
+uniform highp vec2 LOOK_AHEAD;
+uniform highp vec2 LOOK_HALF;
+
+// 1 for something standing on a level below. Its pixel is hidden where the ray to it first crosses the player's floor
+// where it is solid, or a nearer level's floor where that is, and it fades out with its level's picture.
+uniform highp float LOWER;
+uniform highp vec2 VIEW_SIZE;
+uniform highp float FOCAL;
+uniform highp vec2 PITCH;
+uniform highp float EYE_HEIGHT;
+uniform highp vec2 AXIS_R;
+uniform highp vec2 AXIS_F;
+uniform sampler2D MASK_TEXTURE;
+uniform sampler2D COVER_TEX0;
+uniform sampler2D COVER_TEX1;
+uniform sampler2D COVER_TEX2;
+uniform highp vec3 COVER_DROP;
+uniform highp float COVER_COUNT;
+
+// The weather's fog, the same in the floor, mesh and weather passes: it thickens with distance from the eye and drifts
+// in patches fixed in the world, and stays out from under roofs.
+uniform highp float FOG_ON;
+uniform highp vec3 FOG_COLOR;
+uniform highp float FOG_MAX;
+uniform highp float FOG_THICK;
+uniform highp float FOG_SCALE;
+uniform highp vec2 FOG_CELL;
+uniform highp vec2 FOG_LOOK_RIGHT;
+uniform highp vec2 FOG_LOOK_UP;
+uniform sampler2D FOG_MASK;
+// The weather's picture of the falling rain over the view, laid over solids it falls in front of (vertex green).
+uniform highp float RAIN_ON;
+uniform sampler2D RAIN_TEXTURE;
+uniform highp vec2 FOG_MASK_EYE;
+uniform highp vec2 FOG_MASK_SIZE;
+
+highp float fogHash(highp vec2 p) {
+    p = mod(p, 1024.0);
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+}
+
+highp float fogNoise(highp vec2 x) {
+    highp vec2 i = floor(x);
+    highp vec2 f = fract(x);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(fogHash(i), fogHash(i + vec2(1.0, 0.0)), f.x),
+        mix(fogHash(i + vec2(0.0, 1.0)), fogHash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+
+// How much fog lies between the eye and a point on the ground, given from the eye in world tiles.
+highp float fogAt(highp vec2 rel) {
+    if (FOG_ON < 0.5)
+        return 0.0;
+
+    highp vec2 mid = rel * 0.5;
+    highp vec2 maskUv = (FOG_MASK_EYE + mid) / FOG_MASK_SIZE;
+    highp float roof = 0.0;
+    if (maskUv.x >= 0.0 && maskUv.y >= 0.0 && maskUv.x <= 1.0 && maskUv.y <= 1.0)
+        roof = texture2D(FOG_MASK, maskUv).r;
+
+    // The patches are read at the point itself, so they hold still in the world as the eye moves.
+    highp vec2 q = FOG_CELL + rel * FOG_SCALE;
+    highp float patch = 0.6 * fogNoise(q) + 0.4 * fogNoise(q * 2.0 + vec2(17.3, 5.1));
+    highp float thick = FOG_THICK * (0.4 + 1.2 * patch);
+    return FOG_MAX * (1.0 - exp(-length(rel) * thick)) * clamp(1.0 - roof * 2.0, 0.0, 1.0);
+}
+
+// The fog's banks in first person, from a top-down picture of how thick they are round the eye: red the thickness,
+// full red FOG_BANK a tile, and green how high they reach. The C# side never sets FOG_BANKS_ON or FOG_FIELD for this
+// shader, so banksTo gives 0 here and meshes take only the distance fog. The weather slices draw the banks.
+uniform sampler2D FOG_FIELD;
+uniform highp float FOG_BANKS_ON;
+uniform highp float FOG_FIELD_TILES;
+uniform highp float FOG_BANK;
+
+// How thick a bank is at a height over the player's floor: full up to its top, from 1 to 4 tiles, fading over a tile
+// and a half above it to a thin haze, so the tops of tall things still fade.
+highp float bankHeight(highp float z, highp float top) {
+    highp float reach = 1.0 + top * 3.0;
+    return mix(0.08, 1.0, 1.0 - smoothstep(reach - 1.0, reach + 0.5, z));
+}
+
+// How much of the banks lies between the eye and a point rel tiles off across the ground and z over the player's floor.
+highp float banksTo(highp vec2 rel, highp float z) {
+    if (FOG_BANKS_ON < 0.5)
+        return 0.0;
+
+    highp float sum = 0.0;
+    for (int n = 0; n < 8; n++) {
+        highp float s = (float(n) + 0.5) / 8.0;
+        highp vec2 at = rel * s;
+        highp vec2 field = texture2D(FOG_FIELD, at / (FOG_FIELD_TILES * 2.0) + 0.5).rg;
+        highp float edge = clamp((FOG_FIELD_TILES - max(abs(at.x), abs(at.y))) * 0.25, 0.0, 1.0);
+        sum += field.r * edge * bankHeight(mix(EYE_HEIGHT, z, s), field.g);
+    }
+
+    return 1.0 - exp(-sum * FOG_BANK * length(vec3(rel, z - EYE_HEIGHT)) / 8.0);
+}
+
+// All the fog between the eye and a point: the distance haze and the banks.
+highp float fogTo(highp vec2 rel, highp float z) {
+    return 1.0 - (1.0 - fogAt(rel)) * (1.0 - banksTo(rel, z));
+}
+
+// Where the ray through a pixel meets a floor drop tiles under the player's, in picture UV, and how far off that is
+// across the floor in tiles.
+highp vec3 floorHit(highp vec2 p, highp float ahead, highp float up, highp float drop) {
+    highp float t = (EYE_HEIGHT + drop) / -up;
+    return vec3(EYE_UV + AXIS_R * (p.x * t) + AXIS_F * (ahead * t), t * length(vec2(p.x, ahead)));
+}
+
+highp float inPicture(highp vec2 uv) {
+    return uv.x > 0.0 && uv.y > 0.0 && uv.x < 1.0 && uv.y < 1.0 ? 1.0 : 0.0;
+}
+
+// Whether a floor drop tiles down, solid where its picture is, lies on the ray before a point reach tiles off.
+bool coverHides(sampler2D tex, highp float drop, highp vec2 p, highp float ahead, highp float up, highp float reach) {
+    highp vec3 hit = floorHit(p, ahead, up, drop);
+    return hit.z < reach - 0.05 && inPicture(hit.xy) > 0.5 && texture2D(tex, hit.xy).a > 0.5;
+}
+
+void fragment() {
+    highp vec2 uv = UV;
+    highp vec2 toGround = UV2;
+    // Shade is in red. Blue marks the standing side of a wall or window. Green is the rain flag in the 2.5D views and
+    // the depth share in the clean first-person look.
+    MODULATE = vec4(VtxModulate.rrr, VtxModulate.a);
+    if (DEPTH > 0.5) {
+        // UV2 holds the texture point times one over depth and green holds one over depth, both as a share of the
+        // quad's nearest corner. The engine draws faces flat, so dividing the two here puts the image in perspective.
+        uv = UV2 / VtxModulate.g;
+        toGround = UV;
+    }
+
+    highp vec4 tex = zTexture(uv);
+    if (tex.a < 0.02 && VtxModulate.b > 0.5) {
+        // A wall's side has no holes: a clear pixel takes the nearest solid one of its own art.
+        highp vec2 texel = TEXTURE_PIXEL_SIZE;
+        for (int d = 1; d <= 6; d++) {
+            if (tex.a >= 0.02) {
+                break;
+            }
+
+            highp float s = float(d);
+            highp vec4 c = zTexture(uv + vec2(s, 0.0) * texel);
+            c = c.a >= 0.02 ? c : zTexture(uv - vec2(s, 0.0) * texel);
+            c = c.a >= 0.02 ? c : zTexture(uv + vec2(0.0, s) * texel);
+            c = c.a >= 0.02 ? c : zTexture(uv - vec2(0.0, s) * texel);
+            tex = c;
+        }
+    }
+
+    if (tex.a < 0.02) {
+        discard;
+    }
+
+    // A solid standing just off screen reaches into view. Its floor point is past the edge, where the light map ends,
+    // so it takes the light at the edge.
+    highp vec2 ground = Pos + toGround;
+    highp vec2 lightAt = clamp(ground, vec2(0.0), vec2(1.0));
+
+    // First person ends where its floor ends: past the look's rectangle nothing is drawn, and the last tile fades out.
+    highp float fade = 1.0;
+    highp vec2 look = vec2(0.0);
+    if (LOWER > 0.5) {
+        highp vec2 d = ground - EYE_UV;
+        look = vec2(dot(LOOK_ACROSS, d), dot(LOOK_AHEAD, d));
+        highp float reach = length(look);
+        highp vec2 p = (Pos - 0.5) * VIEW_SIZE / FOCAL;
+        highp float ahead = PITCH.y - p.y * PITCH.x;
+        highp float up = PITCH.x + p.y * PITCH.y;
+        if (up < -0.0001) {
+            highp vec3 own = floorHit(p, ahead, up, 0.0);
+            if (own.z < reach - 0.05 && inPicture(own.xy) > 0.5 && texture2D(MASK_TEXTURE, own.xy).r > 0.5) {
+                discard;
+            }
+
+            if (COVER_COUNT > 0.5 && coverHides(COVER_TEX0, COVER_DROP.x, p, ahead, up, reach)) {
+                discard;
+            }
+
+            if (COVER_COUNT > 1.5 && coverHides(COVER_TEX1, COVER_DROP.y, p, ahead, up, reach)) {
+                discard;
+            }
+
+            if (COVER_COUNT > 2.5 && coverHides(COVER_TEX2, COVER_DROP.z, p, ahead, up, reach)) {
+                discard;
+            }
+        }
+
+        // It ends where the player's own floor does.
+        highp vec2 inside = LOOK_HALF - abs(look);
+        fade = min(min(inside.x, inside.y), 1.0);
+        if (fade <= 0.0) {
+            discard;
+        }
+    } else if (EDGE > 0.5) {
+        highp vec2 d = ground - EYE_UV;
+        look = vec2(dot(LOOK_ACROSS, d), dot(LOOK_AHEAD, d));
+        highp vec2 inside = LOOK_HALF - abs(look);
+        fade = min(inside.x, inside.y);
+        if (fade <= 0.0) {
+            discard;
+        }
+
+        fade = min(fade, 1.0);
+    }
+
+    // A wall's or window's side takes its light from just inside its own tile. Beside a corner that point can sit
+    // behind the next wall from the eye, so the side keeps its pixels and nearer faces cover it instead.
+    if (USE_FOV > 0.5 && LOWER < 0.5 && VtxModulate.b < 0.5) {
+        highp vec3 g = vec3(ground, 1.0);
+        highp vec2 world = vec2(dot(WORLD_ROW_X, g), dot(WORLD_ROW_Y, g));
+        if (doesOcclude(world - EYE_POS, FOV_TEXTURE, 0.75, -0.75 / 32.0)) {
+            discard;
+        }
+    }
+
+    // The glow half of the atlas holds the unshaded layers, which stay bright in the dark as in the flat view.
+    highp float glow = zTexture(uv + vec2(0.5, 0.0)).a;
+    COLOR = vec4(tex.rgb / tex.a, tex.a * fade);
+    highp vec3 light = USE_LIGHT > 0.5 ? texture2D(LIGHT_TEXTURE, lightAt).rgb : vec3(1.0);
+    lightSample = mix(light, vec3(1.0), glow);
+
+    // Rain in front of a solid under the sky keeps its own colour, unlit, as on the floor.
+    if (RAIN_ON > 0.5 && DEPTH < 0.5 && VtxModulate.g > 0.01) {
+        highp vec4 rain = texture2D(RAIN_TEXTURE, Pos);
+        if (rain.a > 0.0) {
+            highp vec3 lit = max(lightSample, vec3(0.05));
+            COLOR.rgb = COLOR.rgb * (1.0 - rain.a) + rain.rgb / lit;
+        }
+    }
+
+    // In first person the fog between the eye and the object's floor point covers it, lit as the fog is.
+    if (EDGE > 0.5) {
+        // The pixel's height from its depth along its ray, so a bank hides the low part of a wall and not its top.
+        highp vec2 pv = (Pos - 0.5) * VIEW_SIZE / FOCAL;
+        highp float depth = DEPTH > 0.5 && VtxModulate.g > 0.0001 ? 1.0 / VtxModulate.g : 0.0;
+        highp float z = EYE_HEIGHT + (PITCH.x + pv.y * PITCH.y) * depth;
+        highp float fog = fogTo(FOG_LOOK_RIGHT * look.x + FOG_LOOK_UP * look.y, z);
+        if (fog > 0.0) {
+            COLOR.rgb = mix(COLOR.rgb * lightSample, FOG_COLOR, fog);
+            lightSample = vec3(1.0);
+        }
+    }
+}

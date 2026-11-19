@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Client._WG.CameraModes;
 using Content.Client.Overlays;
 using Content.Shared._WG.Xenonids.Mobs;
 using Content.Shared._WG.RMCCore.Shields;
@@ -51,6 +52,7 @@ public sealed partial class XenoHudOverlay : Overlay
     private readonly MobStateSystem _mobState;
     private readonly MobThresholdSystem _mobThresholds;
     private readonly SpriteSystem _sprite;
+    private readonly CameraModesSystem _cameraModes;
     private readonly TransformSystem _transform;
 
     private readonly EntityQuery<DamageableComponent> _damageableQuery;
@@ -68,9 +70,9 @@ public sealed partial class XenoHudOverlay : Overlay
 
     private readonly ShaderInstance _shader;
 
-    public override OverlaySpace Space => _overlay.HasOverlay<NightVisionOverlay>()
+    public override OverlaySpace Space => _cameraModes.MarkSpace(_overlay.HasOverlay<NightVisionOverlay>()
         ? OverlaySpace.WorldSpace
-        : OverlaySpace.WorldSpaceBelowFOV;
+        : OverlaySpace.WorldSpaceBelowFOV);
 
     private readonly ResPath _rsiPath = new("/Textures/_WG/Xenonids/Interface/xeno_hud.rsi");
     private readonly ResPath _rsiPathSlow = new("/Textures/_WG/Xenonids/Effects/xeno_stomp.rsi");
@@ -85,6 +87,7 @@ public sealed partial class XenoHudOverlay : Overlay
         _mobState = _entity.System<MobStateSystem>();
         _mobThresholds = _entity.System<MobThresholdSystem>();
         _sprite = _entity.System<SpriteSystem>();
+        _cameraModes = _entity.System<CameraModesSystem>();
         _transform = _entity.System<TransformSystem>();
 
         _damageableQuery = _entity.GetEntityQuery<DamageableComponent>();
@@ -155,6 +158,12 @@ public sealed partial class XenoHudOverlay : Overlay
         handle.SetTransform(Matrix3x2.Identity);
     }
 
+    /// <summary>Moves a mark over the figure first person draws, or tells the caller to skip it.</summary>
+    private bool PlaceMark(EntityUid uid, SpriteComponent sprite, in OverlayDrawArgs args, ref Matrix3x2 matrix)
+    {
+        return _cameraModes.PlaceMark(uid, _sprite.GetLocalBounds((uid, sprite)).Height / 2f, args, ref matrix);
+    }
+
     private void DrawHiveTeamNumbers(in OverlayDrawArgs args, Matrix3x2 scaleMatrix, Matrix3x2 rotationMatrix)
     {
         var handle = args.WorldHandle;
@@ -181,6 +190,9 @@ public sealed partial class XenoHudOverlay : Overlay
             var worldMatrix = Matrix3x2.CreateTranslation(worldPos);
             var scaledWorld = Matrix3x2.Multiply(scaleMatrix, worldMatrix);
             var matrix = Matrix3x2.Multiply(rotationMatrix, scaledWorld);
+            if (!PlaceMark(uid, sprite, args, ref matrix))
+                continue;
+
             handle.SetTransform(matrix);
 
             var offset = (float) texture.Height / EyeManager.PixelsPerMeter;
@@ -211,6 +223,9 @@ public sealed partial class XenoHudOverlay : Overlay
             var worldMatrix = Matrix3x2.CreateTranslation(worldPos);
             var scaledWorld = Matrix3x2.Multiply(scaleMatrix, worldMatrix);
             var matrix = Matrix3x2.Multiply(rotationMatrix, scaledWorld);
+            if (!PlaceMark(uid, sprite, args, ref matrix))
+                continue;
+
             handle.SetTransform(matrix);
 
             if (_mobStateQuery.TryComp(uid, out var mobState) &&
@@ -259,6 +274,9 @@ public sealed partial class XenoHudOverlay : Overlay
             var worldMatrix = Matrix3x2.CreateTranslation(worldPos);
             var scaledWorld = Matrix3x2.Multiply(scaleMatrix, worldMatrix);
             var matrix = Matrix3x2.Multiply(rotationMatrix, scaledWorld);
+            if (!PlaceMark(uid, sprite, args, ref matrix))
+                continue;
+
             handle.SetTransform(matrix);
 
             var texture = _sprite.GetFrame(icon, _timing.CurTime);
@@ -296,6 +314,9 @@ public sealed partial class XenoHudOverlay : Overlay
             var worldMatrix = Matrix3x2.CreateTranslation(worldPos);
             var scaledWorld = Matrix3x2.Multiply(scaleMatrix, worldMatrix);
             var matrix = Matrix3x2.Multiply(rotationMatrix, scaledWorld);
+            if (!PlaceMark(uid, sprite, args, ref matrix))
+                continue;
+
             handle.SetTransform(matrix);
 
             var level = Math.Clamp(comp.Current, 0, 4);
@@ -337,6 +358,9 @@ public sealed partial class XenoHudOverlay : Overlay
             var worldMatrix = Matrix3x2.CreateTranslation(worldPos);
             var scaledWorld = Matrix3x2.Multiply(scaleMatrix, worldMatrix);
             var matrix = Matrix3x2.Multiply(rotationMatrix, scaledWorld);
+            if (!PlaceMark(uid, sprite, args, ref matrix))
+                continue;
+
             handle.SetTransform(matrix);
 
             var icon = new Rsi(_rsiPath, $"hudxenoupgrade{comp.Rank}");
@@ -376,6 +400,9 @@ public sealed partial class XenoHudOverlay : Overlay
             var worldMatrix = Matrix3x2.CreateTranslation(worldPos);
             var scaledWorld = Matrix3x2.Multiply(scaleMatrix, worldMatrix);
             var matrix = Matrix3x2.Multiply(rotationMatrix, scaledWorld);
+            if (!PlaceMark(uid, sprite, args, ref matrix))
+                continue;
+
             handle.SetTransform(matrix);
 
             var icon = new Rsi(_rsiPath, (comp.IsCriticalTag ? $"prae_tag_yellow" : $"prae_tag"));
@@ -418,6 +445,9 @@ public sealed partial class XenoHudOverlay : Overlay
             var worldMatrix = Matrix3x2.CreateTranslation(worldPos);
             var scaledWorld = Matrix3x2.Multiply(scaleMatrix, worldMatrix);
             var matrix = Matrix3x2.Multiply(rotationMatrix, scaledWorld);
+            if (!PlaceMark(uid, sprite, args, ref matrix))
+                continue;
+
             handle.SetTransform(matrix);
 
             var icon = new Rsi(_rsiPathSlow, $"stomp");
@@ -460,6 +490,9 @@ public sealed partial class XenoHudOverlay : Overlay
             var worldMatrix = Matrix3x2.CreateTranslation(worldPos);
             var scaledWorld = Matrix3x2.Multiply(scaleMatrix, worldMatrix);
             var matrix = Matrix3x2.Multiply(rotationMatrix, scaledWorld);
+            if (!PlaceMark(uid, sprite, args, ref matrix))
+                continue;
+
             handle.SetTransform(matrix);
 
             var icon = new Rsi(_rsiPathFreeze, $"freeze");
@@ -497,6 +530,9 @@ public sealed partial class XenoHudOverlay : Overlay
             var worldMatrix = Matrix3x2.CreateTranslation(worldPos);
             var scaledWorld = Matrix3x2.Multiply(scaleMatrix, worldMatrix);
             var matrix = Matrix3x2.Multiply(rotationMatrix, scaledWorld);
+            if (!PlaceMark(uid, sprite, args, ref matrix))
+                continue;
+
             handle.SetTransform(matrix);
 
             var level = Math.Min(comp.CurrentStage, comp.InfectedIcons.Length - 1);

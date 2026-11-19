@@ -1,3 +1,4 @@
+using Content.Client._WG.CameraModes; // WOLFGATE(CameraModes)
 using Content.Shared.StatusIcon;
 using Content.Shared.StatusIcon.Components;
 using Robust.Client.GameObjects;
@@ -18,9 +19,10 @@ public sealed partial class StatusIconOverlay : Overlay
     private readonly SpriteSystem _sprite;
     private readonly TransformSystem _transform;
     private readonly StatusIconSystem _statusIcon;
+    private readonly CameraModesSystem _cameraModes; // WOLFGATE(CameraModes)
     private readonly ShaderInstance _unshadedShader;
 
-    public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
+    public override OverlaySpace Space => _cameraModes.MarkSpace(OverlaySpace.WorldSpaceBelowFOV); // WOLFGATE(CameraModes): over the first-person view
 
     internal StatusIconOverlay()
     {
@@ -29,6 +31,7 @@ public sealed partial class StatusIconOverlay : Overlay
         _sprite = _entity.System<SpriteSystem>();
         _transform = _entity.System<TransformSystem>();
         _statusIcon = _entity.System<StatusIconSystem>();
+        _cameraModes = _entity.System<CameraModesSystem>(); // WOLFGATE(CameraModes)
         _unshadedShader = _prototype.Index<ShaderPrototype>("unshaded").Instance();
     }
 
@@ -62,6 +65,12 @@ public sealed partial class StatusIconOverlay : Overlay
             var worldMatrix = Matrix3Helpers.CreateTranslation(worldPos);
             var scaledWorld = Matrix3x2.Multiply(scaleMatrix, worldMatrix);
             var matty = Matrix3x2.Multiply(rotationMatrix, scaledWorld);
+            // WOLFGATE(CameraModes) START: icons sit on top of the figure a 2.5D view draws, not squashed
+            var (lift, stretch) = _cameraModes.IconRaise(uid, (bounds.Height + sprite.Offset.Y) / 2f, args);
+            matty = Matrix3x2.CreateTranslation(0f, lift) * Matrix3x2.CreateScale(1f, stretch) * matty;
+            if (!_cameraModes.PlaceMark(uid, (bounds.Height + sprite.Offset.Y) / 2f, args, ref matty))
+                continue;
+            // WOLFGATE END
             handle.SetTransform(matty);
 
             var countL = 0;

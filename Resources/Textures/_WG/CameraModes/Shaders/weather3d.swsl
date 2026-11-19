@@ -1,0 +1,390 @@
+// Up to four weather layers in one slice of the first-person view's depth. The particles stand on upright planes fixed
+// in the world, a set step apart along both world axes, so the weather holds still as the eye moves and turns. Each
+// pixel follows its ray through the slice and shows the particles on the planes it crosses there. Through a hole in
+// the player's floor the particles fall on down to the first solid floor below. The fog pass draws the fog's banks in
+// the slice instead.
+light_mode unshaded;
+
+uniform highp vec2 VIEW;
+uniform highp float FOCAL;
+uniform highp vec2 PITCH;
+uniform highp float EYE_HEIGHT;
+uniform highp float ROOF;
+uniform highp vec2 LOOK_RIGHT;
+uniform highp vec2 LOOK_UP;
+// Half the size of the area first person shows, in tiles across and ahead of the look.
+uniform highp vec2 LOOK_HALF;
+
+// The weather's fog, the same in the floor, mesh and weather passes: it thickens with distance from the eye and drifts
+// in patches fixed in the world, and stays out from under roofs.
+uniform highp float FOG_ON;
+uniform highp vec3 FOG_COLOR;
+uniform highp float FOG_MAX;
+uniform highp float FOG_THICK;
+uniform highp float FOG_SCALE;
+uniform highp vec2 FOG_CELL;
+uniform highp vec2 FOG_LOOK_RIGHT;
+uniform highp vec2 FOG_LOOK_UP;
+uniform sampler2D FOG_MASK;
+uniform highp vec2 FOG_MASK_EYE;
+uniform highp vec2 FOG_MASK_SIZE;
+
+highp float fogHash(highp vec2 p) {
+    p = mod(p, 1024.0);
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+}
+
+highp float fogNoise(highp vec2 x) {
+    highp vec2 i = floor(x);
+    highp vec2 f = fract(x);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(fogHash(i), fogHash(i + vec2(1.0, 0.0)), f.x),
+        mix(fogHash(i + vec2(0.0, 1.0)), fogHash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+
+// How much fog lies between the eye and a point on the ground, given from the eye in world tiles.
+highp float fogAt(highp vec2 rel) {
+    if (FOG_ON < 0.5)
+        return 0.0;
+
+    highp vec2 mid = rel * 0.5;
+    highp vec2 maskUv = (FOG_MASK_EYE + mid) / FOG_MASK_SIZE;
+    highp float roof = 0.0;
+    if (maskUv.x >= 0.0 && maskUv.y >= 0.0 && maskUv.x <= 1.0 && maskUv.y <= 1.0)
+        roof = texture2D(FOG_MASK, maskUv).r;
+
+    // The patches are read at the point itself, so they hold still in the world as the eye moves.
+    highp vec2 q = FOG_CELL + rel * FOG_SCALE;
+    highp float patch = 0.6 * fogNoise(q) + 0.4 * fogNoise(q * 2.0 + vec2(17.3, 5.1));
+    highp float thick = FOG_THICK * (0.4 + 1.2 * patch);
+    return FOG_MAX * (1.0 - exp(-length(rel) * thick)) * clamp(1.0 - roof * 2.0, 0.0, 1.0);
+}
+// The slice: how far along the view it starts and ends.
+uniform highp float NEAR;
+uniform highp float FAR;
+// The step between planes, the eye's place past the last plane on each axis, and that plane's number.
+uniform highp float STEP;
+uniform highp vec2 EYE_STEP;
+uniform highp vec2 PLANE0;
+// The eye's place from the corner of its tile, and in the cover mask.
+uniform highp vec2 EYE_REL;
+uniform sampler2D mask;
+uniform highp vec2 maskEye;
+uniform highp vec2 maskSize;
+
+// Which floors are solid at each point of the view's picture: bits for the player's floor and the nearest seven levels
+// below in red, the eighth level in green. Off with no level below, where nothing falls past the player's floor.
+uniform sampler2D FLOORS;
+uniform highp float FLOORS_ON;
+uniform highp vec2 EYE_UV;
+uniform highp vec2 AXIS_R;
+uniform highp vec2 AXIS_F;
+uniform highp float LOWER_COUNT;
+uniform highp vec4 LOWER_DROP;
+uniform highp vec4 LOWER_DROP2;
+
+// The layers, one lane each. The particle grid starts at CELL_X along the planes that cross the x axis, CELL_Y along
+// those that cross the y axis, and CELL_Z down.
+uniform highp float LAYERS;
+uniform highp vec4 CELL_X;
+uniform highp vec4 CELL_Y;
+uniform highp vec4 CELL_Z;
+uniform highp vec4 SPACING;
+uniform highp vec4 ALONG;
+uniform highp vec4 DENSITY;
+uniform highp vec4 STREAK;
+uniform highp vec4 THICK;
+uniform highp vec4 WOBBLE;
+uniform highp vec4 MODE;
+uniform highp vec4 SEED;
+uniform highp vec4 TINT0;
+uniform highp vec4 TINT1;
+uniform highp vec4 TINT2;
+uniform highp vec4 TINT3;
+// The lean of each layer's streaks on the planes across x and across y, two layers to a vector.
+uniform highp vec4 DIR_X01;
+uniform highp vec4 DIR_X23;
+uniform highp vec4 DIR_Y01;
+uniform highp vec4 DIR_Y23;
+uniform highp float time;
+
+// The fog pass draws the fog's banks in the slice instead of the layers, from the top-down picture of how thick they
+// are round the eye. Full red in that picture stands for FOG_BANK of thickness per tile.
+uniform highp float FOG_PASS;
+uniform sampler2D FOG_FIELD;
+uniform highp float FOG_FIELD_TILES;
+uniform highp float FOG_SAMPLES;
+uniform highp float FOG_BANK;
+
+highp float lane(highp vec4 v, highp float i) {
+    return i < 0.5 ? v.x : i < 1.5 ? v.y : i < 2.5 ? v.z : v.w;
+}
+
+highp vec4 layerTint(highp float i) {
+    return i < 0.5 ? TINT0 : i < 1.5 ? TINT1 : i < 2.5 ? TINT2 : TINT3;
+}
+
+highp vec2 layerDir(highp float i, bool xAxis) {
+    highp vec4 low = xAxis ? DIR_X01 : DIR_Y01;
+    highp vec4 high = xAxis ? DIR_X23 : DIR_Y23;
+    return i < 0.5 ? low.xy : i < 1.5 ? low.zw : i < 2.5 ? high.xy : high.zw;
+}
+
+// How far below the player's floor floor k lies: 0 is the player's own, then the levels below, nearest first.
+highp float dropOf(highp float k) {
+    if (k < 0.5)
+        return 0.0;
+
+    return k < 4.5 ? lane(LOWER_DROP, k - 1.0) : lane(LOWER_DROP2, k - 5.0);
+}
+
+highp float hash(highp vec2 p, highp float seed) {
+    p = mod(p, 1024.0);
+    return fract(sin(dot(p, vec2(127.1, 311.7)) + seed * 17.13) * 43758.5453);
+}
+
+// Each cell holds at most one streak, its head at a hashed spot and its tail back along dir.
+highp float rain(highp vec2 cell, highp vec2 f, highp vec2 dir, highp vec2 cellSize, highp float density,
+    highp float streak, highp float thick, highp float seed) {
+    highp vec2 cellPx = cellSize * 32.0;
+    highp float room = max(cellPx.y - streak, 0.0);
+    highp vec2 ahead = vec2(dir.x < 0.0 ? -1.0 : 1.0, dir.y < 0.0 ? -1.0 : 1.0);
+    highp float best = 0.0;
+    for (int i = 0; i < 4; i++) {
+        highp vec2 n = vec2(mod(float(i), 2.0), floor(float(i) / 2.0)) * ahead;
+        highp vec2 c = cell + n;
+        if (hash(c, seed) >= density)
+            continue;
+
+        highp vec2 head = vec2((0.2 + 0.6 * hash(c + vec2(13.1, 3.7), seed)) * cellPx.x,
+            hash(c + vec2(41.7, 9.2), seed) * room + streak) + n * cellPx;
+        highp vec2 q = head - f;
+        highp float t = dot(q, dir);
+        highp float side = abs(q.x * dir.y - q.y * dir.x);
+        if (t >= 0.0 && t < streak && side < thick * 0.5)
+            best = max(best, 0.35 + 0.65 * (1.0 - t / streak));
+    }
+
+    return best;
+}
+
+highp float snow(highp vec2 cell, highp vec2 f, highp vec2 cellSize, highp float density, highp float thick,
+    highp float wobble, highp float seed) {
+    highp float h = hash(cell, seed);
+    if (h >= density)
+        return 0.0;
+
+    highp float margin = wobble + thick;
+    highp float ox = margin + hash(cell + vec2(13.1, 3.7), seed) * max(cellSize.x * 32.0 - 2.0 * margin, 0.0);
+    highp float oy = margin + hash(cell + vec2(41.7, 9.2), seed) * max(cellSize.y * 32.0 - 2.0 * margin, 0.0);
+    ox += sin(time * 1.7 + h * 40.0) * wobble;
+    highp float dx = abs(f.x - ox);
+    highp float dy = abs(f.y - oy);
+    highp float r = thick * 0.5;
+    if (thick >= 3.0)
+        return (dx + dy < r + 0.5) ? 1.0 : 0.0;
+
+    return (max(dx, dy) < r) ? 1.0 : 0.0;
+}
+
+// 1 inside the look's area, fading out over its last tile like the floor.
+highp float inLook(highp vec2 rel) {
+    highp vec2 d = LOOK_HALF - abs(vec2(dot(rel, LOOK_RIGHT), dot(rel, LOOK_UP)));
+    return clamp(min(d.x, d.y), 0.0, 1.0);
+}
+
+// Red is cover that fades softly, green is walls, half blue a wall under open sky. Past the mask the ground is open.
+highp float cover(highp vec2 rel) {
+    highp vec2 uv = (maskEye + rel) / maskSize;
+    if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0)
+        return 0.0;
+
+    highp vec3 m = texture2D(mask, uv).rgb;
+    highp float wall = clamp(1.0 - abs(m.b - 0.5) * 4.0, 0.0, 1.0);
+    return max(max(m.r, m.g), wall);
+}
+
+bool inPicture(highp vec2 uv) {
+    return uv.x > 0.0 && uv.y > 0.0 && uv.x < 1.0 && uv.y < 1.0;
+}
+
+// Whether floor k is solid at a point of the picture.
+bool solid(highp vec2 uv, highp float k) {
+    highp vec2 m = texture2D(FLOORS, uv).rg;
+    if (k > 7.5)
+        return m.g > 0.5;
+
+    return mod(floor(floor(m.r * 255.0 + 0.5) / exp2(k)), 2.0) > 0.5;
+}
+
+// How far below the player's floor the first solid floor under a point lies. Off the picture the player's floor
+// counts as solid, and with none solid the weather stops at the deepest level.
+highp float floorUnder(highp vec2 rel) {
+    if (FLOORS_ON < 0.5)
+        return 0.0;
+
+    highp vec2 uv = EYE_UV + AXIS_R * dot(rel, LOOK_RIGHT) + AXIS_F * dot(rel, LOOK_UP);
+    if (!inPicture(uv))
+        return 0.0;
+
+    for (int k = 0; k < 9; k++) {
+        if (float(k) > LOWER_COUNT + 0.5)
+            break;
+
+        if (solid(uv, float(k)))
+            return dropOf(float(k));
+    }
+
+    return dropOf(LOWER_COUNT);
+}
+
+// How far along the ray it first meets a solid floor, the player's or one below, seen through the holes above it.
+highp float rayFloor(highp vec2 p, highp float ahead, highp float up, highp float farT) {
+    if (FLOORS_ON < 0.5 || up > -0.0001)
+        return 1000000.0;
+
+    for (int k = 0; k < 9; k++) {
+        if (float(k) > LOWER_COUNT + 0.5)
+            break;
+
+        highp float t = (EYE_HEIGHT + dropOf(float(k))) / -up;
+        if (t >= farT)
+            break;
+
+        highp vec2 uv = EYE_UV + AXIS_R * (p.x * t) + AXIS_F * (ahead * t);
+        if (!inPicture(uv) || solid(uv, float(k)))
+            return t;
+    }
+
+    return 1000000.0;
+}
+
+// The layers' particles at one point of one plane, premultiplied. Particles keep the pixel size of the world's art.
+highp vec4 particles(highp vec2 rel, highp float z, highp float acrossWorld, highp float plane, bool xAxis) {
+    highp float seen = inLook(rel);
+    if (seen <= 0.0 || z < 0.0 && -z >= floorUnder(rel))
+        return vec4(0.0);
+
+    highp float open = clamp(1.0 - cover(rel) * 2.0, 0.0, 1.0) * seen;
+    if (open <= 0.0)
+        return vec4(0.0);
+
+    // Far particles fade into the fog in front of them.
+    open *= 1.0 - fogAt(rel);
+    highp float across = (floor(acrossWorld * 32.0) + 0.5) / 32.0;
+    highp float height = (floor(z * 32.0) + 0.5) / 32.0;
+    highp float shiftU = mod(plane * 37.0, 101.0);
+    highp float shiftV = mod(plane * 17.0, 53.0);
+    highp vec4 acc = vec4(0.0);
+    for (int n = 0; n < 4; n++) {
+        highp float i = float(n);
+        if (i > LAYERS - 0.5)
+            break;
+
+        highp vec2 cellSize = vec2(lane(SPACING, i), lane(ALONG, i));
+        highp float u = (xAxis ? lane(CELL_X, i) : lane(CELL_Y, i)) + across / cellSize.x + shiftU;
+        highp float v = lane(CELL_Z, i) - height / cellSize.y + shiftV;
+        highp vec2 cell = floor(vec2(u, v));
+        highp vec2 f = vec2(fract(u), fract(v)) * cellSize * 32.0;
+        highp float seed = lane(SEED, i);
+        highp float a = lane(MODE, i) < 0.5
+            ? rain(cell, f, layerDir(i, xAxis), cellSize, lane(DENSITY, i), lane(STREAK, i), lane(THICK, i), seed)
+            : snow(cell, f, cellSize, lane(DENSITY, i), lane(THICK, i), lane(WOBBLE, i), seed);
+        highp vec4 tint = layerTint(i);
+        highp float w = a * open * tint.a;
+        acc += vec4(tint.rgb * w, w) * (1.0 - acc.a);
+    }
+
+    return acc;
+}
+
+// The particles on the planes across one world axis that the ray meets inside the slice, nearest first.
+highp vec4 crossings(highp float rc, highp float e, highp float plane0, bool xAxis, highp vec2 ray, highp float up,
+    highp float near, highp float far) {
+    if (abs(rc) < 0.0005)
+        return vec4(0.0);
+
+    highp float s = rc > 0.0 ? 1.0 : -1.0;
+    highp float nf = (near * rc + e) / STEP;
+    highp float n = rc > 0.0 ? ceil(nf) : floor(nf);
+    highp vec4 acc = vec4(0.0);
+    for (int j = 0; j < 4; j++) {
+        highp float t = (n * STEP - e) / rc;
+        if (t >= far)
+            break;
+
+        highp vec2 rel = ray * t;
+        highp vec4 c = xAxis
+            ? particles(rel, EYE_HEIGHT + up * t, EYE_REL.y + rel.y, plane0 + n, true)
+            : particles(rel, EYE_HEIGHT + up * t, EYE_REL.x + rel.x, plane0 + n + 511.0, false);
+        acc += c * (1.0 - acc.a);
+        n += s;
+    }
+
+    return acc;
+}
+
+// How thick a bank is at a height over the player's floor: full up to its top, fading over a tile and a half above
+// it to a thin haze, so the tops of tall things still fade.
+highp float bankHeight(highp float z, highp float top) {
+    highp float reach = 1.0 + top * 3.0;
+    return mix(0.08, 1.0, 1.0 - smoothstep(reach - 1.0, reach + 0.5, z));
+}
+
+// The fog's banks the ray passes through between two distances along it, premultiplied. The samples sit at a dithered
+// place in each step, so the steps don't show as bands.
+highp vec4 banks(highp vec2 ray, highp float up, highp float near, highp float far, highp vec2 frag) {
+    if (far <= near)
+        return vec4(0.0);
+
+    highp float dither = fract(52.9829189 * fract(dot(frag, vec2(0.06711056, 0.00583715))));
+    highp float stepT = (far - near) / FOG_SAMPLES;
+    highp float stepLen = stepT * length(vec3(ray, up));
+    highp float clear = 1.0;
+    for (int n = 0; n < 3; n++) {
+        highp float i = float(n);
+        if (i > FOG_SAMPLES - 0.5)
+            break;
+
+        highp float t = near + (i + dither) * stepT;
+        highp vec2 rel = ray * t;
+        highp vec2 field = texture2D(FOG_FIELD, rel / (FOG_FIELD_TILES * 2.0) + 0.5).rg;
+        // The picture fades out over its last four tiles.
+        highp float edge = clamp((FOG_FIELD_TILES - max(abs(rel.x), abs(rel.y))) * 0.25, 0.0, 1.0);
+        clear *= exp(-field.r * edge * bankHeight(EYE_HEIGHT + up * t, field.g) * FOG_BANK * stepLen);
+    }
+
+    highp float a = 1.0 - clear;
+    return vec4(FOG_COLOR * a, a);
+}
+
+void fragment() {
+    highp vec2 p = vec2((UV2.x - 0.5) * VIEW.x, (0.5 - UV2.y) * VIEW.y) / FOCAL;
+    highp float ahead = PITCH.y - p.y * PITCH.x;
+    highp float up = PITCH.x + p.y * PITCH.y;
+    highp vec2 ray = LOOK_RIGHT * p.x + LOOK_UP * ahead;
+
+    // From under a roof, a ray that leaves through the ceiling sees none of the weather past it.
+    if (up > 0.0 && cover(vec2(0.0)) > 0.5 && cover(ray * ((ROOF - EYE_HEIGHT) / up)) > 0.25)
+        discard;
+
+    // The slice runs between two flat distances from the eye, the measure the objects are sorted by. Nothing past
+    // the first solid floor the ray meets shows.
+    highp float flatLen = max(length(ray), 0.0001);
+    highp float nearT = NEAR / flatLen;
+    highp float farT = FAR / flatLen;
+    highp float far = min(farT, rayFloor(p, ahead, up, farT));
+    highp vec4 c;
+    if (FOG_PASS > 0.5) {
+        c = banks(ray, up, nearT, far, FRAGCOORD.xy);
+    } else {
+        highp vec4 a = crossings(ray.x, EYE_STEP.x, PLANE0.x, true, ray, up, nearT, far);
+        highp vec4 b = crossings(ray.y, EYE_STEP.y, PLANE0.y, false, ray, up, nearT, far);
+        c = a + b * (1.0 - a.a);
+    }
+
+    if (c.a <= 0.0)
+        discard;
+
+    COLOR = vec4(c.rgb / c.a, c.a);
+}

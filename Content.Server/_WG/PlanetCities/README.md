@@ -25,6 +25,10 @@ near on their map, so the ones in the towers wait for someone on that flight lay
 clear of its spawn points. A fate's `indoorShare` of its groups settle on roofed floor instead of the open streets, upstairs
 too with `upperLevels`; only groups in the open get the fate's `gathering` props.
 
+A city's upper levels are grids of their own, so they don't roof what is under them the way a layer's own tiles do.
+`WGStoryRoofSystem.ProjectRoofs` roofs every tile of the layers and city grids below a solid tile of a city grid
+(`WGPlanetCityGrid`) above. CE redraws a network's layer roofs whenever it changes, and the projection runs right after.
+
 **Generated cities** will be a city boundary cut into blocks by a street grid, blocks filled wall to wall with
 mapped plots, up to two floors above the street and a basement on the sewer level, and a sewer network under every
 street. Only the mapping side exists so far: the plot and sewer templates, the markers the generator will read, and
@@ -82,11 +86,13 @@ wade) and catwalks where it turns.
 
 ### Server
 
+- [`Content.Server/_WG/PlanetCities/CEZLevelsRoofSystem.PlanetCities.cs`](CEZLevelsRoofSystem.PlanetCities.cs)
 - [`Content.Server/_WG/PlanetCities/WGPlanetCitiesComponent.cs`](WGPlanetCitiesComponent.cs)
 - [`Content.Server/_WG/PlanetCities/WGPlanetCitySystem.cs`](WGPlanetCitySystem.cs)
 - [`Content.Server/_WG/PlanetCities/WGPlanetPoiSystem.Cities.cs`](WGPlanetPoiSystem.Cities.cs)
 - [`Content.Server/_WG/PlanetCities/WGPlanetPoiSystem.CityFates.cs`](WGPlanetPoiSystem.CityFates.cs)
 - [`Content.Server/_WG/PlanetCities/WGPlanetPoiSystem.CityPeople.cs`](WGPlanetPoiSystem.CityPeople.cs)
+- [`Content.Server/_WG/PlanetCities/WGStoryRoofSystem.cs`](WGStoryRoofSystem.cs)
 
 ### Shared
 
@@ -152,6 +158,7 @@ wade) and catwalks where it turns.
 ## Non-modular edits
 
 - [`Content.Client/_CE/ZLevels/Core/Overlays/CEZLevelShadowOverlay.cs`](../../../Content.Client/_CE/ZLevels/Core/Overlays/CEZLevelShadowOverlay.cs): a city's upper floors are buildings, roofed already, not a ship overhead.
+- [`Content.Server/_CE/ZLevels/Roof/CEZLevelsRoofSystem.Maps.cs`](../../_CE/ZLevels/Roof/CEZLevelsRoofSystem.Maps.cs): stories that are separate grids roof the levels under them
 - [`Resources/Prototypes/_Mono/Loadouts/Crocus/dockworker.yml`](../../../Resources/Prototypes/_Mono/Loadouts/Crocus/dockworker.yml): dockworkers spawn with a bag, headset, PDA, survival box and wallet
 - [`Resources/Prototypes/_Mono/Roles/Jobs/Crocus/dockworker.yml`](../../../Resources/Prototypes/_Mono/Roles/Jobs/Crocus/dockworker.yml): dockworkers keep Common so they can talk to anyone
 

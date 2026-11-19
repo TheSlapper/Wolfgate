@@ -1,7 +1,8 @@
 # GroundCover
 
-Weather that stays on the ground, and only on a surface: levels below one (caverns, cellars), the air above a planet and
-its orbit have none (`SharedWolfWeatherSystem.IsSurface`). Rain wets open ground: the floor darkens a little and
+Weather that stays on the ground, on a surface and the stories above it: levels below one (caverns, cellars) and the
+orbit have none (`SharedWolfWeatherSystem.TryGetWeatherMap`). A story map that holds a grid able to take cover gets
+totals of its own (`UpdateStories`), from the surface's weather. Rain wets open ground: the floor darkens a little and
 puddles fill the low spots of a warped noise field: a few small ones in light rain, merging into larger pools only in
 heavy rain, and drying over minutes after it stops. Puddles are clear water: the ground shows through, slightly darker
 and cooler, fading out towards the rim so no edge is drawn round them, and they reflect the sky and anything standing a
@@ -56,8 +57,9 @@ quality it also keeps a copy of the bare floor, and `WGGroundReflectionOverlay` 
 FOV): it redoes the first pass to find water pixels nothing was drawn over, and mirrors what stands above into them.
 Ripple strength follows the rain falling now (each weather's `groundWetness` at its current strength). The Weather
 detail option (`wg.wolf_weather.quality`) picks Full (everything), Reduced (wet ground and puddles, no reflections,
-ripples or drop flecks) or Off (no wet ground). Snow always draws, as it slows walking. Only the view's own z-level
-draws it.
+ripples or drop flecks) or Off (no wet ground). Snow always draws, as it slows walking. The view's own z-level draws
+all of it. A level below draws only its snow, seen through the holes above, with a mask of its own and at most one of
+those masks redrawn a frame. Players are sent the snow of the levels below them too.
 
 To keep it cheap the overlay draws only the part of the view that holds wet or snowy tiles (and nothing, with no screen
 copy, where none is in view), bakes the puddle height field into a texture once for each mask rect instead of redoing the
@@ -126,6 +128,7 @@ Entry points: `WGGroundCoverSystem.StepMap`, `UpdateChunk`, `GetDepth`, `SetDept
 - [`Content.Server/_WG/GroundCover/WGGroundCoverSystem.Network.cs`](WGGroundCoverSystem.Network.cs)
 - [`Content.Server/_WG/GroundCover/WGGroundCoverSystem.Shovel.cs`](WGGroundCoverSystem.Shovel.cs)
 - [`Content.Server/_WG/GroundCover/WGGroundCoverSystem.Snow.cs`](WGGroundCoverSystem.Snow.cs)
+- [`Content.Server/_WG/GroundCover/WGGroundCoverSystem.Stories.cs`](WGGroundCoverSystem.Stories.cs)
 - [`Content.Server/_WG/GroundCover/WGGroundCoverSystem.Tracks.cs`](WGGroundCoverSystem.Tracks.cs)
 - [`Content.Server/_WG/GroundCover/WGIceCoverComponent.cs`](WGIceCoverComponent.cs)
 - [`Content.Server/_WG/GroundCover/WGPuddleMeltComponent.cs`](WGPuddleMeltComponent.cs)

@@ -1,0 +1,14 @@
+// Lays the faded solids, drawn solid on their own, over the view at one alpha, so no face behind their front shows.
+light_mode unshaded;
+
+uniform sampler2D FADE_TEXTURE;
+uniform highp float FADE;
+
+void fragment() {
+    highp vec4 solid = texture2D(FADE_TEXTURE, FRAGCOORD.xy * SCREEN_PIXEL_SIZE);
+    if (solid.a < 0.01) {
+        discard;
+    }
+
+    COLOR = vec4(solid.rgb / solid.a, solid.a * FADE);
+}

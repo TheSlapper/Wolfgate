@@ -189,6 +189,9 @@ public sealed partial class CEZLevelsSystem
             coveredMaps.Add(aboveMapUid);
         }
 
+        // WOLFGATE(CameraModes): the camera modes draw what stands on the levels higher up
+        WgSpawnEyesAbove(eyes, actor, map.Value, globalPos, pvsScale, coveredMaps);
+
         // Also handle transit maps that are within viewrange.
         var transitQuery = EntityQueryEnumerator<CEZTransitMapComponent>();
         while (transitQuery.MoveNext(out var transitUid, out var transitComp))

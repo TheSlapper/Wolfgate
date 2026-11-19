@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Client._WG.CameraModes;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
@@ -22,6 +23,7 @@ public sealed partial class WallFrillOverlay : Overlay
     private const float FadedAlpha = 0.5f;
 
     private readonly WallFrillSystem _frills;
+    private readonly CameraModesSystem _cameraModes;
     private readonly SharedTransformSystem _transform;
     private readonly SharedMapSystem _map;
     private readonly ShaderInstance _shader;
@@ -39,6 +41,7 @@ public sealed partial class WallFrillOverlay : Overlay
         // Over mobs, under doors and anything hung on the wall face.
         ZIndex = (int) DrawDepth.Doors;
         _frills = frills;
+        _cameraModes = _entManager.System<CameraModesSystem>();
         _transform = _entManager.System<SharedTransformSystem>();
         _map = _entManager.System<SharedMapSystem>();
         _shader = _prototypes.Index(FrillShader).InstanceUnique();
@@ -46,7 +49,8 @@ public sealed partial class WallFrillOverlay : Overlay
 
     protected override void Draw(in OverlayDrawArgs args)
     {
-        if (args.MapId == MapId.Nullspace)
+        // The 2.5D views draw wall faces themselves.
+        if (args.MapId == MapId.Nullspace || _cameraModes.Active && _cameraModes.IsMainPass(args))
             return;
 
         _grids.Clear();

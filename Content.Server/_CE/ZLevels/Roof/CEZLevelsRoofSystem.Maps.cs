@@ -55,5 +55,6 @@ public sealed partial class CEZLevelsRoofSystem
                     _roofMap.Add(tileRef.Value.GridIndices);
             }
         }
+        WgProjectStoryRoofs(network); // WOLFGATE(PlanetCities): stories that are separate grids roof the levels under them
     }
 }

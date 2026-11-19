@@ -79,6 +79,7 @@ public sealed partial class WGGroundCoverOverlay : Overlay
     private readonly EntityQuery<RoofComponent> _roofQuery;
     private readonly OverlayResourceCache<MaskTarget> _masks = new();
     private readonly OverlayResourceCache<FloorTarget> _floors = new();
+    private readonly OverlayResourceCache<LowerMasks> _lowerMasks = new();
     private readonly List<WorldRect> _rects = new();
     private List<Entity<MapGridComponent>> _grids = new();
     private readonly ShaderInstance _shader;
@@ -108,6 +109,10 @@ public sealed partial class WGGroundCoverOverlay : Overlay
     private DrawingHandleWorld _copyHandle = default!;
     private Texture _copySource = default!;
     private Vector2i _copySize;
+
+    private MaskTarget _current = default!;
+    private bool _lower;
+    private uint _lowerFrame = uint.MaxValue;
 
     private int _coverStamp;
     private readonly List<Entity<MapGridComponent>> _coverGrids = new();
@@ -159,6 +164,7 @@ public sealed partial class WGGroundCoverOverlay : Overlay
     {
         _masks.Dispose();
         _floors.Dispose();
+        _lowerMasks.Dispose();
         _shader.Dispose();
         _reflectShader.Dispose();
         _bake.Dispose();
@@ -169,23 +175,48 @@ public sealed partial class WGGroundCoverOverlay : Overlay
 
     protected override bool BeforeDraw(in OverlayDrawArgs args)
     {
-        GetFloor(args.Viewport).Ready = false;
-
-        // Only the view's own level: z-levels drawn under or over it would stack a second layer of wet ground.
-        if (args.MapId == MapId.Nullspace || args.Viewport.Eye is ScalingViewport.ZEye { Primary: false })
-        {
-            _wet = false;
+        _wet = false;
+        if (args.MapId == MapId.Nullspace)
             return false;
-        }
 
+        if (args.Viewport.Eye is ScalingViewport.ZEye { Primary: false } zEye)
+            return BeforeLower(args, zEye);
+
+        GetFloor(args.Viewport).Ready = false;
+        _lower = false;
         var wet = UpdateWeather(args.MapId);
         _anySnow = ScanGrids(args);
         if (!wet && !_anySnow)
             return false;
 
         // A fresh mask with nothing wet or snowy in view needs no pass and no copy of the screen.
-        var mask = _masks.GetForViewport(args.Viewport, static _ => new MaskTarget());
-        return !MaskFresh(mask, args, _wet) || mask.HasContent;
+        _current = _masks.GetForViewport(args.Viewport, static _ => new MaskTarget());
+        return !MaskFresh(_current, args, _wet) || _current.HasContent;
+    }
+
+    /// <summary>
+    /// A level below shows only its snow through the holes in the view's own level. Its wet ground would need a copy
+    /// of the screen, and levels above draw nothing.
+    /// </summary>
+    private bool BeforeLower(in OverlayDrawArgs args, ScalingViewport.ZEye zEye)
+    {
+        if (zEye.Depth >= 0f || !_groundQuery.HasComp(_map.GetMapOrInvalid(args.MapId)))
+            return false;
+
+        _anySnow = ScanGrids(args);
+        if (!_anySnow)
+            return false;
+
+        _lower = true;
+        _wetness = 0f;
+        _puddles = 0f;
+        _rain = 0f;
+        _detail = false;
+        var real = _timing.RealTime;
+        var masks = _lowerMasks.GetForViewport(args.Viewport, static _ => new LowerMasks());
+        masks.Prune(real);
+        _current = masks.Get(args.MapId, real);
+        return !MaskFresh(_current, args, false) || _current.HasContent;
     }
 
     /// <summary>Reads a map's wetness, puddles and rain at the current quality; true if wet ground draws.</summary>
@@ -196,11 +227,13 @@ public sealed partial class WGGroundCoverOverlay : Overlay
         _wetness = 0f;
         _puddles = 0f;
         _rain = 0f;
-        if (quality > 0 && _wolfWeather.IsSurface(mapUid) && _groundQuery.TryComp(mapUid, out var ground))
+        // A story keeps its own totals but takes the rain of the surface below it.
+        if (quality > 0 && _wolfWeather.TryGetWeatherMap(mapUid, out var resolved)
+                        && _groundQuery.TryComp(mapUid, out var ground))
         {
             _wetness = ground.Wetness;
             _puddles = ground.Puddles;
-            _rain = GetRain(mapUid);
+            _rain = GetRain(resolved.Owner);
             _tint = new Vector3(ground.Tint.R, ground.Tint.G, ground.Tint.B);
         }
 
@@ -240,7 +273,7 @@ public sealed partial class WGGroundCoverOverlay : Overlay
         if (_wet && ScreenTexture == null)
             return;
 
-        var mask = GetMask(args, _wet);
+        var mask = GetMask(args, _current, _wet);
         var maskTexture = mask.Target!.Texture;
         var floor = GetFloor(args.Viewport);
 
@@ -435,7 +468,7 @@ public sealed partial class WGGroundCoverOverlay : Overlay
     {
         var view = args.WorldAABB.Enlarged(MaskMargin * 0.5f);
         var real = _timing.RealTime;
-        var version = MaskVersion();
+        var version = MaskVersion(args.MapId);
 
         return mask.Target != null
                && mask.MapId == args.MapId
@@ -446,9 +479,9 @@ public sealed partial class WGGroundCoverOverlay : Overlay
                && real < mask.BuiltAt + MaskRefresh;
     }
 
-    private int MaskVersion()
+    private int MaskVersion(MapId map)
     {
-        return unchecked((_wolfWeather.MaskVersion * 31 + _cover.Version) * 31 + _coverStamp);
+        return unchecked((_wolfWeather.MaskVersionOf(map) * 31 + _cover.Version) * 31 + _coverStamp);
     }
 
     /// <summary>The part of the view with wet ground or snow in it, which is all that draws.</summary>
@@ -459,11 +492,19 @@ public sealed partial class WGGroundCoverOverlay : Overlay
     }
 
     /// <summary>The viewport's mask of open ground and snow depth, redrawn when the view leaves it, things change or it ages.</summary>
-    private MaskTarget GetMask(in OverlayDrawArgs args, bool wet)
+    private MaskTarget GetMask(in OverlayDrawArgs args, MaskTarget mask, bool wet)
     {
-        var mask = _masks.GetForViewport(args.Viewport, static _ => new MaskTarget());
         if (MaskFresh(mask, args, wet))
             return mask;
+
+        // One level below is redrawn a frame at most, the others keep the mask they have while it holds their map.
+        if (_lower)
+        {
+            if (_lowerFrame == _timing.CurFrame && mask.Target != null && mask.MapId == args.MapId)
+                return mask;
+
+            _lowerFrame = _timing.CurFrame;
+        }
 
         var real = _timing.RealTime;
         var outer = args.WorldAABB.Enlarged(MaskMargin);
@@ -484,7 +525,7 @@ public sealed partial class WGGroundCoverOverlay : Overlay
 
         mask.MapId = args.MapId;
         mask.Rect = rect;
-        mask.Version = MaskVersion();
+        mask.Version = MaskVersion(args.MapId);
         mask.BuiltAt = real;
         mask.Wet = wet;
 
@@ -696,6 +737,7 @@ public sealed partial class WGGroundCoverOverlay : Overlay
         public bool HasContent;
         public int Version;
         public TimeSpan BuiltAt;
+        public TimeSpan UsedAt;
         public bool Wet;
 
         public void Dispose()
@@ -704,6 +746,53 @@ public sealed partial class WGGroundCoverOverlay : Overlay
             Raw?.Dispose();
             Across?.Dispose();
             Heights?.Dispose();
+        }
+    }
+
+    /// <summary>One viewport's masks of the levels below, by map, dropped a while after they stop being drawn.</summary>
+    private sealed class LowerMasks : IDisposable
+    {
+        private static readonly TimeSpan Keep = TimeSpan.FromSeconds(2);
+
+        private readonly Dictionary<MapId, MaskTarget> _masks = new();
+        private readonly List<MapId> _gone = new();
+
+        public MaskTarget Get(MapId map, TimeSpan now)
+        {
+            if (!_masks.TryGetValue(map, out var mask))
+            {
+                mask = new MaskTarget();
+                _masks[map] = mask;
+            }
+
+            mask.UsedAt = now;
+            return mask;
+        }
+
+        public void Prune(TimeSpan now)
+        {
+            _gone.Clear();
+            foreach (var (map, mask) in _masks)
+            {
+                if (now - mask.UsedAt > Keep)
+                    _gone.Add(map);
+            }
+
+            foreach (var map in _gone)
+            {
+                _masks[map].Dispose();
+                _masks.Remove(map);
+            }
+        }
+
+        public void Dispose()
+        {
+            foreach (var mask in _masks.Values)
+            {
+                mask.Dispose();
+            }
+
+            _masks.Clear();
         }
     }
 }

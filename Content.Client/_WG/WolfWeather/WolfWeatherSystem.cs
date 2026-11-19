@@ -4,6 +4,7 @@ using Content.Client.Light;
 using Content.Shared.Light.Components;
 using Robust.Client.Graphics;
 using Robust.Shared.Configuration;
+using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Prototypes;
 
@@ -19,6 +20,10 @@ public sealed partial class WolfWeatherSystem : SharedWolfWeatherSystem
 
     private readonly Dictionary<EntityUid, WolfWeatherMapState> _states = new();
     private readonly Dictionary<EntityUid, WolfWeatherLight> _lights = new();
+    private readonly Dictionary<EntityUid, WolfWeatherFlash> _flashes = new();
+    private readonly HashSet<EntityUid> _litSeen = new();
+    private readonly Dictionary<MapId, int> _maskVersions = new();
+    private readonly List<EntityUid> _litGone = new();
 
     public int Quality { get; private set; }
 
@@ -26,6 +31,42 @@ public sealed partial class WolfWeatherSystem : SharedWolfWeatherSystem
 
     /// <summary>Goes up whenever a tile changes, so the overlay knows to redraw its mask.</summary>
     public int MaskVersion { get; private set; }
+
+    /// <summary>The cover mask the overlay last drew weather with, the world box it covers and its map.</summary>
+    public Texture? ViewMask { get; private set; }
+
+    public Box2 ViewMaskRect { get; private set; }
+
+    public MapId ViewMaskMap { get; private set; }
+
+    public void SetViewMask(Texture mask, Box2 rect, MapId map)
+    {
+        ViewMask = mask;
+        ViewMaskRect = rect;
+        ViewMaskMap = map;
+    }
+
+    private Texture? _rainPicture;
+    private uint _rainFrame;
+
+    /// <summary>
+    /// The falling layers over the whole view without cover, drawn this frame or the last in the 2.5D views, for the
+    /// solids the weather falls in front of. Null in other views or without weather.
+    /// </summary>
+    public Texture? RainPicture => _rainPicture != null && Timing.CurFrame - _rainFrame <= 1 ? _rainPicture : null;
+
+    public void SetRainPicture(Texture? picture)
+    {
+        _rainPicture = picture;
+        _rainFrame = Timing.CurFrame;
+    }
+
+    /// <summary>Drops the view mask when the overlay frees its texture, so no shader is handed a dead one.</summary>
+    public void ForgetViewMask(Texture texture)
+    {
+        if (ViewMask == texture)
+            ViewMask = null;
+    }
 
     private const float FlashLength = 0.35f;
 
@@ -41,6 +82,14 @@ public sealed partial class WolfWeatherSystem : SharedWolfWeatherSystem
     private void OnTileChanged(ref TileChangedEvent args)
     {
         MaskVersion++;
+        if (Transform(args.Entity).MapID is var map && map != MapId.Nullspace)
+            _maskVersions[map] = _maskVersions.GetValueOrDefault(map) + 1;
+    }
+
+    /// <summary>Goes up whenever a tile on one map changes, so terrain streaming elsewhere leaves its masks be.</summary>
+    public int MaskVersionOf(MapId map)
+    {
+        return _maskVersions.GetValueOrDefault(map);
     }
 
     public override void Shutdown()
@@ -49,13 +98,14 @@ public sealed partial class WolfWeatherSystem : SharedWolfWeatherSystem
         _overlay.RemoveOverlay<WolfWeatherOverlay>();
         _states.Clear();
         _lights.Clear();
+        _flashes.Clear();
     }
 
     [SubscribeLocalEvent]
     private void OnShutdown(Entity<WolfWeatherMapComponent> ent, ref ComponentShutdown args)
     {
         _states.Remove(ent.Owner);
-        _lights.Remove(ent.Owner);
+        _flashes.Remove(ent.Owner);
     }
 
     public bool TryGetState(EntityUid map, out WolfWeatherMapState state)
@@ -72,9 +122,16 @@ public sealed partial class WolfWeatherSystem : SharedWolfWeatherSystem
 
         var now = Timing.CurTime;
         var real = Timing.RealTime;
-        var query = EntityQueryEnumerator<WolfWeatherMapComponent, MapLightComponent>();
-        while (query.MoveNext(out var uid, out var weather, out var light))
+        _litSeen.Clear();
+        // Each lit map takes the weather that falls on it, so the stories above a surface darken and flash with it.
+        var query = EntityQueryEnumerator<MapLightComponent>();
+        while (query.MoveNext(out var uid, out var light))
         {
+            if (!TryGetWeatherMap(uid, out var resolved))
+                continue;
+
+            _litSeen.Add(uid);
+            var weather = resolved.Comp;
             if (!_lights.TryGetValue(uid, out var state))
             {
                 state = new WolfWeatherLight();
@@ -92,9 +149,8 @@ public sealed partial class WolfWeatherSystem : SharedWolfWeatherSystem
                     color *= Color.InterpolateBetween(Color.White, proto.AmbientTint, GetStrength(entry, proto, now));
             }
 
-            var flash = FlashLevel(state, real);
-            if (flash > 0f)
-                color = Color.InterpolateBetween(color, state.FlashColor, flash);
+            if (_flashes.TryGetValue(resolved.Owner, out var flashState) && FlashLevel(flashState, real) is > 0f and var flash)
+                color = Color.InterpolateBetween(color, flashState.FlashColor, flash);
 
             if (color == light.AmbientLightColor)
                 continue;
@@ -102,15 +158,37 @@ public sealed partial class WolfWeatherSystem : SharedWolfWeatherSystem
             light.AmbientLightColor = color;
             state.Written = color;
         }
+
+        if (_lights.Count != _litSeen.Count)
+            DropUntinted();
     }
 
-    /// <summary>Starts a lightning flash on a map, two quick pulses toward the colour.</summary>
+    /// <summary>Gives a tinted map that no weather falls on its own light back, and forgets it.</summary>
+    private void DropUntinted()
+    {
+        _litGone.Clear();
+        foreach (var uid in _lights.Keys)
+        {
+            if (!_litSeen.Contains(uid))
+                _litGone.Add(uid);
+        }
+
+        foreach (var uid in _litGone)
+        {
+            var state = _lights[uid];
+            _lights.Remove(uid);
+            if (TryComp<MapLightComponent>(uid, out var light) && state.Written == light.AmbientLightColor)
+                light.AmbientLightColor = state.Base;
+        }
+    }
+
+    /// <summary>Starts a lightning flash under a weather map's sky, two quick pulses toward the colour.</summary>
     public void Flash(EntityUid map, Color color, float strength)
     {
-        if (!_lights.TryGetValue(map, out var state))
+        if (!_flashes.TryGetValue(map, out var state))
         {
-            state = new WolfWeatherLight();
-            _lights[map] = state;
+            state = new WolfWeatherFlash();
+            _flashes[map] = state;
         }
 
         state.FlashStart = Timing.RealTime;
@@ -118,7 +196,7 @@ public sealed partial class WolfWeatherSystem : SharedWolfWeatherSystem
         state.FlashStrength = Math.Clamp(strength, 0f, 1f);
     }
 
-    private static float FlashLevel(WolfWeatherLight state, TimeSpan now)
+    private static float FlashLevel(WolfWeatherFlash state, TimeSpan now)
     {
         var t = (float) (now - state.FlashStart).TotalSeconds;
         if (state.FlashStrength <= 0f || t < 0f || t >= FlashLength)
@@ -231,6 +309,11 @@ public sealed class WolfWeatherLight
 {
     public Color? Written;
     public Color Base;
+}
+
+/// <summary>A lightning flash under one weather map's sky.</summary>
+public sealed class WolfWeatherFlash
+{
     public TimeSpan FlashStart;
     public Color FlashColor;
     public float FlashStrength;

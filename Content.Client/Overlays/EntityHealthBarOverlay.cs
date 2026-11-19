@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Client._WG.CameraModes; // WOLFGATE(CameraModes)
 using Content.Client.StatusIcon;
 using Content.Client.UserInterface.Systems;
 using Content.Shared.Damage;
@@ -31,7 +32,7 @@ public sealed class EntityHealthBarOverlay : Overlay
     private readonly ProgressColorSystem _progressColor;
 
 
-    public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
+    public override OverlaySpace Space => _entManager.System<CameraModesSystem>().MarkSpace(OverlaySpace.WorldSpaceBelowFOV); // WOLFGATE(CameraModes): over the first-person view
     public HashSet<string> DamageContainers = new();
     public ProtoId<HealthIconPrototype>? StatusIcon;
 
@@ -91,6 +92,9 @@ public sealed class EntityHealthBarOverlay : Overlay
 
             var scaledWorld = Matrix3x2.Multiply(scaleMatrix, worldMatrix);
             var matty = Matrix3x2.Multiply(rotationMatrix, scaledWorld);
+            // WOLFGATE(CameraModes): over the figure first person draws
+            if (!_entManager.System<CameraModesSystem>().PlaceMark(uid, bounds.Height / 2f, args, ref matty))
+                continue;
 
             handle.SetTransform(matty);
 

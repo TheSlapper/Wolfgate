@@ -1,4 +1,5 @@
 using Content.Server.Atmos.Components;
+using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._WG.GroundCover;
 using Content.Shared._WG.WolfWeather;
 using Content.Shared.Atmos;
@@ -305,18 +306,43 @@ public sealed partial class WGGroundCoverSystem
         if (_wolfWeather.TryGetHull(ent, out var hull))
             ent = hull;
 
-        if (!TryComp(ent, out TransformComponent? xform) || xform.MapUid is not { } map
-            || weatherOnly && !HasComp<WGGroundWeatherComponent>(map))
-            return;
-
-        // Ice only forms under outdoor air, so a session in space has nothing to look at.
-        if (outdoorAirOnly && (!TryComp<MapAtmosphereComponent>(map, out var mapAir) || mapAir.Space))
+        if (!TryComp(ent, out TransformComponent? xform) || xform.MapUid is not { } map)
             return;
 
         var position = _transform.GetWorldPosition(xform);
         var box = Box2.CenteredAround(position, new System.Numerics.Vector2(ViewRange * 2f));
+        if (!weatherOnly)
+        {
+            // Ice only forms under outdoor air, so a session in space has nothing to look at.
+            if (outdoorAirOnly && (!TryComp<MapAtmosphereComponent>(map, out var mapAir) || mapAir.Space))
+                return;
+
+            CollectMap(xform.MapID, box, into);
+            return;
+        }
+
+        if (HasComp<WGGroundWeatherComponent>(map))
+            CollectMap(xform.MapID, box, into);
+
+        // The levels below with weather show through the holes in this one.
+        if (!TryComp<CEZMapComponent>(map, out var z))
+            return;
+
+        Entity<CEZMapComponent?> current = (map, z);
+        for (var i = 0; i < MaxStories && _zLevels.TryMapDown(current, out var below); i++)
+        {
+            if (HasComp<WGGroundWeatherComponent>(below.Owner) && TryComp<MapComponent>(below.Owner, out var belowMap))
+                CollectMap(belowMap.MapId, box, into);
+
+            current = (below.Owner, below.Comp);
+        }
+    }
+
+    /// <summary>The snow chunks of one map's grids in a box.</summary>
+    private void CollectMap(MapId mapId, Box2 box, List<(EntityUid Grid, Vector2i Chunk)> into)
+    {
         _grids.Clear();
-        _map.FindGridsIntersecting(xform.MapID, box, ref _grids);
+        _map.FindGridsIntersecting(mapId, box, ref _grids);
         foreach (var grid in _grids)
         {
             if (!CanHoldCover(grid))

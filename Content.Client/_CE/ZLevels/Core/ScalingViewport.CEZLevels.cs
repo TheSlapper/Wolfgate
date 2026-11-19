@@ -7,6 +7,7 @@ using System.Numerics;
 using Content.Client._CE.ZLevels.Core;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._CE.ZLevels.Core.EntitySystems;
+using Content.Client._WG.CameraModes; // WOLFGATE(CameraModes)
 using Content.Shared._WG.Planets; // WOLFGATE(Planets)
 using Content.Shared.Maps;
 using Robust.Client.Graphics;
@@ -408,7 +409,24 @@ public sealed partial class ScalingViewport
 
             viewport.ClearColor = first ? Color.Black : null;
             first = false;
+            // WOLFGATE(CameraModes) START: the 3D views take each level below as a picture of its own
+            var wgLower = depth < 0f && !isTransit && viewport.Eye is ZEye { Primary: false };
+            var wgPass = default(WGZLevelPassEvent);
+            if (wgLower)
+            {
+                wgPass = new WGZLevelPassEvent(this, viewport, renderHandle, mapUid, depth, (ZEye) viewport.Eye!,
+                    _fallbackEye);
+                _entityManager.EventBus.RaiseEvent(EventSource.Local, ref wgPass);
+            }
+            // WOLFGATE END
             viewport.Render();
+            // WOLFGATE(CameraModes) START
+            if (wgLower)
+            {
+                wgPass.After = true;
+                _entityManager.EventBus.RaiseEvent(EventSource.Local, ref wgPass);
+            }
+            // WOLFGATE END
 
             if (wispColor != null)
                 DrawCloudWisps(renderHandle, viewport, wispColor.Value);

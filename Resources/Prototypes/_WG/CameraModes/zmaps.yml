@@ -1,0 +1,26 @@
+- type: zMap
+  id: WGZLevelCameraTest
+  maps:
+    - /Maps/_WG/CameraModes/zlevelcameratest0.yml
+    - /Maps/_WG/CameraModes/zlevelcameratest1.yml
+    - /Maps/_WG/CameraModes/zlevelcameratest2.yml
+    - /Maps/_WG/CameraModes/zlevelcameratest3.yml
+    - /Maps/_WG/CameraModes/zlevelcameratest4.yml
+    - /Maps/_WG/CameraModes/zlevelcameratest5.yml
+    - /Maps/_WG/CameraModes/zlevelcameratest6.yml
+    - /Maps/_WG/CameraModes/zlevelcameratest7.yml
+    - /Maps/_WG/CameraModes/zlevelcameratest8.yml
+  components:
+    - type: MapAtmosphere
+      space: False
+      mixture:
+        volume: 2500
+        immutable: True
+        temperature: 293.15
+        moles:
+        - 21.824879
+        - 82.10312
+    - type: CEZLevelRoof
+    - type: WGPlanetLayer
+    - type: MapLight
+      ambientLightColor: "#1c2333"

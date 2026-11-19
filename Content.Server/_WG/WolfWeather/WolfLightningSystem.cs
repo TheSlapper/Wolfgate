@@ -108,10 +108,13 @@ public sealed partial class WolfLightningSystem : EntitySystem
         return best;
     }
 
-    /// <summary>Strikes near a player if the roll and open ground allow, otherwise flashes far off. Anyone under the map's sky hears it, vehicle interiors included.</summary>
+    /// <summary>
+    /// Strikes near a player if the roll and open ground allow, otherwise flashes far off. Anyone under the map's sky
+    /// hears it, vehicle interiors and the stories above it included.
+    /// </summary>
     private void Bolt(EntityUid map, WolfWeatherPrototype weather, WolfWeatherLightning lightning)
     {
-        var filter = Filter.Empty().AddWhereAttachedEntity(body => _wolfWeather.GetSkyMap(body) == map);
+        var filter = Filter.Empty().AddWhereAttachedEntity(body => UnderSky(body, map));
         var strike = _random.Prob(lightning.StrikeChance) && TryStrike(map, lightning, filter);
         RaiseNetworkEvent(new WolfLightningEvent { Map = GetNetEntity(map), Weather = weather.ID, Strike = strike }, filter);
     }
@@ -121,7 +124,8 @@ public sealed partial class WolfLightningSystem : EntitySystem
         _targets.Clear();
         foreach (var session in _players.Sessions)
         {
-            if (session.AttachedEntity is { } attached && Transform(attached).MapUid == map && IsValidTarget(attached))
+            if (session.AttachedEntity is { } attached && Transform(attached).MapUid is { } own
+                && _wolfWeather.TryGetWeatherMap(own, out var weather) && weather.Owner == map && IsValidTarget(attached))
                 _targets.Add(attached);
         }
 
@@ -131,6 +135,12 @@ public sealed partial class WolfLightningSystem : EntitySystem
 
         Strike(coords, lightning, filter);
         return true;
+    }
+
+    /// <summary>Whether a body is under the sky of a map's weather.</summary>
+    private bool UnderSky(EntityUid body, EntityUid map)
+    {
+        return _wolfWeather.TryGetSkyWeather(body, out var weather) && weather.Owner == map;
     }
 
     /// <summary>

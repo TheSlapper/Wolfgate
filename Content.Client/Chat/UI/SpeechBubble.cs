@@ -1,5 +1,6 @@
 using System.Numerics;
 using Content.Client.Chat.Managers;
+using Content.Client._WG.CameraModes; // WOLFGATE(CameraModes)
 using Content.Client._WG.ChatFont; // WOLFGATE(ChatFont)
 using Content.Shared.CCVar;
 using Content.Shared.Chat;
@@ -155,6 +156,15 @@ namespace Content.Client.Chat.UI
 
             var offset = (-_eyeManager.CurrentEye.Rotation).ToWorldVec() * -(EntityVerticalOffset + baseOffset);
             var worldPos = _transformSystem.GetWorldPosition(xform) + offset;
+            // WOLFGATE(CameraModes) START: over the figure first person draws, hidden when it is out of sight
+            if (!_entityManager.System<CameraModesSystem>().TryMarkWorld(_senderEntity, out var mark))
+            {
+                Modulate = Color.White.WithAlpha(0);
+                return;
+            }
+
+            worldPos = mark ?? worldPos;
+            // WOLFGATE END
 
             var lowerCenter = _eyeManager.WorldToScreen(worldPos) / UIScale;
             var screenPos = lowerCenter - new Vector2(ContentSize.X / 2, ContentSize.Y + _verticalOffsetAchieved);

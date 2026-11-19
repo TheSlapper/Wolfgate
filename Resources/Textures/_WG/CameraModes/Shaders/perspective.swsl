@@ -1,0 +1,24 @@
+// The perspective view's floor and meshes, drawn over the whole screen inside the viewport render. Each pixel shows
+// the floor point a perspective camera sees there, read from the flat tilted image, with the meshes on top.
+light_mode unshaded;
+
+uniform sampler2D SCREEN_TEXTURE;
+uniform sampler2D MESH_TEXTURE;
+uniform highp float LAMBDA;
+uniform highp float SIGMA;
+
+void fragment() {
+    highp vec2 size = 1.0 / SCREEN_PIXEL_SIZE;
+    highp vec2 uv = FRAGCOORD.xy * SCREEN_PIXEL_SIZE;
+    // p and o are centred pixels with y up.
+    highp vec2 p = (uv - 0.5) * size / SIGMA;
+    highp vec2 o = p / (1.0 - LAMBDA * p.y);
+    highp vec2 flatUv = 0.5 + o / size;
+    highp vec3 floorColor = vec3(0.0);
+    if (flatUv.x >= 0.0 && flatUv.x <= 1.0 && flatUv.y >= 0.0 && flatUv.y <= 1.0) {
+        floorColor = texture2D(SCREEN_TEXTURE, flatUv).rgb;
+    }
+
+    highp vec4 mesh = texture2D(MESH_TEXTURE, uv);
+    COLOR = vec4(mesh.rgb + floorColor * (1.0 - mesh.a), 1.0);
+}

@@ -17,6 +17,7 @@ using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Movement.Components;
 using Content.Shared.Movement.Pulling.Components;
+using Content.Shared.Parallax;
 using Content.Shared.Popups;
 using Robust.Shared.EntitySerialization;
 using Robust.Shared.EntitySerialization.Systems;
@@ -33,6 +34,9 @@ namespace Content.Shared._WG.Vehicles.Core;
 public sealed partial class VehicleInteriorSystem : EntitySystem
 {
     private static readonly EntProtoId VehicleKey = "RMCVehicleKey";
+
+    /// <summary>The empty background an interior map takes.</summary>
+    private const string BlankParallax = "Blank";
 
     /// <summary>How far past the hull an exit may land when the doorways are blocked.</summary>
     private const float FallbackExitReach = 5f;
@@ -324,6 +328,11 @@ public sealed partial class VehicleInteriorSystem : EntitySystem
         var link = EnsureComp<VehicleInteriorLinkComponent>(mapUid);
         link.Vehicle = ent.Owner;
         Dirty(mapUid, link);
+
+        // Nothing shows outside a vehicle's walls.
+        var backdrop = EnsureComp<ParallaxComponent>(mapUid);
+        backdrop.Parallax = BlankParallax;
+        Dirty(mapUid, backdrop);
 
         SpawnVehicleInteriorKey(ent.Owner, mapId);
 

@@ -1,0 +1,72 @@
+// A top-down picture of how thick the fog's banks are round the first-person eye, from up to four fog layers. The
+// banks are the 2D fog's: noise cut at the layer's density with a soft edge, drifting with the wind. Looking through
+// one bank, about half its noise cell across, hides as much as the 2D layer does from above. None lies under a roof.
+light_mode unshaded;
+
+// The picture's size in pixels, the tiles it covers on each side, and the thickness per tile full red stands for.
+uniform highp float SIZE;
+uniform highp float TILES;
+uniform highp float SCALE;
+
+uniform highp float LAYERS;
+// Each layer's noise cell at the eye, its bank size in tiles, cover, edge and strength.
+uniform highp vec4 CELL_X;
+uniform highp vec4 CELL_Y;
+uniform highp vec4 SPACING;
+uniform highp vec4 DENSITY;
+uniform highp vec4 SOFT;
+uniform highp vec4 ALPHA;
+
+uniform sampler2D FOG_MASK;
+uniform highp vec2 FOG_MASK_EYE;
+uniform highp vec2 FOG_MASK_SIZE;
+
+highp float lane(highp vec4 v, highp float i) {
+    return i < 0.5 ? v.x : i < 1.5 ? v.y : i < 2.5 ? v.z : v.w;
+}
+
+highp float hash(highp vec2 p) {
+    p = mod(p, 1024.0);
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+}
+
+highp float vnoise(highp vec2 x) {
+    highp vec2 i = floor(x);
+    highp vec2 f = fract(x);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x),
+        f.y);
+}
+
+highp float bank(highp vec2 q, highp float density, highp float soft) {
+    highp float n = 0.5 * vnoise(q) + 0.3 * vnoise(q * 2.0 + vec2(17.3, 5.1)) + 0.2 * vnoise(q * 4.0 + vec2(-8.7, 31.9));
+    highp float edge = 1.0 - density;
+    return smoothstep(edge, edge + max(soft, 0.001), n);
+}
+
+void fragment() {
+    highp vec2 rel = (FRAGCOORD.xy / SIZE - 0.5) * (TILES * 2.0);
+    highp float thick = 0.0;
+    for (int n = 0; n < 4; n++) {
+        highp float i = float(n);
+        if (i > LAYERS - 0.5)
+            break;
+
+        highp float spacing = lane(SPACING, i);
+        highp vec2 q = vec2(lane(CELL_X, i), lane(CELL_Y, i)) + rel / spacing;
+        highp float hidden = min(lane(ALPHA, i) * bank(q, lane(DENSITY, i), lane(SOFT, i)), 0.95);
+        thick += -log(1.0 - hidden) / (spacing * 0.5);
+    }
+
+    highp vec2 maskUv = (FOG_MASK_EYE + rel) / FOG_MASK_SIZE;
+    highp float roof = 0.0;
+    if (maskUv.x >= 0.0 && maskUv.y >= 0.0 && maskUv.x <= 1.0 && maskUv.y <= 1.0)
+        roof = texture2D(FOG_MASK, maskUv).r;
+
+    // Green is how high the banks reach here, from 1 to 4 tiles, so they stand as lumps and not as pillars. It
+    // follows the first layer's drift at twice its bank size.
+    highp vec2 topQ = (vec2(CELL_X.x, CELL_Y.x) + rel / SPACING.x) * 0.5 + vec2(41.3, -12.7);
+    highp float top = 0.6 * vnoise(topQ) + 0.4 * vnoise(topQ * 2.0 + vec2(5.9, 23.1));
+
+    COLOR = vec4(min(thick / SCALE, 1.0) * clamp(1.0 - roof * 2.0, 0.0, 1.0), top, 0.0, 1.0);
+}

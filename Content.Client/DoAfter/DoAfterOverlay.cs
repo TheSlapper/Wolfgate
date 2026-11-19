@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Client._WG.CameraModes; // WOLFGATE(CameraModes)
 using Content.Client._WG.Shuttles.Systems; // WOLFGATE(Shuttles)
 using Content.Shared.DoAfter;
 using Content.Client.UserInterface.Systems;
@@ -47,7 +48,7 @@ public sealed class DoAfterOverlay : Overlay
     // Time after which the doafter will lerp to its final y offset.
     private static readonly TimeSpan MaxYPosTime = TimeSpan.FromSeconds(0.5f);
 
-    public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
+    public override OverlaySpace Space => _entManager.System<CameraModesSystem>().MarkSpace(OverlaySpace.WorldSpaceBelowFOV); // WOLFGATE(CameraModes): over the first-person view
 
     public DoAfterOverlay(IEntityManager entManager, IPrototypeManager protoManager, IGameTiming timing, IPlayerManager player)
     {
@@ -115,6 +116,11 @@ public sealed class DoAfterOverlay : Overlay
             var worldMatrix = Matrix3Helpers.CreateTranslation(worldPosition);
             var scaledWorld = Matrix3x2.Multiply(scaleMatrix, worldMatrix);
             var matty = Matrix3x2.Multiply(rotationMatrix, scaledWorld);
+            // WOLFGATE(CameraModes) START: over the figure first person draws, the player's own low in the middle
+            var markTop = _sprite.GetLocalBounds((uid, sprite)).Height / 2f;
+            if (!_entManager.System<CameraModesSystem>().PlaceMark(uid, markTop, args, ref matty, true))
+                continue;
+            // WOLFGATE END
             handle.SetTransform(matty);
 
             var offset = 0f;

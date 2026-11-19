@@ -317,7 +317,10 @@ public abstract partial class SharedVentCrawlingSystem : EntitySystem
         var rotation = _mover.GetParentGridAngle(input);
         var wishDir = _relativeMovement ? rotation.RotateVec(vectors) : vectors;
 
-        ent.Comp.TravelDirection = wishDir.GetDir().IsCardinal() ? wishDir.GetDir() : null;
+        // A single key in the isometric view points between two pipes, so it keeps its unturned direction.
+        var turned = _mover.CameraModeWish(ent, wishDir).GetDir();
+        var dir = turned.IsCardinal() ? turned : wishDir.GetDir();
+        ent.Comp.TravelDirection = dir.IsCardinal() ? dir : null;
 
         Dirty(ent);
     }

@@ -305,6 +305,8 @@ public abstract partial class SharedMoverController : VirtualController
             accel *= tileDef?.MobAcceleration ?? 1f;
         }
 
+        wishDir = CameraModeWish(uid, wishDir); // WOLFGATE(CameraModes): the isometric view turns the input frame 45 degrees
+
         // This way friction never exceeds acceleration when you're trying to move.
         // If you want to slow down an entity with "friction" you shouldn't be using this system.
         if (wishDir != Vector2.Zero)

@@ -77,6 +77,7 @@ public sealed partial class WGGroundCoverSystem : EntitySystem
             StepMap((uid, ground), (float) MapInterval.TotalSeconds);
         }
 
+        UpdateStories(now);
         UpdateSnow(now);
         UpdateHeat(now);
         UpdateFire(now);
@@ -86,11 +87,16 @@ public sealed partial class WGGroundCoverSystem : EntitySystem
         UpdateNetwork(now);
     }
 
-    /// <summary>Rain as wetness, and snowfall in cover levels a minute, of a map's weathers at their current strength.</summary>
+    /// <summary>
+    /// Rain as wetness, and snowfall in cover levels a minute, of the weathers falling on a map at their current
+    /// strength. A story takes the surface's below it.
+    /// </summary>
     public (float Rain, float Snow) GetPrecipitation(EntityUid map)
     {
-        if (!TryComp<WolfWeatherMapComponent>(map, out var weather))
+        if (!_wolfWeather.TryGetWeatherMap(map, out var resolved))
             return (0f, 0f);
+
+        var weather = resolved.Comp;
 
         var now = _timing.CurTime;
         var rain = 0f;
@@ -111,8 +117,10 @@ public sealed partial class WGGroundCoverSystem : EntitySystem
     /// <summary>The tint of the rain falling on a map, its weathers' tints weighted by how hard each rains; null when none does.</summary>
     public Color? GetRainTint(EntityUid map)
     {
-        if (!TryComp<WolfWeatherMapComponent>(map, out var weather))
+        if (!_wolfWeather.TryGetWeatherMap(map, out var resolved))
             return null;
+
+        var weather = resolved.Comp;
 
         var now = _timing.CurTime;
         var sum = Vector3.Zero;
@@ -192,9 +200,15 @@ public sealed partial class WGGroundCoverSystem : EntitySystem
         return MeltPerMinute * Math.Clamp((temperature - Freezing) / 10f, 0.25f, 2f);
     }
 
+    /// <summary>The temperature of a map's air, or for a story with none, the surface's below it.</summary>
     private float? MapTemperature(EntityUid map)
     {
-        return _atmos.GetTileMixture(null, map, Vector2i.Zero)?.Temperature;
+        if (_atmos.GetTileMixture(null, map, Vector2i.Zero)?.Temperature is { } temperature)
+            return temperature;
+
+        return _wolfWeather.TryGetWeatherMap(map, out var surface) && surface.Owner != map
+            ? _atmos.GetTileMixture(null, surface.Owner, Vector2i.Zero)?.Temperature
+            : null;
     }
 
     private static float Approach(float value, float target, float up, float down)
