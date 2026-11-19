@@ -872,7 +872,8 @@ public sealed partial class CameraModeMeshOverlay : Overlay
             var interior = obj.Panel;
             var ceiling = obj.Ceiling;
             var window = obj.Kind == SceneKind.Window;
-            var table = obj.Kind == SceneKind.Table;            target.CopyPixelsToMemory<Rgba32>(image =>
+            var table = obj.Kind == SceneKind.Table;
+            target.CopyPixelsToMemory<Rgba32>(image =>
             {
                 var pixels = image.GetPixelSpan();
                 SpriteAnalysis analysis;
