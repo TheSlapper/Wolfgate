@@ -25,6 +25,10 @@ public sealed class PlanetOverlay : Overlay
 
     protected override bool BeforeDraw(in OverlayDrawArgs args)
     {
+        // WOLFGATE(CameraModes): first person shows planets in its own sky
+        if (_entMan.System<Content.Client._WG.CameraModes.CameraModesSystem>().FirstPersonPass(args))
+            return false;
+
         if (!_entMan.TryGetComponent<StarSystemMapComponent>(args.MapUid, out var starSystem) ||
             starSystem.StarSystem is not { } system ||
             system.Planets.Count == 0)

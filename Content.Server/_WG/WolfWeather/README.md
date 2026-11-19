@@ -12,7 +12,9 @@ each storm phase cross-fades into the next. A map with WolfWeather state never d
 loop. Weather is set on a surface only (`IsSurface`): caverns, cellars and the orbit get none, and `SetWeather`
 refuses the rest. A story above a surface takes the surface's weather (`TryGetWeatherMap` walks down to it, stopping
 at a cloud layer): rain, sound, light tint, flashes, lightning, wind and wetness all reach its open roofs, and a level
-below shows its rain through the holes in the one above. A viewer below the ground sees none even with the ground drawn
+below shows its rain through the holes in the one above. A see-through tile that takes weather, such as water over a
+level below, is a surface the rain and splashes land on, not a hole. In the tilted 3D views fog covers every level in
+view. A viewer below the ground sees none even with the ground drawn
 above them. On a planet roofs decide what is open, and a vessel is under cover throughout, as for stock weather.
 
 Elsewhere admins use `wolfweather <map> <weather|clear> [seconds]` and `wolfweather_schedule` (Fun flag). A schedule
@@ -22,7 +24,8 @@ planet, such as an event map; it refuses planet layers, which follow their own w
 Lightning strikes only near a living player who isn't in a container, on an open tile of that player's own grid,
 never a station's grid or a vessel, and shocks only mobs standing in the open on it. Every bolt draws the weather's
 `bolt` (`WGThunderbolt`): a strike spawns it where it lands, and for a far flash each client draws `WGThunderboltFar`
-on open ground somewhere in its own view (`WolfThunderboltSystem`). Someone inside a vehicle's interior is under the sky
+on open ground somewhere in its own view (`WolfThunderboltSystem`). Both carry `WolfThunderbolt`, which the 3D views
+stand upright. Someone inside a vehicle's interior is under the sky
 of the map the hull is on (`SharedWolfWeatherSystem.GetSkyMap`): they hear its weather loops and thunder, always as from
 indoors, and are sent the snow around the hull. Wind pushes only loose light items
 that are out in the open, not creatures, buckled or stowed, and only where its own grid goes on downwind, at most
@@ -56,6 +59,7 @@ Entry points: `SharedWolfWeatherSystem.SetWeather`, `WGPlanetWeatherSystem.Resol
 - [`Content.Shared/_WG/WolfWeather/WeatherScheduleComponent.cs`](../../../Content.Shared/_WG/WolfWeather/WeatherScheduleComponent.cs)
 - [`Content.Shared/_WG/WolfWeather/WeatherSchedulePrototype.cs`](../../../Content.Shared/_WG/WolfWeather/WeatherSchedulePrototype.cs)
 - [`Content.Shared/_WG/WolfWeather/WindPushableComponent.cs`](../../../Content.Shared/_WG/WolfWeather/WindPushableComponent.cs)
+- [`Content.Shared/_WG/WolfWeather/WolfThunderboltComponent.cs`](../../../Content.Shared/_WG/WolfWeather/WolfThunderboltComponent.cs)
 - [`Content.Shared/_WG/WolfWeather/WolfWeatherCVars.cs`](../../../Content.Shared/_WG/WolfWeather/WolfWeatherCVars.cs)
 - [`Content.Shared/_WG/WolfWeather/WolfWeatherLightning.cs`](../../../Content.Shared/_WG/WolfWeather/WolfWeatherLightning.cs)
 - [`Content.Shared/_WG/WolfWeather/WolfWeatherMapComponent.cs`](../../../Content.Shared/_WG/WolfWeather/WolfWeatherMapComponent.cs)

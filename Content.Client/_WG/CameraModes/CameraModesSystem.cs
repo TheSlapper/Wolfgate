@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Numerics;
 using Content.Client.Administration.Managers;
 using Content.Client.Eye;
+using Content.Client.Movement.Systems;
 using Content.Client.UserInterface.Controls;
 using Content.Client.Viewport;
 using Content.Client._WG.CameraModes.Atlas;
@@ -57,7 +58,7 @@ public sealed partial class CameraModesSystem : EntitySystem
     private bool _eyeTouched;
 
     private CameraModeHideOverlay? _hide;
-    private CameraModeHideOverlay? _restore;
+    private CameraModeRestoreOverlay? _restore;
     private CameraModeBackdropOverlay? _backdrop;
     private CameraModeMeshOverlay? _mesh;
     private SpriteAtlas? _atlas;
@@ -82,11 +83,13 @@ public sealed partial class CameraModesSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
+        // The look snaps the picture to whole pixels, so it reads the eye after everything that moves it this frame.
         UpdatesAfter.Add(typeof(EyeLerpingSystem));
+        UpdatesAfter.Add(typeof(EyeSystem));
+        UpdatesAfter.Add(typeof(ContentEyeSystem));
         Subs.CVar(_cfg, CameraModeCVars.Mode, value => _mode = value, true);
         Subs.CVar(_cfg, CameraModeCVars.Debug, value => _debug = value, true);
-        Subs.CVar(_cfg, CameraModeCVars.Billboards, value => _billboards = value, true);
-        InitializeScene();
+        Subs.CVar(_cfg, CameraModeCVars.Billboards, value => _billboards = value, true);        InitializeScene();
         InitializeClick();
         InitializeLook();
         InitializeLevels();
@@ -244,8 +247,8 @@ public sealed partial class CameraModesSystem : EntitySystem
             return;
 
         _atlas = new SpriteAtlas(_clyde);
-        _hide = new CameraModeHideOverlay(this, false);
-        _restore = new CameraModeHideOverlay(this, true);
+        _hide = new CameraModeHideOverlay(this);
+        _restore = new CameraModeRestoreOverlay(this);
         _backdrop = new CameraModeBackdropOverlay(this);
         _mesh = new CameraModeMeshOverlay(this, _atlas, _backdrop);
         _overlays.AddOverlay(_hide);

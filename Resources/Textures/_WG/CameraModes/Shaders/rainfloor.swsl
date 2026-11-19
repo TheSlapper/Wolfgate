@@ -20,7 +20,8 @@ highp float solid(sampler2D tex, highp vec2 uv) {
 
 void fragment() {
     highp vec2 uv = FRAGCOORD.xy / SIZE;
-    highp float bits = texture2D(MASK_TEXTURE, uv).r > 0.5 ? 1.0 : 0.0;
+    // Green marks every floor the weather lands on, see-through water included.
+    highp float bits = texture2D(MASK_TEXTURE, uv).g > 0.5 ? 1.0 : 0.0;
     if (LOWER_COUNT > 0.5)
         bits += 2.0 * solid(LOWER_TEX0, uv);
     if (LOWER_COUNT > 1.5)

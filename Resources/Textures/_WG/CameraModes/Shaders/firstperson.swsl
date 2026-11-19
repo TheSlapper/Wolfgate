@@ -9,6 +9,28 @@ uniform sampler2D SCREEN_TEXTURE;
 uniform sampler2D MESH_TEXTURE;
 // The sky round the eye: the full turn across, straight down to straight up.
 uniform sampler2D SKY_TEXTURE;
+// The sector's planets and black hole round the eye, laid the same way and see-through where there is none.
+uniform sampler2D BODY_TEXTURE;
+uniform highp float BODY_ON;
+// The nearest planet, drawn straight from its own square picture as a globe: the direction to its middle (east,
+// north, up), the radius of its core as the eye sees it in radians, and the part of it the picture holds: that part's
+// middle and size in core radii from the globe's middle.
+uniform sampler2D NEAR_PICTURE;
+uniform highp float NEAR_ON;
+uniform highp vec3 NEAR_DIR;
+uniform highp float NEAR_SIZE;
+uniform highp vec2 NEAR_MIDDLE;
+uniform highp vec2 NEAR_SPAN;
+// The black hole, drawn straight from its own square picture, which stands across the ray to its middle. Its shadow
+// is HOLE_SIZE radians across the half and the picture reaches HOLE_REACH shadow radii. It bends the sky behind it by
+// HOLE_LENS. HOLE_OVER is 1 where it lies nearer than the planet.
+uniform sampler2D HOLE_PICTURE;
+uniform highp float HOLE_ON;
+uniform highp float HOLE_OVER;
+uniform highp vec3 HOLE_DIR;
+uniform highp float HOLE_SIZE;
+uniform highp float HOLE_REACH;
+uniform highp float HOLE_LENS;
 // Every tile in the stock picture.
 uniform sampler2D MASK_TEXTURE;
 // The flat view's background, in the stock picture's frame, when BACKDROP_ON is 1. It is laid round a centre
@@ -187,12 +209,80 @@ highp vec4 under(highp vec4 acc, highp vec4 c) {
 }
 
 // The sky along a ray, given to the right, ahead and up of the eye.
-highp vec3 skyAlong(highp float right, highp float ahead, highp float up) {
+highp vec2 skyUv(highp float right, highp float ahead, highp float up) {
     highp vec2 world = LOOK_RIGHT * right + LOOK_UP * ahead;
     highp float yaw = atan(world.y, world.x);
     highp float tilt = atan(up, length(world));
-    highp vec2 uv = vec2(fract(yaw / 6.2831853 + 0.5), 0.5 + tilt / 3.1415927);
-    return texture2D(SKY_TEXTURE, uv).rgb;
+    return vec2(fract(yaw / 6.2831853 + 0.5), 0.5 + tilt / 3.1415927);
+}
+
+highp vec3 skyAlong(highp float right, highp float ahead, highp float up) {
+    return texture2D(SKY_TEXTURE, skyUv(right, ahead, up)).rgb;
+}
+
+// A direction east, north and up as one to the right, ahead and up of the eye.
+highp vec3 fromWorld(highp vec3 dir) {
+    return vec3(dot(dir.xy, LOOK_RIGHT), dot(dir.xy, LOOK_UP), dir.z);
+}
+
+// Lays a picture that was blended onto nothing over a colour. That blend leaves the picture's colour times its cover
+// and its cover squared.
+highp vec3 laid(highp vec3 behind, highp vec4 picture) {
+    return behind * (1.0 - sqrt(picture.a)) + picture.rgb;
+}
+
+// The nearest planet over a colour, along a ray to the right, ahead and up of the eye.
+highp vec3 nearPlanet(highp vec3 behind, highp vec3 ray) {
+    highp vec3 middle = fromWorld(NEAR_DIR);
+    if (NEAR_ON < 0.5 || dot(ray, middle) <= 0.0)
+        return behind;
+
+    // Across and up from the globe's middle. Straight under the eye there is no up, so ahead stands in.
+    highp vec3 over = abs(middle.z) > 0.999 ? vec3(0.0, 1.0, 0.0) : vec3(0.0, 0.0, 1.0);
+    highp vec3 side = normalize(cross(middle, over));
+    highp vec3 rise = cross(side, middle);
+    highp vec2 at = 0.5 + (vec2(dot(ray, side), dot(ray, rise)) / sin(NEAR_SIZE) - NEAR_MIDDLE) / NEAR_SPAN;
+    if (at.x <= 0.0 || at.x >= 1.0 || at.y <= 0.0 || at.y >= 1.0)
+        return behind;
+
+    return laid(behind, texture2D(NEAR_PICTURE, at));
+}
+
+// Where a ray meets the black hole's picture, in shadow radii across and up from its middle.
+highp vec2 holeAt(highp vec3 ray, out highp vec3 side, out highp vec3 rise) {
+    highp vec3 middle = fromWorld(HOLE_DIR);
+    side = normalize(cross(middle, vec3(0.0, 0.0, 1.0)));
+    rise = cross(side, middle);
+    highp vec2 across = vec2(dot(ray, side), dot(ray, rise));
+    highp float turn = acos(clamp(dot(ray, middle), -1.0, 1.0));
+    return across / max(length(across), 0.00001) * turn / HOLE_SIZE;
+}
+
+// The black hole over a colour.
+highp vec3 blackHole(highp vec3 behind, highp vec3 ray) {
+    if (HOLE_ON < 0.5)
+        return behind;
+
+    highp vec3 side;
+    highp vec3 rise;
+    highp vec2 at = 0.5 + holeAt(ray, side, rise) / (2.0 * HOLE_REACH);
+    if (at.x <= 0.0 || at.x >= 1.0 || at.y <= 0.0 || at.y >= 1.0)
+        return behind;
+
+    return laid(behind, texture2D(HOLE_PICTURE, at));
+}
+
+// A ray as the black hole bends it: what shows along it lies nearer the hole than it looks.
+highp vec3 bent(highp vec3 ray) {
+    if (HOLE_ON < 0.5)
+        return ray;
+
+    highp vec3 side;
+    highp vec3 rise;
+    highp vec2 at = holeAt(ray, side, rise);
+    highp float r = length(at);
+    highp float bend = HOLE_LENS * (1.0 - smoothstep(2.4, HOLE_REACH, r)) / (r * r + 0.55);
+    return normalize(ray - (side * at.x + rise * at.y) * HOLE_SIZE * bend);
 }
 
 // What lies past the stock picture along a ray, given across, ahead and up: darkness where the ray leaves the picture
@@ -235,7 +325,9 @@ void fragment() {
     highp vec2 dx = dFdx(flatUv);
     highp vec2 dy = dFdy(flatUv);
 
-    highp vec3 sky = skyAlong(p.x, ahead, up);
+    highp vec3 skyRay = normalize(vec3(p.x, ahead, up));
+    highp vec3 lensed = bent(skyRay);
+    highp vec3 sky = skyAlong(lensed.x, lensed.y, lensed.z);
     if (BACKDROP_ON > 0.5) {
         // The ray's turn away from the centre sets how far out in the picture it looks. It fades into the sky over
         // the last two tiles of the picture.
@@ -251,9 +343,20 @@ void fragment() {
             highp vec2 backUv = EYE_UV + (BACKDROP_U1 * toward.x + BACKDROP_U2 * toward.y) * dist;
             highp float fade = clamp(inside(backUv) * 0.5, 0.0, 1.0);
             if (fade > 0.0) {
-                sky = mix(sky, texture2D(BACKDROP_TEXTURE, backUv).rgb, fade);
+                // The picture holds what else lights the background, on black. The stars are the sky's own.
+                sky = max(sky, texture2D(BACKDROP_TEXTURE, backUv).rgb * fade);
             }
         }
+    }
+
+    if (BODY_ON > 0.5) {
+        sky = laid(sky, texture2D(BODY_TEXTURE, skyUv(lensed.x, lensed.y, lensed.z)));
+    }
+
+    if (HOLE_OVER > 0.5) {
+        sky = blackHole(nearPlanet(sky, skyRay), skyRay);
+    } else {
+        sky = nearPlanet(blackHole(sky, skyRay), skyRay);
     }
 
     highp vec3 color = beyond(vec2(p.x, ahead), up, sky);

@@ -42,6 +42,10 @@ public sealed partial class ParallaxOverlay : Overlay
         if (args.MapId == MapId.Nullspace)
             return false;
 
+        // WOLFGATE(CameraModes): first person paints the stars round the eye itself
+        if (_entManager.System<Content.Client._WG.CameraModes.CameraModesSystem>().OwnsSpaceSky(args))
+            return false;
+
         if (_entManager.System<WGCavernViewSystem>().HidesSky(args.MapUid, args.WorldAABB)) // WOLFGATE(Caverns): no sky in a cavern or through a cavern mouth.
             return false;
 

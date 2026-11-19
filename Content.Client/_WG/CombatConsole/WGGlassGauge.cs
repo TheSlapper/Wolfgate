@@ -92,6 +92,9 @@ public sealed class WGGlassGauge : Control
     }
 
     /// <summary>Samples formatted telemetry at ten hertz while the needle continues animating every frame.</summary>
+    /// <summary>The gauge draws nothing while it is smaller than this, in interface pixels.</summary>
+    private const float SmallestDrawn = 16f;
+
     private void Sample()
     {
         var next = _read();
@@ -108,6 +111,9 @@ public sealed class WGGlassGauge : Control
     protected override void Draw(DrawingHandleScreen handle)
     {
         base.Draw(handle);
+        if (PixelWidth < SmallestDrawn * UIScale || PixelHeight < SmallestDrawn * UIScale)
+            return;
+
         var color = _reading.Tint ?? WGInstrumentTheme.Accent;
         if (_target == null)
             color = WGInstrumentTheme.Muted;
@@ -204,8 +210,13 @@ public sealed class WGGlassGauge : Control
         TextInBox(handle, _small, _caption, UIBox2.FromDimensions(header.TopLeft, new Vector2(captionWidth, header.Height)),
             digital ? skin.TextMuted : skin.Text);
         // Keeps the figures clear of the strip's right edge and of the caption.
-        Readout(handle, new UIBox2(header.Left + captionWidth + 4 * UIScale, header.Top + 2 * UIScale,
-            header.Right - 3 * UIScale, header.Bottom - 2 * UIScale), color);
+        var readoutLeft = header.Left + captionWidth + 4 * UIScale;
+        var readoutRight = header.Right - 3 * UIScale;
+        if (readoutRight > readoutLeft)
+        {
+            Readout(handle, new UIBox2(readoutLeft, header.Top + 2 * UIScale, readoutRight,
+                header.Bottom - 2 * UIScale), color);
+        }
 
         var left = 10 * UIScale;
         var width = MathF.Max(0, PixelWidth - 2 * left);

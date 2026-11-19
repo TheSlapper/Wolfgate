@@ -201,7 +201,9 @@ public sealed partial class WolfWeatherOverlay : Overlay
         var now = _timing.CurTime;
         var time = (float) (_timing.RealTime.TotalSeconds % SplashPeriod);
         var bounds = holes && mask.Open is { } open ? args.WorldAABB.Intersect(open.Enlarged(1f)) : args.WorldAABB;
-        if (bounds.IsEmpty())
+        // The tilted views look down past a story's edge, so their fog covers every level in view.
+        var tilted = _camera.Active && !_camera.FirstPerson;
+        if (bounds.IsEmpty() && !tilted)
             return;
 
         // First person stands the falling layers up in front of the eye itself, down through the levels below too.
@@ -210,14 +212,16 @@ public sealed partial class WolfWeatherOverlay : Overlay
         if (firstPerson && _camera.IsMainPass(args))
             _wolfWeather.SetViewMask(mask.Blurred!.Texture, mask.Rect, args.MapId);
         else if (!firstPerson)
-            DrawWeathers(handle, args.MapId, resolved.Comp, state, mask, bounds, now, time, false, holes, lower);
+            DrawWeathers(handle, args.MapId, resolved.Comp, state, mask, bounds, now, time, false, holes, lower,
+                fogBounds: tilted ? args.WorldAABB : null);
 
         // The 2.5D views stand walls up over the floor's rain, so the solids under the sky take it from a picture of
         // the falling layers with no cover.
         if (_camera.Active && !firstPerson && _camera.IsMainPass(args))
             DrawRainPicture(args, resolved.Comp, state, mask, now, time);
 
-        if (_wolfWeather.Quality >= 2)
+        // First person draws its own splashes on the floor, at their size in the world.
+        if (_wolfWeather.Quality >= 2 && !firstPerson && !bounds.IsEmpty())
             DrawWeathers(handle, args.MapId, resolved.Comp, state, mask, bounds, now, time, true, holes, lower);
 
         handle.UseShader(null);
@@ -288,7 +292,7 @@ public sealed partial class WolfWeatherOverlay : Overlay
 
     private void DrawWeathers(DrawingHandleWorld handle, MapId mapId, WolfWeatherMapComponent weather,
         WolfWeatherMapState state, MaskEntry mask, Box2 bounds, TimeSpan now, float time, bool splashes, bool holes,
-        bool lower, bool picture = false)
+        bool lower, bool picture = false, Box2? fogBounds = null)
     {
         foreach (var entry in weather.Weathers)
         {
@@ -307,9 +311,14 @@ public sealed partial class WolfWeatherOverlay : Overlay
                 if (layer.MinQuality > _wolfWeather.Quality || (layer.Kind == WolfWeatherLayerKind.Splash) != splashes)
                     continue;
 
-                // Fog hangs round the viewer only, so a level below doesn't add a second layer of it.
+                // Fog hangs round the viewer only, so a level below doesn't add a second layer of it. With an area of
+                // its own it covers that whole area on every level.
                 var fog = layer.Kind == WolfWeatherLayerKind.Fog;
-                if (fog && lower)
+                if (fog && lower && fogBounds == null)
+                    continue;
+
+                var area = fog && fogBounds is { } wide ? wide : bounds;
+                if (area.IsEmpty())
                     continue;
 
                 // The picture is drawn without fog and with shaders of its own, as a shader reads its values when drawn.
@@ -318,13 +327,13 @@ public sealed partial class WolfWeatherOverlay : Overlay
 
                 var shader = GetShader(new ShaderKey(entry.Weather, entry.Start, i, mapId, picture), layer,
                     entry.Seed + i * 31);
-                SetMovingParameters(shader, bounds, layer, state.Wind, _wolfWeather.Down, offsets.X[i], offsets.Y[i], strength, time);
+                SetMovingParameters(shader, area, layer, state.Wind, _wolfWeather.Down, offsets.X[i], offsets.Y[i], strength, time);
                 shader.SetParameter("invert", picture ? 3f : splashes ? 1f : holes && !fog ? 2f : 0f);
                 shader.SetParameter("mask", mask.Blurred!.Texture);
-                shader.SetParameter("maskOffset", bounds.BottomLeft - mask.Rect.BottomLeft);
+                shader.SetParameter("maskOffset", area.BottomLeft - mask.Rect.BottomLeft);
                 shader.SetParameter("maskSize", mask.Rect.Size);
                 handle.UseShader(shader);
-                handle.DrawRect(bounds, Color.White);
+                handle.DrawRect(area, Color.White);
             }
         }
     }
@@ -593,8 +602,12 @@ public sealed partial class WolfWeatherOverlay : Overlay
         if (tile.Tile.IsEmpty)
             return null;
 
-        if (_maskHoles && _tileDefs[tile.Tile.TypeId] is ContentTileDefinition def && (def.MapAtmosphere || def.Transparent))
+        // See-through water under the sky is a surface the weather lands on.
+        if (_maskHoles && _tileDefs[tile.Tile.TypeId] is ContentTileDefinition def
+            && (def.MapAtmosphere || def.Transparent && !def.Weather))
+        {
             return null;
+        }
 
         var flags = _wolfWeather.Classify(grid, tile);
         if ((flags & WolfWeatherTile.Exposed) != 0)

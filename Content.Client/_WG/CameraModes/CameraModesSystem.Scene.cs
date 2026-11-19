@@ -5,6 +5,7 @@ using Content.Client._WG.CameraModes.Fold;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._WG.BitmaskWalls;
 using Content.Shared._WG.Vehicles.Core;
+using Content.Shared._WG.WolfWeather;
 using Content.Shared.Buckle.Components;
 using Content.Shared.Climbing.Components;
 using Content.Shared.Computer;
@@ -76,6 +77,7 @@ public sealed partial class CameraModesSystem
     private EntityQuery<DoorComponent> _doorQuery;
     private EntityQuery<AppearanceComponent> _appearanceQuery;
     private EntityQuery<IconSmoothComponent> _smoothQuery;
+    private EntityQuery<WolfThunderboltComponent> _boltQuery;
     private EntityQuery<PlaceableSurfaceComponent> _surfaceQuery;
     private EntityQuery<ClimbableComponent> _climbQuery;
     private EntityQuery<WallFrillComponent> _frillQuery;
@@ -168,6 +170,7 @@ public sealed partial class CameraModesSystem
         _doorQuery = GetEntityQuery<DoorComponent>();
         _appearanceQuery = GetEntityQuery<AppearanceComponent>();
         _smoothQuery = GetEntityQuery<IconSmoothComponent>();
+        _boltQuery = GetEntityQuery<WolfThunderboltComponent>();
         _surfaceQuery = GetEntityQuery<PlaceableSurfaceComponent>();
         _climbQuery = GetEntityQuery<ClimbableComponent>();
         _frillQuery = GetEntityQuery<WallFrillComponent>();
@@ -425,14 +428,18 @@ public sealed partial class CameraModesSystem
             return null;
 
         // Floor art turns with the floor in the stock drawing, unless its sprite stays upright on screen. That kind
-        // is laid on the floor here instead.
+        // is laid on the floor here instead. Floor art that joins its neighbours, like water, stays one surface.
         var depth = sprite.DrawDepth;
         if (depth <= (int) DrawDepth.HighFloorObjects)
-            return xform.Anchored && Upright(sprite) ? SceneKind.Solid : null;
+            return xform.Anchored && Upright(sprite) && !_smoothQuery.HasComp(uid) ? SceneKind.Solid : null;
 
         // Ghosts draw above effects but stand like any mob.
         if (_ghostQuery.HasComp(uid))
             return SceneKind.Mob;
+
+        // A lightning bolt is an effect that stands up from the ground.
+        if (_boltQuery.HasComp(uid))
+            return SceneKind.Solid;
 
         if (depth >= (int) DrawDepth.Effects)
             return null;
@@ -1466,7 +1473,8 @@ public sealed partial class CameraModesSystem
             obj.Low = kind == SceneKind.Solid
                       && (sprite.DrawDepth <= (int) DrawDepth.HighFloorObjects || GroundCover(uid, xform));
             obj.Decal = obj.Low && !Blocks(uid);
-            obj.Card = kind == SceneKind.Solid && !obj.Decal && (IsFlora(sprite) || _hotQuery.HasComp(uid));
+            obj.Card = kind == SceneKind.Solid && !obj.Decal
+                       && (IsFlora(sprite) || _hotQuery.HasComp(uid) || _boltQuery.HasComp(uid));
             obj.Prism = kind is SceneKind.Block or SceneKind.Window ? Prism(uid) : null;
             // Doors keep their clear doorway and grilles their gaps. Walls block sight, windows hold glass.
             obj.SolidSides = kind == SceneKind.Window

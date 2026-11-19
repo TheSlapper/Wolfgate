@@ -7,6 +7,7 @@ using Content.Shared._WG.Planets;
 using Content.Shared.Light.Components;
 using Content.Shared.Light.EntitySystems;
 using Content.Shared.Maps;
+using Robust.Client.Graphics;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 
@@ -146,6 +147,21 @@ public sealed partial class CameraModesSystem
     public bool FirstPersonBackdrop(EntityUid? map)
     {
         return !HasLevelBelow(map) && !OpenGround(map);
+    }
+
+    /// <summary>Whether a pass is the player's own view in first person.</summary>
+    public bool FirstPersonPass(in OverlayDrawArgs args)
+    {
+        return Active && FirstPerson && IsMainPass(args);
+    }
+
+    /// <summary>
+    /// Whether a pass is first person in open space, where its sky panorama shows the stars all round and the stock
+    /// star layers stay out of the picture.
+    /// </summary>
+    public bool OwnsSpaceSky(in OverlayDrawArgs args)
+    {
+        return FirstPersonPass(args) && FirstPersonBackdrop(args.MapUid);
     }
 
     /// <summary>Adds the indoor tiles of a map inside a box to <see cref="Ceiling"/>, queueing art not yet drawn.</summary>

@@ -12,10 +12,12 @@ the cvar), sets the replicated `wg.camera_iso_input` cvar so the server turns mo
 the eye (`ApplyEye`, or `ApplyLook` in first person) and adds four overlays:
 
 - `CameraModeHideOverlay` (collect) runs first in `WorldSpaceBelowWorld`. It calls `Collect`, which builds the scene and
-  makes the stock sprites of everything drawn in 3D transparent. A second instance at the end of `WorldSpaceBelowFOV`
-  gives their colours back.
+  makes the stock sprites of everything drawn in 3D transparent. `CameraModeRestoreOverlay`, at the end of
+  `WorldSpaceBelowFOV`, gives their colours back before the interface draws them. It is a type of its own, as the
+  overlay manager holds one overlay of each type.
 - `CameraModeBackdropOverlay` redraws the space or planet background at the flat view's shape, so the squash and the
-  perspective warp don't stretch it. In first person it hands the picture to the sky instead.
+  perspective warp don't stretch it. In first person it hands the picture to the sky instead (see Skies and far
+  land).
 - `CameraModeMeshOverlay` (`WorldSpace`) draws the 3D scene over the stock floor picture.
 
 `CameraModeProfile.For` gives each view its floor squash, height scale and turn: perspective is tilted 45 degrees,
@@ -25,7 +27,8 @@ isometric 35.26 degrees and turned 45 degrees.
 bottom of the screen, except in first person, so tall things below the edge still rise into it) and sorts each sprite into a `SceneKind` in `Classify`: live mobs and
 ghosts are `Mob` (upright cards facing the camera), walls and doors are `Block`, window smoothers are `Window`,
 placeable climbable smoothers are `Table`, loose items are `Flat`, and anything else is a `Solid`. Dead mobs, effects
-and sprites with screen-reading shaders stay stock. `Gather` then sets placement flags (on a wall, hung, console,
+and sprites with screen-reading shaders stay stock, and so does floor art that joins its neighbours, such as a
+lake, which stays one surface in the floor picture. `Gather` then sets placement flags (on a wall, hung, console,
 cladding on a wall tile, seat, lying on a surface) and `Prepare` picks a mesh. Blocks, doors, tables and prisms
 share meshes. Solids and items get a mesh read from their image, at most `AnalysisBudget` new ones a frame, cached by
 a hash of the sprite (`SpriteKey`). An entity keeps its first shape while its image size stays the same (`KeptKey`),
@@ -116,8 +119,11 @@ stay visible.
 
 **Weather in first person** (`CameraModeMeshOverlay.Weather.cs`). WolfWeather layers are drawn as world-fixed slices
 between the scene's quads (`weather3d.swsl`): rain streaks and snow flakes stop at the first solid floor below
-(`rainfloor.swsl` packs which floors are solid). Fog is a distance fog plus up to four drifting banks
-(`fogfield.swsl`). In the tilted views, solids under open sky get WolfWeather's rain picture laid over them (`Rain.cs`).
+(`rainfloor.swsl` packs which floors are solid). See-through water under the sky counts as a floor for the weather.
+Splashes are drawn on the floor at their size in the world, from the weather's first splash layer. Fog is a distance
+fog plus up to four drifting banks (`fogfield.swsl`). A lightning bolt (`WolfThunderbolt`) stands upright as a card
+in every 3D view. In the tilted views, solids under open sky get WolfWeather's rain picture laid over them
+(`Rain.cs`).
 
 **Other modules.** A story above a planet surface takes the surface's weather (`SharedWolfWeatherSystem.Levels.cs:
 TryGetWeatherMap`), which WolfWeather sound, light, lightning, wind push, warmth and ground cover use.
@@ -135,6 +141,23 @@ a second). It follows the map's `LightCycle` for the time of day and the sun's p
 the map's light is from what its day alone gives: the sky takes that tint and clouds over. A planet's distance from
 its star on the sector map sets the size of the sun or black hole (`StarDistance`, written by
 `WGPlanetNetworkSystem` when the planet is built).
+
+**Stars in space.** In open space the sky panorama shows the map's star layers all round the eye, fixed to the
+world, so they hold still as a ship flies and turn with the view. The stock star layers stay out of the picture first
+person takes from the flat view (`OwnsSpaceSky`, one line in `ParallaxOverlay.cs`). What else that picture holds,
+such as the asteroid belt, is laid round the eye and added over the stars as light.
+
+**Planets and the black hole.** The sector's planets and its black hole are left out of the flat picture
+(`FirstPersonPass` in `PlanetOverlay.cs` and `StarOverlay.BlackHole.cs`) and shown in the sky
+(`Render/CameraModeMeshOverlay.Bodies.cs`). Each lies toward its place on the sector map. A planet is a globe of its
+radar size whose middle lies under the ship's plane: a disc near the horizon from far off, never smaller than
+`BodySmallest`, and the whole view below the horizon from over it. Its picture comes from its own planet shader, lit
+over its far edge. The nearest planet is drawn straight onto the screen at the screen's own detail: its picture
+holds only the part of it in view (`NearView`) and is drawn again when the view turns past that part. The other
+planets are painted small into a panorama laid over the sky (`skybody.swsl`). The black hole is the flat view's own
+shader drawn into a picture (`AimBlackHolePicture` in `StarOverlay.BlackHole.cs`) and stood low over the horizon,
+straight on the screen. It grows at the rate the flat view's does, and bends the stars round it. The sizes are the
+constants at the top of `Bodies.cs`.
 
 **Far land.** On a planet, past the ground first person draws, the land carries on in coarse pixels and fades into
 haze. It is worked out from the map's biome with no chunk loaded (`CameraModesSystem.Horizon.cs`): the floor tile's
@@ -172,7 +195,9 @@ any sky on the map you are on, for you only, and `wg_camera_sky` alone goes back
 - The sky is `CameraSkyPrototype.cs`, `CameraSkyComponent.cs`, `CameraModesSystem.Sky.cs`, `DrawOwnSky` in
   `Render/CameraModeMeshOverlay.Sky.cs`, `sky.swsl` and `skies.yml`. The far land is
   `CameraModesSystem.Horizon.cs`, the `HORIZON_` uniforms in `Render/CameraModeMeshOverlay.cs` and the far land block
-  in `firstperson.swsl`.
+  in `firstperson.swsl`. The planets and black hole are `Render/CameraModeMeshOverlay.Bodies.cs`, `skybody.swsl`, the
+  `BODY_`, `NEAR_` and `HOLE_` uniforms and the `FirstPersonPass` lines in `PlanetOverlay.cs` and
+  `StarOverlay.BlackHole.cs`. The stars in space are the `OwnsSpaceSky` line in `ParallaxOverlay.cs`.
 
 ## Settings
 
@@ -209,11 +234,13 @@ First person:
   floor and the weather particles rely on the slice fog pass in `weather3d.swsl`, which paints fog over walls inside a
   slice so they look see-through. Finish the per-pixel path and drop the slice fog pass.
 - The floor jiggles while walking.
-- Rain splashes are the 2D splashes stretched over the floor picture, big grey squares near the eye.
-- Lightning bolts lie flat on the ground.
 - Frame rate not profiled (sky panorama, weather, levels below, `firstperson.swsl`). Then pick a default for
   `wg.camera_view_range`.
 - Walls clip at the near plane in doorways.
+- The star sky pinches to a point straight up and straight down.
+- A planet in the sky is a picture that faces the eye, so its surface turns with the view. A ringed one is
+  coarse.
+- Weather on see-through water is not checked in game.
 - Only Carcinoma has a sky. The far land shows natural terrain only, and a thing at the edge of the view area changes
   from its sprite to a far block.
 - After tabbing out and back with mouselook on, the cursor stays hidden until mouselook is turned on and off again.
@@ -222,7 +249,6 @@ First person:
 All views:
 - Clicks land offset from what is drawn, for example right-clicking yourself misses.
 - Any see-through gap at a wall, window or door join is a bug.
-- Fog doesn't show on the levels below in the tilted views. No weather under water tiles.
 - Walls in front still fade when walking behind a building (fix not checked).
 - Diagonal windows: pick one of the three looks (`wg_camera_diagonal`).
 - Shapes not judged yet: bench, keg, slot machine, jukebox depth, shredders. Still wrong: opened crates, table side
@@ -287,6 +313,7 @@ module.
 - [`Content.Client/_WG/CameraModes/Fold/StairBuilder.cs`](../../../Content.Client/_WG/CameraModes/Fold/StairBuilder.cs)
 - [`Content.Client/_WG/CameraModes/Render/CameraModeBackdropOverlay.cs`](../../../Content.Client/_WG/CameraModes/Render/CameraModeBackdropOverlay.cs)
 - [`Content.Client/_WG/CameraModes/Render/CameraModeHideOverlay.cs`](../../../Content.Client/_WG/CameraModes/Render/CameraModeHideOverlay.cs)
+- [`Content.Client/_WG/CameraModes/Render/CameraModeMeshOverlay.Bodies.cs`](../../../Content.Client/_WG/CameraModes/Render/CameraModeMeshOverlay.Bodies.cs)
 - [`Content.Client/_WG/CameraModes/Render/CameraModeMeshOverlay.cs`](../../../Content.Client/_WG/CameraModes/Render/CameraModeMeshOverlay.cs)
 - [`Content.Client/_WG/CameraModes/Render/CameraModeMeshOverlay.Eye.cs`](../../../Content.Client/_WG/CameraModes/Render/CameraModeMeshOverlay.Eye.cs)
 - [`Content.Client/_WG/CameraModes/Render/CameraModeMeshOverlay.Held.cs`](../../../Content.Client/_WG/CameraModes/Render/CameraModeMeshOverlay.Held.cs)
@@ -320,6 +347,7 @@ module.
 - [`Resources/Textures/_WG/CameraModes/Shaders/perspective.swsl`](../../../Resources/Textures/_WG/CameraModes/Shaders/perspective.swsl)
 - [`Resources/Textures/_WG/CameraModes/Shaders/rainfloor.swsl`](../../../Resources/Textures/_WG/CameraModes/Shaders/rainfloor.swsl)
 - [`Resources/Textures/_WG/CameraModes/Shaders/sky.swsl`](../../../Resources/Textures/_WG/CameraModes/Shaders/sky.swsl)
+- [`Resources/Textures/_WG/CameraModes/Shaders/skybody.swsl`](../../../Resources/Textures/_WG/CameraModes/Shaders/skybody.swsl)
 - [`Resources/Textures/_WG/CameraModes/Shaders/weather3d.swsl`](../../../Resources/Textures/_WG/CameraModes/Shaders/weather3d.swsl)
 
 ### Maps
@@ -337,6 +365,7 @@ module.
 ## Non-modular edits
 
 - [`Content.Client/_CE/ZLevels/Core/ScalingViewport.CEZLevels.cs`](../../../Content.Client/_CE/ZLevels/Core/ScalingViewport.CEZLevels.cs): the 3D views take each level below as a picture of its own
+- [`Content.Client/_FarHorizons/StarSystem/PlanetOverlay.cs`](../../../Content.Client/_FarHorizons/StarSystem/PlanetOverlay.cs): first person shows planets in its own sky
 - [`Content.Client/Chat/UI/SpeechBubble.cs`](../../../Content.Client/Chat/UI/SpeechBubble.cs): over the figure first person draws, hidden when it is out of sight
 - [`Content.Client/DoAfter/DoAfterOverlay.cs`](../../../Content.Client/DoAfter/DoAfterOverlay.cs)
   - over the first-person view
@@ -344,6 +373,7 @@ module.
 - [`Content.Client/Overlays/EntityHealthBarOverlay.cs`](../../../Content.Client/Overlays/EntityHealthBarOverlay.cs)
   - over the first-person view
   - over the figure first person draws
+- [`Content.Client/Parallax/ParallaxOverlay.cs`](../../../Content.Client/Parallax/ParallaxOverlay.cs): first person paints the stars round the eye itself
 - [`Content.Client/StatusIcon/StatusIconOverlay.cs`](../../../Content.Client/StatusIcon/StatusIconOverlay.cs)
   - over the first-person view
   - icons sit on top of the figure a 2.5D view draws, not squashed

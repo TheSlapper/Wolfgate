@@ -15,6 +15,12 @@ public sealed partial class CameraModeMeshOverlay
     private const int SkyWidth = 4096;
     private const int SkyHeight = 2048;
 
+    /// <summary>
+    /// The mask's colour for see-through water under the sky: green alone, a hole to the eye and a floor to the
+    /// weather.
+    /// </summary>
+    private static readonly Color WeatherFloor = new(0f, 1f, 0f, 1f);
+
     /// <summary>The tile mask is drawn at this share of the stock picture's size.</summary>
     private const float MaskScale = 0.25f;
 
@@ -195,14 +201,17 @@ public sealed partial class CameraModeMeshOverlay
                 var tiles = _mapSystem.GetTilesIntersecting(grid, grid, box);
                 while (tiles.MoveNext(out var tile))
                 {
-                    if (_tileDefs[tile.Tile.TypeId] is ContentTileDefinition def
-                        && (def.MapAtmosphere || floored && def.Transparent))
+                    var surface = false;
+                    if (_tileDefs[tile.Tile.TypeId] is ContentTileDefinition def)
                     {
-                        continue;
+                        surface = floored && def.Transparent;
+                        if (def.MapAtmosphere || surface && !def.Weather)
+                            continue;
                     }
 
                     var corner = (Vector2) tile.GridIndices * tileSize;
-                    handle.DrawRect(Box2.FromDimensions(corner, new Vector2(tileSize)), Color.White);
+                    handle.DrawRect(Box2.FromDimensions(corner, new Vector2(tileSize)),
+                        surface ? WeatherFloor : Color.White);
                 }
             }
 

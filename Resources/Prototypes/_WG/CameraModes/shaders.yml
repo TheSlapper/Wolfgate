@@ -47,3 +47,8 @@
   id: WGCameraModeSky
   kind: source
   path: "/Textures/_WG/CameraModes/Shaders/sky.swsl"
+
+- type: shader
+  id: WGCameraModeSkyBody
+  kind: source
+  path: "/Textures/_WG/CameraModes/Shaders/skybody.swsl"

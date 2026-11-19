@@ -413,6 +413,7 @@
   categories: [ HideSpawnMenu ]
   name: thunderbolt
   components:
+  - type: WolfThunderbolt
   - type: Sprite
     sprite: /Textures/_WG/Planets/Effects/thunderbolt.rsi
     state: thunderbolt

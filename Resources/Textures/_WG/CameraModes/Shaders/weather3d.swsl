@@ -107,6 +107,12 @@ uniform highp vec4 DIR_X23;
 uniform highp vec4 DIR_Y01;
 uniform highp vec4 DIR_Y23;
 uniform highp float time;
+// Splashes on the floor: on or off, the layer's cell size in tiles, density, splashes a second and seed, its colour,
+// and the eye's place in the world, wrapped.
+uniform highp float SPLASH_ON;
+uniform highp vec4 SPLASH;
+uniform highp vec4 SPLASH_TINT;
+uniform highp vec2 SPLASH_EYE;
 
 // The fog pass draws the fog's banks in the slice instead of the layers, from the top-down picture of how thick they
 // are round the eye. Full red in that picture stands for FOG_BANK of thickness per tile.
@@ -358,6 +364,42 @@ highp vec4 banks(highp vec2 ray, highp float up, highp float near, highp float f
     return vec4(FOG_COLOR * a, a);
 }
 
+// A splash at a point on the floor, given from the eye in tiles: a dot that opens into a ring and breaks, at the
+// pixel size of the world's art. Each cell of the floor holds at most one at a time.
+highp float splashAt(highp vec2 rel) {
+    highp vec2 pos = (floor((SPLASH_EYE + rel) * 32.0) + 0.5) / 32.0;
+    highp vec2 u = pos / SPLASH.x;
+    highp vec2 cell = floor(u);
+    highp vec2 f = fract(u) * SPLASH.x * 32.0;
+    highp float period = 1.0 / SPLASH.z;
+    highp float lt = time + hash(cell, SPLASH.w) * period;
+    highp float k = floor(lt / period);
+    highp vec2 key = cell + vec2(k * 7.0, k * 3.0);
+    if (hash(key, SPLASH.w) >= SPLASH.y)
+        return 0.0;
+
+    highp float phase = fract(lt / period) * period;
+    highp float duration = 0.32;
+    if (phase >= duration)
+        return 0.0;
+
+    highp float frame = floor(phase / duration * 4.0);
+    highp float span = SPLASH.x * 32.0;
+    highp vec2 spot = vec2(hash(key + vec2(3.3, 5.1), SPLASH.w), hash(key + vec2(8.9, 1.4), SPLASH.w));
+    highp vec2 d2 = f - (0.25 + 0.5 * spot) * span;
+    highp float d = length(d2);
+    if (frame < 0.5)
+        return d < 0.75 ? 1.0 : 0.0;
+
+    if (frame > 2.5)
+        return (abs(abs(d2.x) - 4.0) < 0.75 && abs(d2.y) < 0.75) ? 0.45 : 0.0;
+
+    if (abs(d - frame * 1.5) >= 0.75)
+        return 0.0;
+
+    return 1.0 - frame * 0.25;
+}
+
 void fragment() {
     highp vec2 p = vec2((UV2.x - 0.5) * VIEW.x, (0.5 - UV2.y) * VIEW.y) / FOCAL;
     highp float ahead = PITCH.y - p.y * PITCH.x;
@@ -373,7 +415,8 @@ void fragment() {
     highp float flatLen = max(length(ray), 0.0001);
     highp float nearT = NEAR / flatLen;
     highp float farT = FAR / flatLen;
-    highp float far = min(farT, rayFloor(p, ahead, up, farT));
+    highp float floorT = rayFloor(p, ahead, up, farT);
+    highp float far = min(farT, floorT);
     highp vec4 c;
     if (FOG_PASS > 0.5) {
         c = banks(ray, up, nearT, far, FRAGCOORD.xy);
@@ -381,6 +424,16 @@ void fragment() {
         highp vec4 a = crossings(ray.x, EYE_STEP.x, PLANE0.x, true, ray, up, nearT, far);
         highp vec4 b = crossings(ray.y, EYE_STEP.y, PLANE0.y, false, ray, up, nearT, far);
         c = a + b * (1.0 - a.a);
+        if (SPLASH_ON > 0.5 && up < -0.0001) {
+            // The floor the ray meets lies in one slice, which draws its splashes behind its own falling drops.
+            highp float t = FLOORS_ON > 0.5 ? floorT : EYE_HEIGHT / -up;
+            if (t >= nearT && t < farT) {
+                highp vec2 rel = ray * t;
+                highp float w = splashAt(rel) * clamp(1.0 - cover(rel) * 2.0, 0.0, 1.0) * inLook(rel)
+                    * (1.0 - fogAt(rel)) * SPLASH_TINT.a;
+                c += vec4(SPLASH_TINT.rgb * w, w) * (1.0 - c.a);
+            }
+        }
     }
 
     if (c.a <= 0.0)

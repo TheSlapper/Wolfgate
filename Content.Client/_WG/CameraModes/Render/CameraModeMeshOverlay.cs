@@ -434,7 +434,11 @@ public sealed partial class CameraModeMeshOverlay : Overlay
             var sky = DrawSky(handle, args).Texture;
             var backdrop = _backdrop.FirstPersonBackdrop;
             var ground = _system.FirstPersonBackdrop(args.MapUid) ? backdrop : null;
+            var bodies = DrawBodies(handle, args);
             blit.SetParameter("SKY_TEXTURE", sky);
+            blit.SetParameter("BODY_TEXTURE", bodies ?? sky);
+            blit.SetParameter("BODY_ON", bodies != null ? 1f : 0f);
+            SetNearBodies(blit, sky);
             blit.SetParameter("BACKDROP_TEXTURE", ground ?? backdrop ?? sky);
             blit.SetParameter("BACKDROP_ON", ground != null ? 1f : 0f);
             SetLowerLevels(blit, sky);
@@ -868,8 +872,7 @@ public sealed partial class CameraModeMeshOverlay : Overlay
             var interior = obj.Panel;
             var ceiling = obj.Ceiling;
             var window = obj.Kind == SceneKind.Window;
-            var table = obj.Kind == SceneKind.Table;
-            target.CopyPixelsToMemory<Rgba32>(image =>
+            var table = obj.Kind == SceneKind.Table;            target.CopyPixelsToMemory<Rgba32>(image =>
             {
                 var pixels = image.GetPixelSpan();
                 SpriteAnalysis analysis;
@@ -1498,6 +1501,7 @@ public sealed partial class CameraModeMeshOverlay : Overlay
         _meshTarget?.Dispose();
         _skyTarget?.Dispose();
         _ownSkyTarget?.Dispose();
+        DisposeBodies();
         _maskTarget?.Dispose();
         _fadeTarget?.Dispose();
         DisposeWeather();

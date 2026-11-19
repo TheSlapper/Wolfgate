@@ -1,0 +1,37 @@
+// One planet laid on the first-person bodies panorama as a globe: across the panorama the full turn, up it from
+// straight down to straight up. The planet's own picture is a square with its core of radius one in the middle.
+light_mode unshaded;
+
+uniform sampler2D BODY_PICTURE;
+// Size of the panorama in pixels.
+uniform highp vec2 SKY_SIZE;
+// The direction to the globe's middle: east, north, up.
+uniform highp vec3 BODY_DIR;
+// The radius of the core as the eye sees it, in radians.
+uniform highp float BODY_SIZE;
+// How far the picture reaches past the core, in core radii.
+uniform highp float BODY_REACH;
+
+void fragment() {
+    highp vec2 uv = FRAGCOORD.xy / SKY_SIZE;
+    highp float yaw = (uv.x - 0.5) * 6.2831853;
+    highp float tilt = (uv.y - 0.5) * 3.1415927;
+    highp vec3 dir = vec3(cos(tilt) * cos(yaw), cos(tilt) * sin(yaw), sin(tilt));
+    highp vec4 c = vec4(0.0);
+    if (dot(dir, BODY_DIR) > 0.0) {
+        // Across and up from the globe's middle. Straight under the eye there is no up, so north stands in.
+        highp vec3 over = abs(BODY_DIR.z) > 0.999 ? vec3(0.0, 1.0, 0.0) : vec3(0.0, 0.0, 1.0);
+        highp vec3 side = normalize(cross(BODY_DIR, over));
+        highp vec3 rise = cross(side, BODY_DIR);
+        highp vec2 at = vec2(dot(dir, side), dot(dir, rise)) / sin(BODY_SIZE);
+        highp vec2 p = 0.5 + at / (2.0 * BODY_REACH);
+        if (p.x > 0.0 && p.x < 1.0 && p.y > 0.0 && p.y < 1.0) {
+            // The picture was blended onto nothing, which leaves its colour times its cover and its cover squared.
+            highp vec4 picture = texture2D(BODY_PICTURE, p);
+            highp float cover = sqrt(picture.a);
+            c = vec4(picture.rgb / max(cover, 0.001), cover);
+        }
+    }
+
+    COLOR = c;
+}

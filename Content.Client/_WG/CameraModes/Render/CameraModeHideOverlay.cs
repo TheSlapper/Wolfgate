@@ -5,21 +5,18 @@ using Robust.Shared.Enums;
 namespace Content.Client._WG.CameraModes.Render;
 
 /// <summary>
-/// Gathers the scene and hides the stock sprites of objects drawn as solids before the world is drawn, or, as the
-/// restore instance, gives them back after it, before any system can see the change.
+/// Gathers the scene and hides the stock sprites of objects drawn as solids before the world is drawn.
 /// </summary>
 public sealed class CameraModeHideOverlay : Overlay
 {
     private readonly CameraModesSystem _system;
-    private readonly bool _restore;
 
-    public override OverlaySpace Space => _restore ? OverlaySpace.WorldSpaceBelowFOV : OverlaySpace.WorldSpaceBelowWorld;
+    public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowWorld;
 
-    public CameraModeHideOverlay(CameraModesSystem system, bool restore)
+    public CameraModeHideOverlay(CameraModesSystem system)
     {
         _system = system;
-        _restore = restore;
-        ZIndex = restore ? int.MaxValue : int.MinValue;
+        ZIndex = int.MinValue;
     }
 
     protected override void Draw(in OverlayDrawArgs args)
@@ -27,13 +24,31 @@ public sealed class CameraModeHideOverlay : Overlay
         if (!_system.IsMainPass(args))
             return;
 
-        if (_restore)
+        var start = Stopwatch.GetTimestamp();
+        _system.Collect(args);
+        _system.AddTime(0, start);
+    }
+}
+
+/// <summary>
+/// Gives hidden sprites back after the world is drawn, before the interface draws them. A type of its own, as the
+/// overlay manager holds one overlay of each type.
+/// </summary>
+public sealed class CameraModeRestoreOverlay : Overlay
+{
+    private readonly CameraModesSystem _system;
+
+    public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
+
+    public CameraModeRestoreOverlay(CameraModesSystem system)
+    {
+        _system = system;
+        ZIndex = int.MaxValue;
+    }
+
+    protected override void Draw(in OverlayDrawArgs args)
+    {
+        if (_system.IsMainPass(args))
             _system.RestoreColors();
-        else
-        {
-            var start = Stopwatch.GetTimestamp();
-            _system.Collect(args);
-            _system.AddTime(0, start);
-        }
     }
 }

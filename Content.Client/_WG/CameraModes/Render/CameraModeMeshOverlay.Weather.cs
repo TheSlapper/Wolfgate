@@ -47,6 +47,18 @@ public sealed partial class CameraModeMeshOverlay
     private ShaderInstance? _rainFloorShader;
     private IRenderTexture? _rainFloor;
     private bool _floorsOn;
+
+    /// <summary>The weather quality splashes show from.</summary>
+    private const int SplashQuality = 2;
+
+    /// <summary>The cells splashes are placed in repeat after this many tiles.</summary>
+    private const float SplashWrap = 1024f;
+
+    private bool _splashOn;
+
+    /// <summary>The splash layer's cell size in tiles, density, splashes a second and seed.</summary>
+    private Vector4 _splash;
+    private Color _splashTint;
     private int _floorCount;
     private Vector4 _floorDrops;
     private Vector4 _floorDrops2;
@@ -132,6 +144,7 @@ public sealed partial class CameraModeMeshOverlay
         _floorsOn = false;
         _fogOn = false;
         _fogMax = 0f;
+        _splashOn = false;
         _wolfWeather ??= _entities.System<WolfWeatherSystem>();
         var map = args.MapUid;
         // A story takes the weather of the surface below it.
@@ -168,8 +181,23 @@ public sealed partial class CameraModeMeshOverlay
             for (var i = 0; i < layers.Count; i++)
             {
                 var layer = layers[i];
-                if (layer.Kind == WolfWeatherLayerKind.Splash || layer.MinQuality > _wolfWeather.Quality)
+                if (layer.MinQuality > _wolfWeather.Quality)
                     continue;
+
+                // One splash layer is drawn on the floor, the first found.
+                if (layer.Kind == WolfWeatherLayerKind.Splash)
+                {
+                    if (!_splashOn && _wolfWeather.Quality >= SplashQuality)
+                    {
+                        _splashOn = true;
+                        _splash = new Vector4(MathF.Max(layer.Spacing, 1f / WeatherPixelsPerTile),
+                            layer.Density * strength, MathF.Max(layer.Rate, 0.01f), (entry.Seed + i * 31) % 997);
+                        _splashTint = new Color(layer.Color.R * _weatherLight.R, layer.Color.G * _weatherLight.G,
+                            layer.Color.B * _weatherLight.B, layer.Color.A * strength);
+                    }
+
+                    continue;
+                }
 
                 var key = (entry.Weather, entry.Start, i);
                 if (!_weatherDrift.TryGetValue(key, out var drift))
@@ -390,6 +418,7 @@ public sealed partial class CameraModeMeshOverlay
             }
 
             SetSheet(shader, near, far, eyeStep, plane0, eyeRel, time);
+            shader.SetParameter("SPLASH_ON", _splashOn && group == 0 ? 1f : 0f);
             shader.SetParameter("FOG_PASS", 0f);
             shader.SetParameter("FOG_FIELD", Texture.White);
             shader.SetParameter("LAYERS", (float) layers);
@@ -411,6 +440,11 @@ public sealed partial class CameraModeMeshOverlay
             handle.UseShader(shader);
             handle.DrawRect(new Box2(Vector2.Zero, _viewSize), Color.White);
         }
+    }
+
+    private static float Wrap(float value, float period)
+    {
+        return value - MathF.Floor(value / period) * period;
     }
 
     private ShaderInstance SheetShader(int sheet, int group)
@@ -454,6 +488,10 @@ public sealed partial class CameraModeMeshOverlay
         shader.SetParameter("LOWER_DROP", _floorDrops);
         shader.SetParameter("LOWER_DROP2", _floorDrops2);
         shader.SetParameter("time", time);
+        shader.SetParameter("SPLASH_ON", 0f);
+        shader.SetParameter("SPLASH", _splash);
+        shader.SetParameter("SPLASH_TINT", _splashTint);
+        shader.SetParameter("SPLASH_EYE", new Vector2(Wrap(_eye.X, SplashWrap), Wrap(_eye.Y, SplashWrap)));
         SetFog(shader);
     }
 
