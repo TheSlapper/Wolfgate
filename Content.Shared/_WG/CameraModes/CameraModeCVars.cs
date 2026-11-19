@@ -52,6 +52,17 @@ public sealed class CameraModeCVars
     public static readonly CVarDef<bool> BackdropAhead =
         CVarDef.Create("wg.camera_backdrop_ahead", false, CVar.CLIENTONLY);
 
+    /// <summary>Console only. First person draws a map's own sky where it has one, in place of its background.</summary>
+    public static readonly CVarDef<bool> Sky =
+        CVarDef.Create("wg.camera_sky", true, CVar.CLIENTONLY);
+
+    /// <summary>
+    /// Console only. Past the ground first person draws, a planet's land carries on as a blur of its rough colours
+    /// that fades into haze.
+    /// </summary>
+    public static readonly CVarDef<bool> Horizon =
+        CVarDef.Create("wg.camera_horizon", true, CVar.CLIENTONLY);
+
     /// <summary>
     /// Console only. 1 logs what the view draws once a second. 2 also draws solids without light or line of sight.
     /// </summary>

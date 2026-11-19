@@ -7,6 +7,7 @@ using Content.Server.Parallax;
 using Content.Server.Shuttles.Events;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._WG.CCVar;
+using Content.Shared._WG.CameraModes;
 using Content.Shared._WG.Planets;
 using Content.Shared.Atmos;
 using Content.Shared.Parallax.Biomes;
@@ -233,6 +234,20 @@ public sealed partial class WGPlanetNetworkSystem : EntitySystem
             for (var depth = 1; depth <= surface.AirLayers; depth++)
             {
                 EntityManager.AddComponents(layers[depth], airComponents, removeExisting: false);
+            }
+        }
+
+        // A sky shows the star at the size it has from this world's place on the sector map.
+        if (planetEntity is { } body)
+        {
+            var distance = Transform(body).LocalPosition.Length();
+            foreach (var layer in layers)
+            {
+                if (!TryComp<CameraSkyComponent>(layer, out var sky))
+                    continue;
+
+                sky.StarDistance = distance;
+                Dirty(layer, sky);
             }
         }
 

@@ -71,7 +71,11 @@
   groundComponents:
   - type: CEZLevelRoof
   - type: CEZGroundLayer
+  - type: CameraSky
+    sky: WGSkyCarcinoma
   airComponents:
+  - type: CameraSky
+    sky: WGSkyCarcinoma
   - type: MapLight
     ambientLightColor: "#b47c78"
   - type: Gravity

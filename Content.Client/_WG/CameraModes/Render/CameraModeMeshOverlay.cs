@@ -40,6 +40,7 @@ public sealed partial class CameraModeMeshOverlay : Overlay
     private static readonly ProtoId<ShaderPrototype> PerspectiveShader = "WGCameraModePerspective";
     private static readonly ProtoId<ShaderPrototype> FadeShader = "WGCameraModeFade";
     private static readonly ProtoId<ShaderPrototype> FirstPersonShader = "WGCameraModeFirstPerson";
+    private static readonly ProtoId<ShaderPrototype> SkyShader = "WGCameraModeSky";
     private static readonly ProtoId<ShaderPrototype> Unshaded = "unshaded";
 
     /// <summary>The layer every computer draws its keyboard in.</summary>
@@ -121,6 +122,7 @@ public sealed partial class CameraModeMeshOverlay : Overlay
     private readonly ShaderInstance _blit;
     private readonly ShaderInstance _fade;
     private readonly ShaderInstance _firstBlit;
+    private readonly ShaderInstance _skyShader;
     private readonly ParallaxSystem _parallax;
     private IRenderTexture? _skyTarget;
     private IRenderTexture? _meshTarget;
@@ -210,6 +212,7 @@ public sealed partial class CameraModeMeshOverlay : Overlay
         _blit = _prototypes.Index(PerspectiveShader).InstanceUnique();
         _fade = _prototypes.Index(FadeShader).InstanceUnique();
         _firstBlit = _prototypes.Index(FirstPersonShader).InstanceUnique();
+        _skyShader = _prototypes.Index(SkyShader).InstanceUnique();
         _parallax = _entities.System<ParallaxSystem>();
         _mapSystem = _entities.System<SharedMapSystem>();
         _transformSystem = _entities.System<SharedTransformSystem>();
@@ -483,6 +486,23 @@ public sealed partial class CameraModeMeshOverlay : Overlay
             blit.SetParameter("LOOK_UP", _up);
             blit.SetParameter("OPEN", _system.OpenGround(args.MapUid) ? 1f : 0f);
             blit.SetParameter("ROOF", _system.CeilingHeight);
+            // Far ground is lit by the map's light alone, as the stock picture it joins is already lit.
+            var horizon = _system.HorizonOn && _system.HorizonTexture != null && _system.HorizonRise != null;
+            var lit = _lights.Enabled && args.Viewport.Eye is { DrawLight: true }
+                      && _entities.TryGetComponent(args.MapUid, out MapLightComponent? ambient)
+                ? ambient.AmbientLightColor
+                : Color.White;
+            blit.SetParameter("HORIZON_ON", horizon ? 1f : 0f);
+            blit.SetParameter("HORIZON_TEXTURE", horizon ? _system.HorizonTexture! : sky);
+            blit.SetParameter("HORIZON_RISE", horizon ? _system.HorizonRise! : sky);
+            blit.SetParameter("HORIZON_HIGH", CameraModesSystem.HorizonHigh);
+            // A texture filled from a buffer holds its first row at the top, so world north reads down the picture.
+            var inPicture = (_eye - _system.HorizonCentre) / _system.HorizonTiles;
+            blit.SetParameter("HORIZON_EYE", new Vector2(0.5f + inPicture.X, 0.5f - inPicture.Y));
+            blit.SetParameter("HORIZON_SPAN", new Vector2(_system.HorizonTiles, -_system.HorizonTiles));
+            blit.SetParameter("HORIZON_LIGHT", new Vector3(lit.R, lit.G, lit.B));
+            blit.SetParameter("HORIZON_HAZE", _system.HorizonHaze(args.MapUid));
+            blit.SetParameter("HORIZON_REACH", _system.HorizonReach(args.MapUid));
             blit.SetParameter("PIXEL", _retro ? RetroPixel : 1f);
             blit.SetParameter("RETRO", _retro ? 1f : 0f);
         }
@@ -1477,6 +1497,7 @@ public sealed partial class CameraModeMeshOverlay : Overlay
         base.DisposeBehavior();
         _meshTarget?.Dispose();
         _skyTarget?.Dispose();
+        _ownSkyTarget?.Dispose();
         _maskTarget?.Dispose();
         _fadeTarget?.Dispose();
         DisposeWeather();

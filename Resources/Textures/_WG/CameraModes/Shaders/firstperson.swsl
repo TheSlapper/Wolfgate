@@ -106,6 +106,28 @@ highp float fogAt(highp vec2 rel) {
     highp float thick = FOG_THICK * (0.4 + 1.2 * patch);
     return FOG_MAX * (1.0 - exp(-length(rel) * thick)) * clamp(1.0 - roof * 2.0, 0.0, 1.0);
 }
+// The far land: pictures of a planet round the eye, a texel a tile, shown past the floor in coarse pixels and faded
+// into haze. One holds the ground's colours. The other holds what stands on it, with its height as a share of
+// HORIZON_HIGH in alpha.
+uniform highp float HORIZON_ON;
+uniform sampler2D HORIZON_TEXTURE;
+uniform sampler2D HORIZON_RISE;
+uniform highp float HORIZON_HIGH;
+// Where the eye is in the picture, and the tiles the picture spans east and north. North runs down the picture.
+uniform highp vec2 HORIZON_EYE;
+uniform highp vec2 HORIZON_SPAN;
+uniform highp vec3 HORIZON_LIGHT;
+uniform highp vec3 HORIZON_HAZE;
+// How far off the far ground is all haze, in tiles.
+uniform highp float HORIZON_REACH;
+// Tiles over which the floor fades into the far land.
+const highp float HORIZON_JOIN = 3.0;
+// Real objects are drawn this many tiles past the view area, so what stands on the far land starts after them.
+const highp float HORIZON_MARGIN = 2.5;
+// Size of a far land pixel in screen pixels.
+const highp float HORIZON_CELL = 4.0;
+// Brightness of the side of something standing on the far land against its top.
+const highp float HORIZON_SIDE = 0.72;
 // 1 on open ground, where the land runs on under the sky.
 uniform highp float OPEN;
 // Height of the ceiling over the player, in tiles. A ray past the picture that is above it by then passes over.
@@ -235,6 +257,70 @@ void fragment() {
     }
 
     highp vec3 color = beyond(vec2(p.x, ahead), up, sky);
+    if (HORIZON_ON > 0.5) {
+        // The far land is worked out for coarse pixels. Each one's ray is walked out from the edge of the view area
+        // until it meets something standing or comes down on the ground.
+        highp float coarse = max(PIXEL, HORIZON_CELL);
+        highp vec2 farP = ((floor(FRAGCOORD.xy / coarse) + 0.5) * coarse * SCREEN_PIXEL_SIZE - 0.5) * size / FOCAL;
+        highp vec2 farFlat = vec2(farP.x, PITCH.y - farP.y * PITCH.x);
+        highp float farLen = length(farFlat);
+        if (farFlat.y > 0.0 && farLen > 0.0001) {
+            highp vec2 n = farFlat / farLen;
+            highp vec2 way = LOOK_RIGHT * n.x + LOOK_UP * n.y;
+            highp float slope = (PITCH.x + farP.y * PITCH.y) / farLen;
+            highp float d = min(abs(n.x) > 0.0001 ? LOOK_HALF.x / abs(n.x) : 1000000.0,
+                abs(n.y) > 0.0001 ? LOOK_HALF.y / abs(n.y) : 1000000.0) + HORIZON_MARGIN;
+            highp float last = EYE_HEIGHT + slope * d;
+            highp vec4 met = vec4(0.0);
+            highp float metAt = HORIZON_REACH;
+            if (slope < 0.0) {
+                met = vec4(HORIZON_HAZE, 1.0);
+            }
+
+            for (int i = 0; i < 48; i++) {
+                highp float h = EYE_HEIGHT + slope * d;
+                if (d > HORIZON_REACH || h > HORIZON_HIGH) {
+                    break;
+                }
+
+                if (h <= 0.0) {
+                    // The ray is down on the ground, at the exact point it meets it.
+                    highp float ground = EYE_HEIGHT / -slope;
+                    highp vec2 groundUv = HORIZON_EYE + way * ground / HORIZON_SPAN;
+                    if (groundUv.x > 0.0 && groundUv.y > 0.0 && groundUv.x < 1.0 && groundUv.y < 1.0) {
+                        highp vec4 land = texture2D(HORIZON_TEXTURE, groundUv);
+                        met = vec4(mix(HORIZON_HAZE, land.rgb * HORIZON_LIGHT, land.a), 1.0);
+                        metAt = ground;
+                    }
+
+                    break;
+                }
+
+                highp vec2 farUv = HORIZON_EYE + way * d / HORIZON_SPAN;
+                if (farUv.x <= 0.0 || farUv.y <= 0.0 || farUv.x >= 1.0 || farUv.y >= 1.0) {
+                    break;
+                }
+
+                highp vec4 rise = texture2D(HORIZON_RISE, farUv);
+                highp float top = rise.a * HORIZON_HIGH;
+                if (h < top) {
+                    met = vec4(rise.rgb * HORIZON_LIGHT * (last > top ? 1.0 : HORIZON_SIDE), 1.0);
+                    metAt = d;
+                    break;
+                }
+
+                last = h;
+                d += max(0.35, d * 0.035);
+            }
+
+            if (met.a > 0.5) {
+                highp float shown = 1.0 - smoothstep(HORIZON_REACH * 0.2, HORIZON_REACH, metAt);
+                color = mix(HORIZON_HAZE, met.rgb, shown);
+                color = mix(color, FOG_COLOR, fogAt(way * metAt));
+            }
+        }
+    }
+
     // Past the floor the fog is as thick as at the edge of the view area, so the sky meets the ground in it.
     highp vec2 flatDir = vec2(p.x, ahead);
     highp float flatLen = length(flatDir);
@@ -303,7 +389,7 @@ void fragment() {
             }
 
             ground = mix(ground, FOG_COLOR, fogAt(LOOK_RIGHT * (p.x * t) + LOOK_UP * (ahead * t)));
-            color = mix(color, ground, clamp(edge, 0.0, 1.0));
+            color = mix(color, ground, clamp(HORIZON_ON > 0.5 ? edge / HORIZON_JOIN : edge, 0.0, 1.0));
         }
     }
 

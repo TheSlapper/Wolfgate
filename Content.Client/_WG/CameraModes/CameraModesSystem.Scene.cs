@@ -8,6 +8,7 @@ using Content.Shared._WG.Vehicles.Core;
 using Content.Shared.Buckle.Components;
 using Content.Shared.Climbing.Components;
 using Content.Shared.Computer;
+using Content.Shared.Damage;
 using Content.Shared.Doors.Components;
 using Content.Shared.Ghost;
 using Content.Shared.Item;
@@ -96,6 +97,9 @@ public sealed partial class CameraModesSystem
 
     /// <summary>How much further a story up sorts in first person, more than any nudge within a tile.</summary>
     private const float LevelTie = 0.01f;
+
+    /// <summary>The least share of its tile a soft fixture covers for its owner to count as ground cover.</summary>
+    private const float GroundCoverSpan = 0.9f;
     private Vector2 _viewCentre;
 
     /// <summary>World position of the eye this frame.</summary>
@@ -504,6 +508,28 @@ public sealed partial class CameraModesSystem
     private bool Collides(EntityUid uid)
     {
         return Blocks(uid) && (!TryComp<PhysicsComponent>(uid, out var body) || body.CanCollide);
+    }
+
+    /// <summary>
+    /// Whether an anchored thing is cover growing over the ground, like kudzu: it fills its tile, nothing bumps into
+    /// it and it can be cut down.
+    /// </summary>
+    private bool GroundCover(EntityUid uid, TransformComponent xform)
+    {
+        if (!xform.Anchored || !_fixturesQuery.TryComp(uid, out var fixtures) || !HasComp<DamageableComponent>(uid))
+            return false;
+
+        var fills = false;
+        foreach (var fixture in fixtures.Fixtures.Values)
+        {
+            if (fixture.Hard)
+                return false;
+
+            var box = fixture.Shape.ComputeAABB(Robust.Shared.Physics.Transform.Empty, 0);
+            fills |= box.Width >= GroundCoverSpan && box.Height >= GroundCoverSpan;
+        }
+
+        return fills;
     }
 
     /// <summary>Whether an entity has a fixture that blocks movement.</summary>
@@ -956,7 +982,7 @@ public sealed partial class CameraModesSystem
             var fixedCard = FirstPerson && obj.Kind == SceneKind.Solid && !obj.Billboard
                             && obj.Mesh is { Fixed: false };
             obj.FrameAngle = !fixedCard && (obj.Kind == SceneKind.Mob || Directional(sprite.Comp))
-                ? SnapView(worldRot + eyeRot)
+                ? obj.Vehicle ? SnapSide(worldRot + eyeRot) : SnapView(worldRot + eyeRot)
                 : Angle.Zero;
         }
         obj.Views = obj.Mesh is { Views: true };
@@ -1060,6 +1086,12 @@ public sealed partial class CameraModesSystem
     {
         var quarter = Math.Round((angle.Theta + 0.01) / (Math.PI / 2));
         return new Angle(quarter * Math.PI / 2);
+    }
+
+    /// <summary>The nearer of the two side frames, the only ones a vehicle's wheels are drawn in.</summary>
+    private static Angle SnapSide(Angle angle)
+    {
+        return new Angle(Math.Sin(angle.Theta + 0.01) >= 0 ? Math.PI / 2 : -Math.PI / 2);
     }
 
     /// <summary>
@@ -1431,7 +1463,8 @@ public sealed partial class CameraModesSystem
             obj.Alpha = sprite.Color.A;
             obj.Lift = 0f;
             obj.Surface = null;
-            obj.Low = kind == SceneKind.Solid && sprite.DrawDepth <= (int) DrawDepth.HighFloorObjects;
+            obj.Low = kind == SceneKind.Solid
+                      && (sprite.DrawDepth <= (int) DrawDepth.HighFloorObjects || GroundCover(uid, xform));
             obj.Decal = obj.Low && !Blocks(uid);
             obj.Card = kind == SceneKind.Solid && !obj.Decal && (IsFlora(sprite) || _hotQuery.HasComp(uid));
             obj.Prism = kind is SceneKind.Block or SceneKind.Window ? Prism(uid) : null;

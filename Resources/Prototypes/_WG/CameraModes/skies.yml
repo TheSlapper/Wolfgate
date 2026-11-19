@@ -1,0 +1,29 @@
+# Skies first person draws. A map shows one when it has the CameraSky component with the sky's id.
+# Docs: Content.Server/_WG/CameraModes/README.md, "Skies and far land".
+
+- type: wgCameraSky
+  id: WGSkyCarcinoma
+  # Sky colours, straight up and at the horizon.
+  zenithDay: "#935a63"
+  horizonDay: "#c8747e"
+  zenithNight: "#0a0304"
+  horizonNight: "#22090c"
+  # What stands where the sun would.
+  star: BlackHole
+  sunColor: "#ffdaad"
+  sunSize: 0.09
+  sunBlur: 0.8
+  # Clouds.
+  cloudColor: "#af7178"
+  cloudCover: 0.45
+  cloudDrift: 0.006, 0.0015
+  cloudScale: 0.9
+  cloudStretch: 3.45
+  nightCloud: 0.04
+  overcast: 2.5
+  # Night.
+  stars: 0.25
+  # The land past the ground first person draws.
+  farLand: true
+  farLandReach: 60
+  nightHaze: 0.2

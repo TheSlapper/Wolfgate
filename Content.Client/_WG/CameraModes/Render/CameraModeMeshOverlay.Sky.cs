@@ -21,6 +21,14 @@ public sealed partial class CameraModeMeshOverlay
     /// <summary>Shortest time between redraws of a sky that scrolls or has weather, in seconds.</summary>
     private const float SkyRedrawSeconds = 0.05f;
 
+    /// <summary>Size of the panorama a map's own sky is painted into, and the shortest time between its redraws.</summary>
+    private const int OwnSkyWidth = 1024;
+    private const int OwnSkyHeight = 512;
+    private const float OwnSkyRedrawSeconds = 0.1f;
+
+    private IRenderTexture? _ownSkyTarget;
+    private float _ownSkyTime = float.MinValue;
+    private EntityUid? _ownSkyMap;
     private int _skyKey;
     private float _skyTime;
 
@@ -29,10 +37,14 @@ public sealed partial class CameraModeMeshOverlay
 
     /// <summary>
     /// Paints the sky round the first-person eye as a panorama fixed to world bearings: across it the full turn,
-    /// down it from straight up to straight down. The map's background layers tile it. A cavern leaves it black.
+    /// down it from straight up to straight down. The map's background layers tile it, without the ones anchored to
+    /// the world. A cavern leaves it black.
     /// </summary>
     private IRenderTexture DrawSky(DrawingHandleWorld handle, in OverlayDrawArgs args)
     {
+        if (_system.TrySky(args.MapUid, out var look))
+            return DrawOwnSky(handle, args.MapUid, look);
+
         _skyTarget ??= _clyde.CreateRenderTarget((SkyWidth, SkyHeight),
             new RenderTargetFormatParameters(RenderTargetColorFormat.Rgba8Srgb),
             new TextureSampleParameters { Filter = true },
@@ -70,7 +82,8 @@ public sealed partial class CameraModeMeshOverlay
             foreach (var layer in layers)
             {
                 var size = layer.Texture.Size * layer.Config.Scale;
-                if (size.X < 1f || size.Y < 1f)
+                // A layer anchored to the world is ground under the tiles, like a planet's bedrock.
+                if (size.X < 1f || size.Y < 1f || layer.Config.Slowness == 0f)
                     continue;
 
                 if (!layer.Config.Tiled)
@@ -87,6 +100,45 @@ public sealed partial class CameraModeMeshOverlay
                 TileSky(handle, layer.Texture, size * scale, shift, Color.White);
             }
         }
+    }
+
+    /// <summary>Paints a map's own sky into its panorama, a few times a second.</summary>
+    private IRenderTexture DrawOwnSky(DrawingHandleWorld handle, EntityUid? map, SkyLook look)
+    {
+        _ownSkyTarget ??= _clyde.CreateRenderTarget((OwnSkyWidth, OwnSkyHeight),
+            new RenderTargetFormatParameters(RenderTargetColorFormat.Rgba8Srgb),
+            new TextureSampleParameters { Filter = true },
+            nameof(CameraModeMeshOverlay));
+
+        var time = (float) _timing.RealTime.TotalSeconds;
+        if (map == _ownSkyMap && time - _ownSkyTime < OwnSkyRedrawSeconds)
+            return _ownSkyTarget;
+
+        _ownSkyMap = map;
+        _ownSkyTime = time;
+        var size = new Vector2(OwnSkyWidth, OwnSkyHeight);
+        _skyShader.SetParameter("SKY_SIZE", size);
+        _skyShader.SetParameter("SKY_ZENITH", look.Zenith);
+        _skyShader.SetParameter("SKY_HORIZON", look.Horizon);
+        _skyShader.SetParameter("SKY_GROUND", look.Ground);
+        _skyShader.SetParameter("SKY_SUN", look.Sun);
+        _skyShader.SetParameter("SKY_SUN_DIR", look.SunDirection);
+        _skyShader.SetParameter("SKY_SUN_SIZE", look.SunSize);
+        _skyShader.SetParameter("SKY_SUN_BLUR", look.SunBlur);
+        _skyShader.SetParameter("SKY_HOLE", look.Hole ? 1f : 0f);
+        _skyShader.SetParameter("SKY_CLOUD", look.Cloud);
+        _skyShader.SetParameter("SKY_COVER", look.Cover);
+        _skyShader.SetParameter("SKY_CLOUD_SHAPE", look.CloudShape);
+        _skyShader.SetParameter("SKY_SHIFT", look.Drift * (float) _timing.CurTime.TotalSeconds);
+        _skyShader.SetParameter("SKY_STARS", look.Stars);
+        handle.RenderInRenderTarget(_ownSkyTarget, () =>
+        {
+            handle.SetTransform(Matrix3x2.Identity);
+            handle.UseShader(_skyShader);
+            handle.DrawRect(Box2.FromDimensions(Vector2.Zero, size), Color.White);
+            handle.UseShader(null);
+        }, Color.Black);
+        return _ownSkyTarget;
     }
 
     /// <summary>

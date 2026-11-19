@@ -1,0 +1,106 @@
+// A map's own sky, painted into the first-person panorama: across it the full turn, up it from straight down to
+// straight up. A gradient from the horizon to overhead, a sun or a black hole, drifting cloud streaks and stars.
+light_mode unshaded;
+
+// Size of the panorama in pixels.
+uniform highp vec2 SKY_SIZE;
+uniform highp vec3 SKY_ZENITH;
+uniform highp vec3 SKY_HORIZON;
+// The haze over the land, which the sky meets at the horizon and shows below it.
+uniform highp vec3 SKY_GROUND;
+// The sun's colour, already dimmed by its height and the weather, and the direction to it: east, north, up.
+uniform highp vec3 SKY_SUN;
+uniform highp vec3 SKY_SUN_DIR;
+uniform highp float SKY_SUN_SIZE;
+uniform highp float SKY_SUN_BLUR;
+// 1 where the sun is a black hole: a dark disc of the sun's size in rings of the sun's colour.
+uniform highp float SKY_HOLE;
+uniform highp vec3 SKY_CLOUD;
+uniform highp float SKY_COVER;
+// Cloud patches across the sky, and how long a cloud is against its width.
+uniform highp vec2 SKY_CLOUD_SHAPE;
+// How far the clouds have drifted, in cloud patches.
+uniform highp vec2 SKY_SHIFT;
+uniform highp float SKY_STARS;
+
+// How dark the black hole's disc stays under cloud, and how much of its rings cloud hides.
+const highp float HOLE_DARK = 0.85;
+const highp float HOLE_VEIL = 0.45;
+
+highp float skyHash(highp vec2 p) {
+    p = mod(p, 1024.0);
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+}
+
+highp float skyNoise(highp vec2 x) {
+    highp vec2 i = floor(x);
+    highp vec2 f = fract(x);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(skyHash(i), skyHash(i + vec2(1.0, 0.0)), f.x),
+        mix(skyHash(i + vec2(0.0, 1.0)), skyHash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+
+void fragment() {
+    highp vec2 uv = FRAGCOORD.xy / SKY_SIZE;
+    highp float yaw = (uv.x - 0.5) * 6.2831853;
+    highp float tilt = (uv.y - 0.5) * 3.1415927;
+    highp vec3 dir = vec3(cos(tilt) * cos(yaw), cos(tilt) * sin(yaw), sin(tilt));
+    highp float high = max(dir.z, 0.0);
+
+    // Haze lies thick along the horizon and thins overhead. At the horizon and below it is the haze over the land.
+    highp vec3 color = mix(SKY_ZENITH, SKY_HORIZON, exp(-high * 3.5));
+    color = mix(SKY_GROUND, color, smoothstep(0.0, 0.08, dir.z));
+
+    highp float toSun = dot(dir, SKY_SUN_DIR);
+    highp float off = acos(clamp(toSun, -1.0, 1.0));
+    highp float soft = SKY_SUN_SIZE * (0.05 + SKY_SUN_BLUR * 3.0);
+    highp float glow = exp(-off * off / (SKY_SUN_SIZE * SKY_SUN_SIZE * 30.0)) * 0.35;
+    highp float above = step(-0.02, dir.z);
+    highp float hole = 0.0;
+    highp vec3 rings = vec3(0.0);
+    highp float cloud = 0.0;
+    if (SKY_HOLE > 0.5) {
+        // Across and up from the black hole's middle, with the disc of matter round it seen tilted and nearly edge-on.
+        highp vec3 side = normalize(cross(SKY_SUN_DIR, vec3(0.0, 0.0, 1.0)));
+        highp vec3 rise = cross(side, SKY_SUN_DIR);
+        highp vec2 at = vec2(dot(dir, side), dot(dir, rise));
+        highp vec2 turned = vec2(at.x * 0.94 + at.y * 0.34, at.y * 0.94 - at.x * 0.34);
+        hole = (1.0 - smoothstep(SKY_SUN_SIZE * 0.9, SKY_SUN_SIZE, off)) * above * step(0.0, toSun);
+        highp float edge = (off - SKY_SUN_SIZE * 1.1) / (SKY_SUN_SIZE * 0.08);
+        highp float band = (length(vec2(turned.x, turned.y * 5.0)) - SKY_SUN_SIZE * 2.2) / (SKY_SUN_SIZE * 0.5);
+        // The far half of the disc of matter passes behind the hole.
+        highp float matter = exp(-band * band) * (0.65 + 0.35 * turned.x / (SKY_SUN_SIZE * 2.2))
+            * (turned.y > 0.0 ? 1.0 - hole : 1.0);
+        rings = SKY_SUN * (exp(-edge * edge) * 0.9 + matter) * above * step(0.0, toSun);
+        color += SKY_SUN * glow * above;
+    } else {
+        highp float disc = 1.0 - smoothstep(SKY_SUN_SIZE - soft * 0.5, SKY_SUN_SIZE + soft, off);
+        color += SKY_SUN * (disc * (1.0 - SKY_SUN_BLUR * 0.5) + glow) * above;
+    }
+
+    if (dir.z > 0.0) {
+        // Clouds lie on a flat layer overhead, stretched into streaks.
+        highp vec2 q = dir.xy / (dir.z + 0.12) * SKY_CLOUD_SHAPE.x + SKY_SHIFT;
+        highp float long = sqrt(SKY_CLOUD_SHAPE.y);
+        highp vec2 streak = q * vec2(1.0224 / long, 1.0224 * long);
+        highp float n = 0.55 * skyNoise(streak) + 0.3 * skyNoise(streak * 2.1 + vec2(13.7, 4.2))
+            + 0.15 * skyNoise(streak * 4.3 + vec2(2.9, 31.4));
+        cloud = smoothstep(1.0 - SKY_COVER - 0.22, 1.0 - SKY_COVER + 0.22, n + 0.18)
+            * smoothstep(0.0, 0.12, dir.z);
+
+        // A few faint stars, each one cell of a grid laid on the same layer.
+        highp vec2 grid = dir.xy / (dir.z + 0.4) * 90.0;
+        highp vec2 cell = floor(grid);
+        highp float seed = skyHash(cell);
+        highp vec2 at = fract(grid) - 0.5 - (vec2(skyHash(cell + 7.0), skyHash(cell + 19.0)) - 0.5) * 0.6;
+        highp float star = step(1.0 - 0.04 * SKY_STARS, seed) * smoothstep(0.18, 0.0, length(at))
+            * smoothstep(0.02, 0.25, dir.z);
+        color += vec3(0.9, 0.8, 0.8) * star * SKY_STARS * (1.0 - cloud) * (1.0 - hole);
+
+        color = mix(color, SKY_CLOUD, cloud * 0.85);
+    }
+
+    // The black hole shows through thin cloud: its disc stays dark and its rings bright.
+    color = color * (1.0 - hole * HOLE_DARK) + rings * (1.0 - cloud * HOLE_VEIL);
+    COLOR = vec4(color, 1.0);
+}

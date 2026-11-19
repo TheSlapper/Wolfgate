@@ -90,7 +90,8 @@ hide the player are drawn into a separate target and laid over the view at parti
 quads clipped at the near plane. Quads with a large depth change are split (retro look) or textured with a divide by
 depth in `mesh.swsl` (clean look, drawn at twice the resolution). `firstperson.swsl` casts a ray per pixel to draw
 the floor from the stock picture, holes onto the levels below, and the sky. The sky (`Sky.cs`) is a panorama painted
-from the map's parallax layers. With no real level above, walls and windows are drawn two stories high and the view
+from the map's parallax layers, without the ones anchored to the world such as a planet's bedrock, or from the map's
+own sky (see Skies and far land). Something on a level above is left out when its own floor hides it from the eye. With no real level above, walls and windows are drawn two stories high and the view
 gets a plating ceiling indoors. Where a real level exists above, its floor is the ceiling (`Ceiling.cs`). Held items
 are drawn at fixed spots in front of the eye (`Held.cs`). Status icons, health and do-after bars and speech bubbles
 are moved over the figure as first person draws it by `PlaceMark`, `MarkSpace` and `TryMarkWorld`, called from
@@ -124,6 +125,55 @@ TryGetWeatherMap`), which WolfWeather sound, light, lightning, wind push, warmth
 own snow and sends the snow of levels below. The wall frill overlay skips the 3D views' main pass, and the xeno HUD
 uses `PlaceMark`.
 
+## Skies and far land
+
+First person only. Nothing here runs in the other views.
+
+**Sky.** A map with the `CameraSky` component shows the `wgCameraSky` prototype it names: a gradient from the horizon
+to overhead, a sun or a black hole, drifting clouds and stars (`sky.swsl`, painted into a 1024x512 panorama ten times
+a second). It follows the map's `LightCycle` for the time of day and the sun's path. Weather shows through how far
+the map's light is from what its day alone gives: the sky takes that tint and clouds over. A planet's distance from
+its star on the sector map sets the size of the sun or black hole (`StarDistance`, written by
+`WGPlanetNetworkSystem` when the planet is built).
+
+**Far land.** On a planet, past the ground first person draws, the land carries on in coarse pixels and fades into
+haze. It is worked out from the map's biome with no chunk loaded (`CameraModesSystem.Horizon.cs`): the floor tile's
+average colour, the colour of anything covering the tile such as a lake, and walls standing a block high. It shows
+natural terrain only. Nothing built, dug or cut down is in it, and no objects or mobs.
+
+**Add a sky to a planet**
+1. Copy an entry in `Resources/Prototypes/_WG/CameraModes/skies.yml`, give it a new id and change its values. An
+   entry can also name a `parent` and change a few lines.
+2. In the planet's `wgPlanetSurface` entry, add under both `groundComponents` and `airComponents`:
+   ```yaml
+   - type: CameraSky
+     sky: WGSkyYourPlanet
+   ```
+3. Build the planet and look up.
+
+**Sky settings**
+- `zenithDay`, `horizonDay`, `zenithNight`, `horizonNight`: the sky straight up and at the horizon, at midday and at
+  midnight. The far land fades into the horizon colour.
+- `star`: `Sun` or `BlackHole`. `sunColor`: the sun, or the black hole's rings. `sunSize`: its radius in radians as
+  seen from a distance of 10000 on the sector map. `sunBlur`: 0 a sharp disc, 1 a glow with no edge.
+- `cloudColor`, `cloudCover` (share of a clear sky under cloud), `cloudDrift` (patches a second), `cloudScale`
+  (higher is smaller clouds), `cloudStretch` (1 round puffs, higher long streaks), `nightCloud` (cloud brightness at
+  midnight), `overcast` (how strongly weather clouds the sky over).
+- `stars`: how many stars a clear night shows, 0 to 1.
+- `farLand`: whether this map shows far land. `farLandReach`: tiles until it is all haze. `nightHaze`: share of the
+  horizon colour the haze over the land keeps at midnight.
+
+**Edit live.** Change `skies.yml`, then run `wg_camera_sky_reload` in the client console. `wg_camera_sky <id>` shows
+any sky on the map you are on, for you only, and `wg_camera_sky` alone goes back to the map's own.
+
+**Turn off or take out**
+- For one client: `wg.camera_sky 0`, `wg.camera_horizon 0`.
+- For one planet: remove its `CameraSky` lines, or set `farLand: false` on its sky.
+- The sky is `CameraSkyPrototype.cs`, `CameraSkyComponent.cs`, `CameraModesSystem.Sky.cs`, `DrawOwnSky` in
+  `Render/CameraModeMeshOverlay.Sky.cs`, `sky.swsl` and `skies.yml`. The far land is
+  `CameraModesSystem.Horizon.cs`, the `HORIZON_` uniforms in `Render/CameraModeMeshOverlay.cs` and the far land block
+  in `firstperson.swsl`.
+
 ## Settings
 
 - `wg.camera_mode`: the view, set by the Options checkboxes.
@@ -132,7 +182,7 @@ uses `PlaceMark`.
 - `wg.camera_billboards`: standing solids drawn as upright cards. Walls, windows, doors, tables and things lying on a
   floor or wall keep their shape.
 - Console only: `wg.camera_view_range` (first-person draw distance), `wg.camera_backdrop_ahead` (sky background
-  centred on the north horizon) and `wg.camera_mode_debug` (1 logs what the view draws, 2 also draws without light
+  centred on the north horizon), `wg.camera_sky` (a map's own sky), `wg.camera_horizon` (far land) and `wg.camera_mode_debug` (1 logs what the view draws, 2 also draws without light
   or line of sight, admins only).
 
 ## Debug tools
@@ -164,6 +214,10 @@ First person:
 - Frame rate not profiled (sky panorama, weather, levels below, `firstperson.swsl`). Then pick a default for
   `wg.camera_view_range`.
 - Walls clip at the near plane in doorways.
+- Only Carcinoma has a sky. The far land shows natural terrain only, and a thing at the edge of the view area changes
+  from its sprite to a far block.
+- After tabbing out and back with mouselook on, the cursor stays hidden until mouselook is turned on and off again.
+- Carcinoma growths outside the `/Flora/` sprite folders are not drawn as cards facing the camera.
 
 All views:
 - Clicks land offset from what is drawn, for example right-clicking yourself misses.
@@ -178,8 +232,8 @@ All views:
   billboards show mirrored from behind, the casino, pizza place and tenement upper floors are not rebuilt, the
   stair rotations are not checked against their climb, and the see-through catwalk tiles are not checked from below.
 
-Ideas, not started: freelook (hold middle mouse to move the camera), a cheap fake horizon past the first-person draw
-distance, an option for loose items to lie flat or stand in first person.
+Ideas, not started: freelook (hold middle mouse to move the camera), an option for loose items to lie flat or stand
+in first person.
 
 Code notes: `SilhouetteFold.BackColours` computes a border colour nothing reads. `AddVertex` scales the rain flag in
 green by the base darkening, which still clears the shader's 0.01 test. `EyeCorner` does the same to a green that
@@ -201,6 +255,8 @@ module.
 - [`Content.Shared/_WG/CameraModes/CameraMode.cs`](../../../Content.Shared/_WG/CameraModes/CameraMode.cs)
 - [`Content.Shared/_WG/CameraModes/CameraModeCVars.cs`](../../../Content.Shared/_WG/CameraModes/CameraModeCVars.cs)
 - [`Content.Shared/_WG/CameraModes/CameraModeInputSystem.cs`](../../../Content.Shared/_WG/CameraModes/CameraModeInputSystem.cs)
+- [`Content.Shared/_WG/CameraModes/CameraSkyComponent.cs`](../../../Content.Shared/_WG/CameraModes/CameraSkyComponent.cs)
+- [`Content.Shared/_WG/CameraModes/CameraSkyPrototype.cs`](../../../Content.Shared/_WG/CameraModes/CameraSkyPrototype.cs)
 - [`Content.Shared/_WG/CameraModes/SharedMoverController.CameraModes.cs`](../../../Content.Shared/_WG/CameraModes/SharedMoverController.CameraModes.cs)
 - [`Content.Shared/_WG/CameraModes/WGMouselookActionEvent.cs`](../../../Content.Shared/_WG/CameraModes/WGMouselookActionEvent.cs)
 
@@ -213,11 +269,13 @@ module.
 - [`Content.Client/_WG/CameraModes/CameraModesSystem.Cutaway.cs`](../../../Content.Client/_WG/CameraModes/CameraModesSystem.Cutaway.cs)
 - [`Content.Client/_WG/CameraModes/CameraModesSystem.Debug.cs`](../../../Content.Client/_WG/CameraModes/CameraModesSystem.Debug.cs)
 - [`Content.Client/_WG/CameraModes/CameraModesSystem.Held.cs`](../../../Content.Client/_WG/CameraModes/CameraModesSystem.Held.cs)
+- [`Content.Client/_WG/CameraModes/CameraModesSystem.Horizon.cs`](../../../Content.Client/_WG/CameraModes/CameraModesSystem.Horizon.cs)
 - [`Content.Client/_WG/CameraModes/CameraModesSystem.Icons.cs`](../../../Content.Client/_WG/CameraModes/CameraModesSystem.Icons.cs)
 - [`Content.Client/_WG/CameraModes/CameraModesSystem.Levels.cs`](../../../Content.Client/_WG/CameraModes/CameraModesSystem.Levels.cs)
 - [`Content.Client/_WG/CameraModes/CameraModesSystem.Look.cs`](../../../Content.Client/_WG/CameraModes/CameraModesSystem.Look.cs)
 - [`Content.Client/_WG/CameraModes/CameraModesSystem.Rain.cs`](../../../Content.Client/_WG/CameraModes/CameraModesSystem.Rain.cs)
 - [`Content.Client/_WG/CameraModes/CameraModesSystem.Scene.cs`](../../../Content.Client/_WG/CameraModes/CameraModesSystem.Scene.cs)
+- [`Content.Client/_WG/CameraModes/CameraModesSystem.Sky.cs`](../../../Content.Client/_WG/CameraModes/CameraModesSystem.Sky.cs)
 - [`Content.Client/_WG/CameraModes/Fold/BlockBuilder.cs`](../../../Content.Client/_WG/CameraModes/Fold/BlockBuilder.cs)
 - [`Content.Client/_WG/CameraModes/Fold/ExtrudeBuilder.cs`](../../../Content.Client/_WG/CameraModes/Fold/ExtrudeBuilder.cs)
 - [`Content.Client/_WG/CameraModes/Fold/FenceBuilder.cs`](../../../Content.Client/_WG/CameraModes/Fold/FenceBuilder.cs)
@@ -244,6 +302,7 @@ module.
 
 - [`Resources/Prototypes/_WG/CameraModes/actions.yml`](../../../Resources/Prototypes/_WG/CameraModes/actions.yml)
 - [`Resources/Prototypes/_WG/CameraModes/shaders.yml`](../../../Resources/Prototypes/_WG/CameraModes/shaders.yml)
+- [`Resources/Prototypes/_WG/CameraModes/skies.yml`](../../../Resources/Prototypes/_WG/CameraModes/skies.yml)
 - [`Resources/Prototypes/_WG/CameraModes/zmaps.yml`](../../../Resources/Prototypes/_WG/CameraModes/zmaps.yml)
 
 ### Localization
@@ -260,6 +319,7 @@ module.
 - [`Resources/Textures/_WG/CameraModes/Shaders/mesh.swsl`](../../../Resources/Textures/_WG/CameraModes/Shaders/mesh.swsl)
 - [`Resources/Textures/_WG/CameraModes/Shaders/perspective.swsl`](../../../Resources/Textures/_WG/CameraModes/Shaders/perspective.swsl)
 - [`Resources/Textures/_WG/CameraModes/Shaders/rainfloor.swsl`](../../../Resources/Textures/_WG/CameraModes/Shaders/rainfloor.swsl)
+- [`Resources/Textures/_WG/CameraModes/Shaders/sky.swsl`](../../../Resources/Textures/_WG/CameraModes/Shaders/sky.swsl)
 - [`Resources/Textures/_WG/CameraModes/Shaders/weather3d.swsl`](../../../Resources/Textures/_WG/CameraModes/Shaders/weather3d.swsl)
 
 ### Maps

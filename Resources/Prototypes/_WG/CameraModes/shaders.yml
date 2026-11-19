@@ -42,3 +42,8 @@
   id: WGCameraModeFogField
   kind: source
   path: "/Textures/_WG/CameraModes/Shaders/fogfield.swsl"
+
+- type: shader
+  id: WGCameraModeSky
+  kind: source
+  path: "/Textures/_WG/CameraModes/Shaders/sky.swsl"

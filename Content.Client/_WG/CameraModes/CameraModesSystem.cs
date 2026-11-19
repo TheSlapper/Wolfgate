@@ -96,6 +96,7 @@ public sealed partial class CameraModesSystem : EntitySystem
     {
         base.Shutdown();
         DisposeLevels();
+        DropHorizon();
         RemoveOverlays();
         RestoreEye();
         EndLook();
@@ -131,6 +132,7 @@ public sealed partial class CameraModesSystem : EntitySystem
 
         UpdateLook();
         UpdateLevelBlur();
+        UpdateHorizon();
         if (!Active)
         {
             RemoveOverlays();

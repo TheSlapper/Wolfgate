@@ -1,6 +1,7 @@
 using System.Numerics;
 using Content.Shared.Maps;
 using Robust.Client.GameObjects;
+using Robust.Client.Graphics;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 
@@ -13,6 +14,9 @@ public sealed partial class CameraModesSystem
 
     /// <summary>How often the building is filled again while the player stands still, for doors opening and closing.</summary>
     private const int CutawayFrames = 30;
+
+    /// <summary>Points tested along the floor between an object above and the first-person eye.</summary>
+    private const int UnderFootSamples = 4;
 
     private readonly HashSet<Vector2i> _cutaway = new();
     private readonly Queue<Vector2i> _cutawayQueue = new();
@@ -169,7 +173,7 @@ public sealed partial class CameraModesSystem
 
             // Above, the building's own stories go. On the player's level, its rooms stay.
             var unseen = obj.Level > 0
-                ? InCutaway(obj.Position) || Enclosed(obj)
+                ? InCutaway(obj.Position) || Enclosed(obj) || FirstPerson && UnderFoot(obj)
                 : !InCutaway(obj.Position) && Enclosed(obj);
             if (!unseen)
                 continue;
@@ -178,6 +182,29 @@ public sealed partial class CameraModesSystem
             if (obj.Level == 0)
                 HideObject(obj);
         }
+    }
+
+    /// <summary>
+    /// Whether the floor an object on a level above stands on hides all of it from the first-person eye: floor lies
+    /// under it and all along the stretch where the eye's lines to it pass through that floor's height.
+    /// </summary>
+    private bool UnderFoot(SceneObject obj)
+    {
+        var rise = StoryRise(obj) - EyeHeight;
+        if (rise <= 0f)
+            return false;
+
+        // The line to the object's top crosses the floor's height nearest the eye.
+        var tall = obj.SlotSize / (float) EyeManager.PixelsPerMeter;
+        var from = rise / (rise + tall);
+        for (var i = 0; i <= UnderFootSamples; i++)
+        {
+            var at = Vector2.Lerp(_viewCentre, obj.Position, from + (1f - from) * i / UnderFootSamples);
+            if (!FloorOver(obj.Level - 1, at))
+                return false;
+        }
+
+        return true;
     }
 
     /// <summary>Whether an object sits under a floor above, in a room with no window within a tile of it.</summary>
