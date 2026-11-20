@@ -40,7 +40,6 @@ public sealed partial class CameraModeMeshOverlay : Overlay
     private static readonly ProtoId<ShaderPrototype> MeshShader = "WGCameraModeMesh";
     private static readonly ProtoId<ShaderPrototype> ClearShader = "WGCameraModeClear";
     private static readonly ProtoId<ShaderPrototype> PerspectiveShader = "WGCameraModePerspective";
-    private static readonly ProtoId<ShaderPrototype> FadeShader = "WGCameraModeFade";
     private static readonly ProtoId<ShaderPrototype> FirstPersonShader = "WGCameraModeFirstPerson";
     private static readonly ProtoId<ShaderPrototype> SkyShader = "WGCameraModeSky";
     private static readonly ProtoId<ShaderPrototype> Unshaded = "unshaded";
@@ -122,13 +121,11 @@ public sealed partial class CameraModeMeshOverlay : Overlay
     private readonly ShaderInstance[] _meshShaders;
     private readonly ShaderInstance _clear;
     private readonly ShaderInstance _blit;
-    private readonly ShaderInstance _fade;
     private readonly ShaderInstance _firstBlit;
     private readonly ShaderInstance _skyShader;
     private readonly ParallaxSystem _parallax;
     private IRenderTexture? _skyTarget;
     private IRenderTexture? _meshTarget;
-    private IRenderTexture? _fadeTarget;
     private readonly Dictionary<int, IRenderTexture> _staging = new();
     private readonly ushort[] _indices = new ushort[MaxQuads * 6];
     private readonly List<(SpriteComponent.Layer Layer, Color Color)> _dimmed = new();
@@ -213,7 +210,6 @@ public sealed partial class CameraModeMeshOverlay : Overlay
 
         _clear = _prototypes.Index(ClearShader).Instance();
         _blit = _prototypes.Index(PerspectiveShader).InstanceUnique();
-        _fade = _prototypes.Index(FadeShader).InstanceUnique();
         _firstBlit = _prototypes.Index(FirstPersonShader).InstanceUnique();
         _skyShader = _prototypes.Index(SkyShader).InstanceUnique();
         _parallax = _entities.System<ParallaxSystem>();
@@ -365,6 +361,10 @@ public sealed partial class CameraModeMeshOverlay : Overlay
         var w00 = args.Viewport.LocalToWorld(new Vector2(0, _viewSize.Y)).Position;
         var w10 = args.Viewport.LocalToWorld(new Vector2(_viewSize.X, _viewSize.Y)).Position;
         var w01 = args.Viewport.LocalToWorld(Vector2.Zero).Position;
+        // The see-through circle sits on the middle of the player's body, measured in tiles on screen.
+        var bodyMiddle = _eye + _up * (CircleRise * _profile.Height / _profile.Squash);
+        var circleCentre = ScreenPoint(bodyMiddle, CircleRise);
+        var circleTiles = _viewSize / MathF.Max(_pixelsPerTile, 1f);
         // The spare instance (see DrawWithSheets) and the shaders for the levels below take the same values.
         // In first person, SetLowerObjects then gives the levels below their own.
         foreach (var shader in _meshShaders)
@@ -384,22 +384,36 @@ public sealed partial class CameraModeMeshOverlay : Overlay
             shader.SetParameter("LOOK_ACROSS", _lookAcross);
             shader.SetParameter("LOOK_AHEAD", _lookAhead);
             shader.SetParameter("LOOK_HALF", _system.LookHalf);
+            shader.SetParameter("CIRCLE_CENTRE", circleCentre);
+            shader.SetParameter("CIRCLE_TILES", circleTiles);
+            shader.SetParameter("CIRCLE_INNER", CameraModesSystem.CircleInner);
+            shader.SetParameter("CIRCLE_OUTER", CameraModesSystem.CircleOuter);
+            shader.SetParameter("CIRCLE_STRENGTH", _first ? 0f : _system.CircleStrength);
             SetFog(shader);
             SetRain(shader);
         }
     }
 
+    /// <summary>How high over the player's floor the see-through circle's centre sits, in tiles.</summary>
+    private const float CircleRise = 0.5f;
+
+    /// <summary>Where a drawn point lands in this pass's picture, from 0 to 1 across it, as the mesh shader's Pos.</summary>
+    private Vector2 ScreenPoint(Vector2 drawn, float height)
+    {
+        if (!_perspective)
+            return ScreenUv(drawn);
+
+        var position = Project(Vector2.Transform(drawn, _worldToLocal), height);
+        return new Vector2(position.X / _viewSize.X, 1f - position.Y / _viewSize.Y);
+    }
+
     /// <summary>Draws the built meshes, straight into the view or through the perspective warp.</summary>
     private void DrawMeshes(DrawingHandleWorld handle, in OverlayDrawArgs args, IRenderTexture? mask)
     {
-        var faded = DrawFaded(handle, args.Viewport.RenderTarget.Size);
         if (!_perspective)
         {
             handle.SetTransform(Matrix3x2.Identity);
             DrawVertices(handle);
-            if (faded)
-                DrawFadeLayer(handle, args.WorldBounds);
-
             return;
         }
 
@@ -426,8 +440,6 @@ public sealed partial class CameraModeMeshOverlay : Overlay
         {
             handle.SetTransform(Matrix3x2.CreateScale(scale));
             DrawVertices(handle);
-            if (faded)
-                DrawFadeLayer(handle, new Box2Rotated(new Box2(Vector2.Zero, size)));
         }, new Color(0, 0, 0, 0));
 
         var blit = _blit;
@@ -543,31 +555,9 @@ public sealed partial class CameraModeMeshOverlay : Overlay
         if (_first)
             DrawWithSheets(handle);
         else
-            DrawObjects(handle, false);
+            DrawRange(handle, 0, _count);
 
         handle.UseShader(null);
-    }
-
-    /// <summary>Draws the vertices of the objects that are, or are not, faded, in runs of neighbours in draw order.</summary>
-    private void DrawObjects(DrawingHandleWorld handle, bool faded)
-    {
-        var start = -1;
-        var end = -1;
-        foreach (var obj in _system.Drawn)
-        {
-            if (obj.Faded != faded || obj.VertexCount == 0)
-                continue;
-
-            if (obj.VertexStart != end)
-            {
-                DrawRange(handle, start, end);
-                start = obj.VertexStart;
-            }
-
-            end = obj.VertexStart + obj.VertexCount;
-        }
-
-        DrawRange(handle, start, end);
     }
 
     private void DrawRange(DrawingHandleWorld handle, int from, int to)
@@ -578,51 +568,6 @@ public sealed partial class CameraModeMeshOverlay : Overlay
             handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList, _atlas.Target.Texture,
                 _indices.AsSpan(0, count / 4 * 6), _vertices.AsSpan(start, count));
         }
-    }
-
-    /// <summary>
-    /// Draws the faded solids solid into their own image, in viewport pixels. Returns whether there were any.
-    /// </summary>
-    private bool DrawFaded(DrawingHandleWorld handle, Vector2i size)
-    {
-        var any = false;
-        foreach (var obj in _system.Drawn)
-        {
-            any |= obj.Faded && obj.VertexCount > 0;
-        }
-
-        if (!any)
-            return false;
-
-        if (_fadeTarget == null || _fadeTarget.Size != size)
-        {
-            _fadeTarget?.Dispose();
-            _fadeTarget = _clyde.CreateRenderTarget(size,
-                new RenderTargetFormatParameters(RenderTargetColorFormat.Rgba8Srgb),
-                new TextureSampleParameters { Filter = false },
-                nameof(CameraModeMeshOverlay));
-        }
-
-        handle.RenderInRenderTarget(_fadeTarget, () =>
-        {
-            handle.SetTransform(_perspective ? Matrix3x2.Identity : _worldToLocal);
-            handle.UseShader(_shader);
-            DrawObjects(handle, true);
-            handle.UseShader(null);
-        }, new Color(0, 0, 0, 0));
-
-        return true;
-    }
-
-    /// <summary>Lays the faded solids' image over the view at the fade alpha.</summary>
-    private void DrawFadeLayer(DrawingHandleWorld handle, Box2Rotated bounds)
-    {
-        _fade.SetParameter("FADE_TEXTURE", _fadeTarget!.Texture);
-        _fade.SetParameter("FADE", CameraModesSystem.FrontFade);
-        handle.SetTransform(Matrix3x2.Identity);
-        handle.UseShader(_fade);
-        handle.DrawRect(bounds, Color.White);
-        handle.UseShader(null);
     }
 
     /// <summary>Whether the last frame's vertices are in viewport pixels, as in perspective and first person.</summary>
@@ -832,7 +777,7 @@ public sealed partial class CameraModeMeshOverlay : Overlay
             var south = new SceneObject
             {
                 Uid = obj.Uid, Kind = obj.Kind, ViewFrame = prism, FrameAngle = obj.FrameAngle, SlotSize = size,
-                Frill = obj.Frill, Chain = obj.Chain,
+                Frill = obj.Frill, RimBase = obj.RimBase, Chain = obj.Chain,
             };
             handle.RenderInRenderTarget(target, () =>
             {
@@ -874,6 +819,7 @@ public sealed partial class CameraModeMeshOverlay : Overlay
             var frilled = obj.Frill != null;
             var door = obj.Door;
             var lowWall = obj.LowWall;
+            var windowBase = obj.WindowBase;
             var painted = obj.Painted;
             var stair = obj.Stair;
             var interior = obj.Panel;
@@ -931,7 +877,22 @@ public sealed partial class CameraModeMeshOverlay : Overlay
                 }
                 else if (frilled)
                 {
-                    mesh = BlockBuilder.BuildFrilled(analysis, origin, CameraModesSystem.BlockHeight);
+                    // A low wall is as tall as the drawn front of its east-west run, in the tile above the centre: the
+                    // rows under the shadow of its lip. A window standing on one starts at its top.
+                    var height = CameraModesSystem.BlockHeight;
+                    var frontRow = -1;
+                    if (lowWall)
+                    {
+                        var tile = (int) origin.Y;
+                        frontRow = BlockBuilder.ShadowRow(analysis, tile - EyeManager.PixelsPerMeter, tile,
+                            (int) origin.X - 16, (int) origin.X + 16);
+                        height = frontRow >= 0
+                            ? Math.Clamp((tile - frontRow) / (float) EyeManager.PixelsPerMeter, LowWallMin, LowWallMax)
+                            : CameraModesSystem.LowWallHeight;
+                    }
+
+                    mesh = BlockBuilder.BuildRimmed(analysis, origin, height, windowBase, frontRow, !window);
+                    SilhouetteFold.Path = "rimmed";
                 }
                 else if (door)
                 {
@@ -1022,7 +983,7 @@ public sealed partial class CameraModeMeshOverlay : Overlay
                         SilhouetteFold.Path = (barrel ? "barrel" : "hull") + $" quads={hull.Quads.Length}";
                 }
 
-                var path = prism ? "prism" : table ? "table" : wall ? "block" : analysis.Empty ? "empty" : fence != null ? "fence"
+                var path = prism ? "prism" : table ? "table" : frilled ? "rimmed" : wall ? "block" : analysis.Empty ? "empty" : fence != null ? "fence"
                     : lieOn ? "slab at lying height" : decal ? "decal" : item ? "item slab"
                     : above && !seat ? "drawn from above slab" : SilhouetteFold.Path;
                 if (mesh != null && (above || turnable))
@@ -1055,7 +1016,7 @@ public sealed partial class CameraModeMeshOverlay : Overlay
             var shown = new SceneObject
             {
                 Uid = obj.Uid, Kind = obj.Kind, ViewFrame = obj.ViewFrame, FrameAngle = obj.FrameAngle,
-                SlotSize = size, Frill = obj.Frill, Chain = obj.Chain,
+                SlotSize = size, Frill = obj.Frill, RimBase = obj.RimBase, Chain = obj.Chain,
             };
             handle.RenderInRenderTarget(target, () =>
             {
@@ -1096,16 +1057,23 @@ public sealed partial class CameraModeMeshOverlay : Overlay
         if (!_entities.TryGetComponent(obj.Uid, out SpriteComponent? sprite))
             return;
 
-        // A frill wall is its unjoined art: the wall on its own tile and the frill on the tile above.
-        if (obj.Frill is { } frill)
+        // A rimmed block is its straight runs: the east-west run in the tile above the centre, the north-south run in
+        // the tile below it. See BlockBuilder.BuildRimmed.
+        if (obj.Frill is { } frill && obj.RimBase is { } rimBase)
         {
             var tint = sprite.Color.WithAlpha(1f);
-            var wall = _sprite.Frame0(new SpriteSpecifier.Rsi(frill, CameraModesSystem.FrillWallState));
-            var cap = _sprite.Frame0(new SpriteSpecifier.Rsi(frill, CameraModesSystem.FrillCapState));
-            var tile = new Vector2(EyeManager.PixelsPerMeter);
-            render.DrawingHandleWorld.DrawTextureRect(wall, Box2.FromDimensions(centre - tile / 2f, tile), tint);
-            render.DrawingHandleWorld.DrawTextureRect(cap,
-                Box2.FromDimensions(centre - new Vector2(tile.X / 2f, tile.Y * 1.5f), tile), tint);
+            var across = _sprite.Frame0(new SpriteSpecifier.Rsi(frill, rimBase + CameraModesSystem.RunAcross));
+            var along = _sprite.Frame0(new SpriteSpecifier.Rsi(frill, rimBase + CameraModesSystem.RunAlong));
+            // The atlas and staging images run top row first from low y, so the runs are drawn mirrored about the
+            // centre row to stand upright in them: the east-west run above it, the north-south run below.
+            var world = render.DrawingHandleWorld;
+            var transform = world.GetTransform();
+            world.SetTransform(Matrix3x2.CreateScale(1f, -1f, centre) * transform);
+            world.DrawTextureRect(across,
+                Box2.FromDimensions(centre - new Vector2(across.Width / 2f, 0f), across.Size), tint);
+            world.DrawTextureRect(along,
+                Box2.FromDimensions(centre - new Vector2(along.Width / 2f, along.Height), along.Size), tint);
+            world.SetTransform(transform);
             return;
         }
 
@@ -1267,8 +1235,16 @@ public sealed partial class CameraModeMeshOverlay : Overlay
 
         _count = 0;
         _shadowCount = 0;
+        var slices = _system.Slices;
+        var nextSlice = 0;
         foreach (var obj in _system.Drawn)
         {
+            // The upper stories of tall solids draw where their own story's height puts them in the order.
+            while (nextSlice < slices.Count && slices[nextSlice].SortKey > obj.SortKey)
+            {
+                AddSlice(slices[nextSlice++]);
+            }
+
             obj.VertexStart = _count;
             obj.VertexCount = 0;
             // What stands below is drawn in its own level's pass. See DrawLowerPass.
@@ -1277,10 +1253,6 @@ public sealed partial class CameraModeMeshOverlay : Overlay
 
             if (obj.Kind == SceneKind.Slab)
             {
-                // A floor above the player in the see-through strip would lie over the faded walls as a grey stair.
-                if (obj.Faded)
-                    continue;
-
                 AddSlab(obj, slot);
             }
             else if (!obj.Billboard && obj.Mesh is { Fixed: true } mesh)
@@ -1288,7 +1260,7 @@ public sealed partial class CameraModeMeshOverlay : Overlay
                 if (obj.Level == 0 && Grounded(obj) && mesh.Base is { } floor)
                     AddShadow(obj, floor);
 
-                AddMesh(obj, slot, mesh);
+                AddMesh(obj, slot, mesh, float.NegativeInfinity, obj.SliceTop, obj.Faded);
             }
             else
             {
@@ -1298,6 +1270,19 @@ public sealed partial class CameraModeMeshOverlay : Overlay
             obj.VertexCount = _count - obj.VertexStart;
             obj.Bounds = VertexBounds(obj.VertexStart, _count);
         }
+
+        while (nextSlice < slices.Count)
+        {
+            AddSlice(slices[nextSlice++]);
+        }
+    }
+
+    /// <summary>Adds one story's slice of a tall solid.</summary>
+    private void AddSlice(SceneSlice slice)
+    {
+        var obj = slice.Parent;
+        if (obj.Slot is { } slot && obj.Mesh is { } mesh)
+            AddMesh(obj, slot, mesh, slice.Low, slice.High, slice.Faded);
     }
 
     private Box2 VertexBounds(int start, int end)
@@ -1374,7 +1359,12 @@ public sealed partial class CameraModeMeshOverlay : Overlay
         _shadows[_shadowCount++] = new DrawVertexUV2DColor { Position = position, Color = color };
     }
 
-    private void AddMesh(SceneObject obj, AtlasSlot slot, FoldMesh mesh)
+    /// <summary>
+    /// Adds a solid's faces, cut to the heights from <paramref name="low"/> to <paramref name="high"/> over its own
+    /// base when it is drawn in story slices.
+    /// </summary>
+    private void AddMesh(SceneObject obj, AtlasSlot slot, FoldMesh mesh, float low = float.NegativeInfinity,
+        float high = float.PositiveInfinity, bool faded = false)
     {
         var stretch = _profile.Height / _profile.Squash;
         var grounded = Grounded(obj) || obj.Kind is SceneKind.Block or SceneKind.Window || obj.Cladding;
@@ -1403,7 +1393,7 @@ public sealed partial class CameraModeMeshOverlay : Overlay
                 continue;
 
             var shade = q.Shade * FaceShade(nW, q.Normal.Z) * glow;
-            var color = new Color(shade, Rain(obj), shade, alpha).WithBlue(SideFlag(obj, q.Normal.Z));
+            var color = new Color(shade, Rain(obj), SideFlag(obj, q.Normal.Z) + (faded ? FadeBlue : 0f), alpha);
             // Solids take light from the floor in front of each face. Blocks take it from inside their own tile,
             // where the light that bleeds onto walls lands.
             var nudge = q.Normal.Z != 0f ? Vector2.Zero
@@ -1412,12 +1402,96 @@ public sealed partial class CameraModeMeshOverlay : Overlay
             // Standing faces darken towards the floor they meet.
             var darken = grounded && q.Normal.Z == 0f;
             var image = q.Face == 0 ? slot : obj.Slots[q.Face] ?? slot;
-            EnsureRoom();
-            AddVertex(obj, rot, q.P0, q.T0, image, stretch, nudge, color, darken);
-            AddVertex(obj, rot, q.P1, q.T1, image, stretch, nudge, color, darken);
-            AddVertex(obj, rot, q.P2, q.T2, image, stretch, nudge, color, darken);
-            AddVertex(obj, rot, q.P3, q.T3, image, stretch, nudge, color, darken);
+            var bottom = MathF.Min(MathF.Min(q.P0.Z, q.P1.Z), MathF.Min(q.P2.Z, q.P3.Z));
+            var top = MathF.Max(MathF.Max(q.P0.Z, q.P1.Z), MathF.Max(q.P2.Z, q.P3.Z));
+            // A face lying flat on a cut belongs to the slice under it.
+            if (bottom > high || top <= low)
+                continue;
+
+            if (bottom >= low && top <= high)
+            {
+                EnsureRoom();
+                AddVertex(obj, rot, q.P0, q.T0, image, stretch, nudge, color, darken);
+                AddVertex(obj, rot, q.P1, q.T1, image, stretch, nudge, color, darken);
+                AddVertex(obj, rot, q.P2, q.T2, image, stretch, nudge, color, darken);
+                AddVertex(obj, rot, q.P3, q.T3, image, stretch, nudge, color, darken);
+                continue;
+            }
+
+            AddClipped(obj, rot, ref q, low, high, image, stretch, nudge, color, darken);
         }
+    }
+
+    /// <summary>Blue added to a vertex that fades inside the see-through circle. See <see cref="FadeFlag"/>.</summary>
+    private const float FadeBlue = 0.25f;
+
+    private readonly Vector3[] _clipP = new Vector3[8];
+    private readonly Vector2[] _clipT = new Vector2[8];
+    private readonly Vector3[] _clipP2 = new Vector3[8];
+    private readonly Vector2[] _clipT2 = new Vector2[8];
+
+    /// <summary>Adds the part of a face between two heights, as a fan of quads.</summary>
+    private void AddClipped(SceneObject obj, Angle rot, ref FoldQuad q, float low, float high, AtlasSlot image,
+        float stretch, Vector2 nudge, Color color, bool darken)
+    {
+        _clipP[0] = q.P0;
+        _clipP[1] = q.P1;
+        _clipP[2] = q.P2;
+        _clipP[3] = q.P3;
+        _clipT[0] = q.T0;
+        _clipT[1] = q.T1;
+        _clipT[2] = q.T2;
+        _clipT[3] = q.T3;
+        var count = ClipHeight(_clipP, _clipT, 4, _clipP2, _clipT2, low, true);
+        count = ClipHeight(_clipP2, _clipT2, count, _clipP, _clipT, high, false);
+        // Each quad of the fan is the first corner and the next three, the last one doubled when the count runs out.
+        for (var i = 1; i + 1 < count; i += 2)
+        {
+            var last = Math.Min(i + 2, count - 1);
+            EnsureRoom();
+            AddVertex(obj, rot, _clipP[0], _clipT[0], image, stretch, nudge, color, darken);
+            AddVertex(obj, rot, _clipP[i], _clipT[i], image, stretch, nudge, color, darken);
+            AddVertex(obj, rot, _clipP[i + 1], _clipT[i + 1], image, stretch, nudge, color, darken);
+            AddVertex(obj, rot, _clipP[last], _clipT[last], image, stretch, nudge, color, darken);
+        }
+    }
+
+    /// <summary>
+    /// Keeps the part of a flat polygon above <paramref name="cut"/> (or below it), with the texture points along its
+    /// edges. Returns the new corner count.
+    /// </summary>
+    private static int ClipHeight(Vector3[] p, Vector2[] t, int count, Vector3[] outP, Vector2[] outT, float cut,
+        bool above)
+    {
+        if (count == 0 || float.IsInfinity(cut))
+        {
+            Array.Copy(p, outP, count);
+            Array.Copy(t, outT, count);
+            return count;
+        }
+
+        var n = 0;
+        for (var i = 0; i < count; i++)
+        {
+            var a = p[i];
+            var b = p[(i + 1) % count];
+            var aIn = above ? a.Z >= cut : a.Z <= cut;
+            var bIn = above ? b.Z >= cut : b.Z <= cut;
+            if (aIn)
+            {
+                outP[n] = a;
+                outT[n++] = t[i];
+            }
+
+            if (aIn == bIn)
+                continue;
+
+            var k = (cut - a.Z) / (b.Z - a.Z);
+            outP[n] = Vector3.Lerp(a, b, k);
+            outT[n++] = Vector2.Lerp(t[i], t[(i + 1) % count], k);
+        }
+
+        return n;
     }
 
     private void AddVertex(SceneObject obj, Angle rot, Vector3 p, Vector2 t, AtlasSlot slot, float stretch,
@@ -1457,7 +1531,7 @@ public sealed partial class CameraModeMeshOverlay : Overlay
         var rise = _up * (height * _profile.Height / _profile.Squash);
         var east = obj.Rotation.RotateVec(new Vector2(0.5f, 0f));
         var north = obj.Rotation.RotateVec(new Vector2(0f, 0.5f));
-        var color = new Color(1f, 1f, 0f, obj.Alpha);
+        var color = new Color(1f, 1f, FadeFlag(obj), obj.Alpha);
         EnsureRoom();
         Corner(obj.Position - east - north, new Vector2(0f, TilePixels));
         Corner(obj.Position - east + north, Vector2.Zero);
@@ -1551,12 +1625,18 @@ public sealed partial class CameraModeMeshOverlay : Overlay
     }
 
     /// <summary>
-    /// The blue channel of a face's vertex colour: 1 on the standing sides of walls and windows, which the mesh shader
+    /// The side half of a face's vertex blue: 0.5 on the standing sides of walls and windows, which the mesh shader
     /// fills where their art is clear, so a block has no holes through its sides. Shade is read from red.
     /// </summary>
     private static float SideFlag(SceneObject obj, float normalZ)
     {
-        return normalZ == 0f && obj.SolidSides ? 1f : 0f;
+        return normalZ == 0f && obj.SolidSides ? 0.5f : 0f;
+    }
+
+    /// <summary>The fade quarter of a vertex blue: 0.25 on what fades inside the see-through circle.</summary>
+    private static float FadeFlag(SceneObject obj)
+    {
+        return obj.Faded ? FadeBlue : 0f;
     }
 
     private const float SideTurn = 0.3f;
@@ -1634,7 +1714,6 @@ public sealed partial class CameraModeMeshOverlay : Overlay
         _ownSkyTarget?.Dispose();
         DisposeBodies();
         _maskTarget?.Dispose();
-        _fadeTarget?.Dispose();
         DisposeWeather();
         foreach (var target in _staging.Values)
         {

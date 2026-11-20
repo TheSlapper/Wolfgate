@@ -141,12 +141,25 @@ bool coverHides(sampler2D tex, highp float drop, highp vec2 p, highp float ahead
     return hit.z < reach - 0.05 && inPicture(hit.xy) > 0.5 && texture2D(tex, hit.xy).a > 0.5;
 }
 
+// The see-through circle round the player in the 2.5D views: its centre in picture UV, the tiles one UV spans across
+// and down, the radius in tiles where it starts to close and where it is shut, and how far it is open.
+uniform highp vec2 CIRCLE_CENTRE;
+uniform highp vec2 CIRCLE_TILES;
+uniform highp float CIRCLE_INNER;
+uniform highp float CIRCLE_OUTER;
+uniform highp float CIRCLE_STRENGTH;
+
 void fragment() {
     highp vec2 uv = UV;
     highp vec2 toGround = UV2;
-    // Shade is in red. Blue marks the standing side of a wall or window. Green is the rain flag in the 2.5D views and
-    // the depth share in the clean first-person look.
+    // Shade is in red. Blue holds two flags: 0.5 for the standing side of a wall or window, 0.25 for what fades
+    // inside the see-through circle. Green is the rain flag in the 2.5D views and the depth share in the clean
+    // first-person look.
     MODULATE = vec4(VtxModulate.rrr, VtxModulate.a);
+    // The engine turns vertex colours from sRGB to linear, so the flags are read back in sRGB.
+    highp float flags = floor(zToSrgb(VtxModulate).b * 4.0 + 0.5);
+    bool side = flags >= 1.5;
+    bool fades = mod(flags, 2.0) > 0.5;
     if (DEPTH > 0.5) {
         // UV2 holds the texture point times one over depth and green holds one over depth, both as a share of the
         // quad's nearest corner. The engine draws faces flat, so dividing the two here puts the image in perspective.
@@ -155,7 +168,7 @@ void fragment() {
     }
 
     highp vec4 tex = zTexture(uv);
-    if (tex.a < 0.02 && VtxModulate.b > 0.5) {
+    if (tex.a < 0.02 && side) {
         // A wall's side has no holes: a clear pixel takes the nearest solid one of its own art.
         highp vec2 texel = TEXTURE_PIXEL_SIZE;
         for (int d = 1; d <= 6; d++) {
@@ -230,7 +243,7 @@ void fragment() {
 
     // A wall's or window's side takes its light from just inside its own tile. Beside a corner that point can sit
     // behind the next wall from the eye, so the side keeps its pixels and nearer faces cover it instead.
-    if (USE_FOV > 0.5 && LOWER < 0.5 && VtxModulate.b < 0.5) {
+    if (USE_FOV > 0.5 && LOWER < 0.5 && !side) {
         highp vec3 g = vec3(ground, 1.0);
         highp vec2 world = vec2(dot(WORLD_ROW_X, g), dot(WORLD_ROW_Y, g));
         if (doesOcclude(world - EYE_POS, FOV_TEXTURE, 0.75, -0.75 / 32.0)) {
@@ -240,6 +253,14 @@ void fragment() {
 
     // The glow half of the atlas holds the unshaded layers, which stay bright in the dark as in the flat view.
     highp float glow = zTexture(uv + vec2(0.5, 0.0)).a;
+    if (fades && CIRCLE_STRENGTH > 0.0) {
+        highp float off = length((Pos - CIRCLE_CENTRE) * CIRCLE_TILES);
+        fade *= mix(1.0, smoothstep(CIRCLE_INNER, CIRCLE_OUTER, off), CIRCLE_STRENGTH);
+        if (fade < 0.01) {
+            discard;
+        }
+    }
+
     COLOR = vec4(tex.rgb / tex.a, tex.a * fade);
     highp vec3 light = USE_LIGHT > 0.5 ? texture2D(LIGHT_TEXTURE, lightAt).rgb : vec3(1.0);
     lightSample = mix(light, vec3(1.0), glow);

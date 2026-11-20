@@ -29,8 +29,8 @@ public sealed partial class CameraModesSystem
 
     /// <summary>
     /// Finds the building the player stands in under a real level, in the 2.5D views: its floor under a floor above,
-    /// reached through doors but not walls or windows, and the walls and windows round it. The levels above are left
-    /// out over it.
+    /// reached through doors but not walls or windows, and the walls and windows round it. Its rooms are never culled
+    /// as closed.
     /// </summary>
     private void UpdateCutaway()
     {
@@ -148,9 +148,9 @@ public sealed partial class CameraModesSystem
     }
 
     /// <summary>
-    /// Leaves out what can't be seen: whatever stands over the player's building on a level above in the 2.5D views,
-    /// and what sits in a closed room under a real floor, away from any window. Walls and windows always stay. What is
-    /// left out on the player's own level has its stock sprite hidden too.
+    /// Leaves out what can't be seen: what sits in a closed room under a real floor, away from any window, except in
+    /// the player's own building, and in first person what the floor of a level above hides. Walls and windows always
+    /// stay. What is left out on the player's own level has its stock sprite hidden too.
     /// </summary>
     private void CullEnclosed()
     {
@@ -171,9 +171,10 @@ public sealed partial class CameraModesSystem
             if (obj.Level < 0 || obj.Uid == local || obj.Level == 0 && FirstPerson)
                 continue;
 
-            // Above, the building's own stories go. On the player's level, its rooms stay.
+            // Above, the building's own stories fade inside the see-through circle. On the player's level, its rooms
+            // stay.
             var unseen = obj.Level > 0
-                ? InCutaway(obj.Position) || Enclosed(obj) || FirstPerson && UnderFoot(obj)
+                ? Enclosed(obj) || FirstPerson && UnderFoot(obj)
                 : !InCutaway(obj.Position) && Enclosed(obj);
             if (!unseen)
                 continue;
@@ -231,7 +232,7 @@ public sealed partial class CameraModesSystem
 
     /// <summary>
     /// Adds the floors of the levels above as slabs in the 2.5D views, each at its level's height, the roof of the
-    /// story under it. None are laid over the player's building.
+    /// story under it. Over the player they fade inside the see-through circle.
     /// </summary>
     private void CollectSlabs(Box2 box)
     {
@@ -247,9 +248,6 @@ public sealed partial class CameraModesSystem
 
         foreach (var tile in Ceiling)
         {
-            if (InCutaway(tile.Centre))
-                continue;
-
             if (_slabsUsed == _slabPool.Count)
                 _slabPool.Add(new SceneObject { Uid = EntityUid.Invalid, Kind = SceneKind.Slab });
 

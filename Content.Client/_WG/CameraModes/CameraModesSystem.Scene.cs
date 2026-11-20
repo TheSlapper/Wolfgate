@@ -65,8 +65,21 @@ public sealed partial class CameraModesSystem
     private const int GeometryFrames = 1800;
     private const int RedrawBudget = 64;
     private const int AnalysisBudget = 16;
-    /// <summary>Alpha of the solids between the camera and the view centre.</summary>
-    public const float FrontFade = 0.55f;
+    /// <summary>Tiles from the player where the see-through circle starts to close, and where it is shut.</summary>
+    public const float CircleInner = 2.5f;
+    public const float CircleOuter = 4f;
+
+    /// <summary>How far past a story's height a solid may reach, in tiles, before it is cut into slices.</summary>
+    private const float SliceSlack = 0.05f;
+
+    /// <summary>Seconds the see-through circle takes to open or close.</summary>
+    private const float CircleEase = 0.25f;
+
+    /// <summary>Whether something in front covers the player this frame.</summary>
+    public bool Covered { get; private set; }
+
+    /// <summary>How far the see-through circle is open, 0 to 1.</summary>
+    public float CircleStrength { get; private set; }
 
     /// <summary>Half the drawn width of the player plus the margin round it a solid must reach to fade, in tiles.</summary>
     private const float FadeReach = 0.5f;
@@ -146,8 +159,16 @@ public sealed partial class CameraModesSystem
     private readonly HashSet<(EntityUid Grid, Vector2i Tile)> _surfaceTiles = new();
     private readonly HashSet<(EntityUid Grid, Vector2i Tile)> _wallTiles = new();
 
+    /// <summary>Tiles holding a door, gathered before the objects so over-door art knows it is on one.</summary>
+    private readonly HashSet<(EntityUid Grid, Vector2i Tile)> _doorwayTiles = new();
+
     /// <summary>The objects drawn this frame, far to near.</summary>
     public readonly List<SceneObject> Drawn = new();
+
+    /// <summary>The upper stories of solids taller than a story, far to near, drawn between the scene's objects.</summary>
+    public readonly List<SceneSlice> Slices = new();
+
+    private readonly List<SceneSlice> _slicePool = new();
 
     /// <summary>Solids whose shape still has to be read from their image.</summary>
     public readonly List<SceneObject> Analyse = new();
@@ -228,6 +249,7 @@ public sealed partial class CameraModesSystem
     {
         Frame++;
         Drawn.Clear();
+        RecycleSlices();
         Analyse.Clear();
         Footings.Clear();
         _riders.Clear();
@@ -254,6 +276,7 @@ public sealed partial class CameraModesSystem
         // The levels above stand on the player's, one story each, less what can't be seen.
         _surfaceTiles.Clear();
         _wallTiles.Clear();
+        _doorwayTiles.Clear();
         FindLevels(args.MapUid);
         _query.Clear();
         _spriteTree.QueryAabb(_query, args.MapId, bounds);
@@ -763,13 +786,22 @@ public sealed partial class CameraModesSystem
         obj.SlotSize = 2 * (int) MathF.Ceiling(radius * EyeManager.PixelsPerMeter) + 4;
         obj.FrameBottom = obj.SlotSize / 2f - bounds.Bottom * EyeManager.PixelsPerMeter;
 
-        // A frill wall's image holds its frill a tile above its own art, so the cell reaches a tile up from the centre.
+        // A frill wall, a bitmask low wall, or a window whose art joins by its sides, is drawn from its sheet's straight
+        // runs: the east-west run above the tile centre and the north-south run below it. Every piece then shares one
+        // shape, whichever way it joins.
         obj.Frill = null;
-        if (obj.Kind == SceneKind.Block && _frillQuery.HasComp(obj.Uid) && sprite.Comp.BaseRSI is { } rsi
-            && rsi.TryGetState(FrillWallState, out _) && rsi.TryGetState(FrillCapState, out _))
+        obj.RimBase = null;
+        if ((obj.Kind == SceneKind.Block && (_frillQuery.HasComp(obj.Uid) || LowWall(obj.Uid)
+                 && _smoothQuery.TryComp(obj.Uid, out var bitmask) && bitmask.Mode == IconSmoothingMode.Bitmask)
+             || obj.Kind == SceneKind.Window && _smoothQuery.TryComp(obj.Uid, out var joins)
+             && joins.Mode == IconSmoothingMode.CardinalFlags)
+            && _smoothQuery.TryComp(obj.Uid, out var smooth) && sprite.Comp.BaseRSI is { } rsi
+            && rsi.TryGetState(smooth.StateBase + RunAcross, out _) && rsi.TryGetState(smooth.StateBase + RunAlong, out _))
         {
             obj.Frill = rsi.Path;
-            obj.SlotSize = Math.Max(obj.SlotSize, FrillSlot);
+            obj.RimBase = smooth.StateBase;
+            // Both runs are drawn at their own size, one above the centre and one below it.
+            obj.SlotSize = Math.Max(obj.SlotSize, Math.Max(FrillSlot, 2 * rsi.Size.Y + 4));
         }
 
         obj.Chain = obj.Kind == SceneKind.Solid ? Chain(sprite, out obj.Joins) : null;
@@ -831,40 +863,74 @@ public sealed partial class CameraModesSystem
         return strips.ToArray();
     }
 
-    /// <summary>The unjoined wall state of a frill wall, whose front shows on every side.</summary>
-    public const string FrillWallState = "wall-0";
+    /// <summary>The height of a rimmed low wall's shape on an object's tile, or zero when there is none or it isn't built.</summary>
+    private float LowWallTop(SceneObject obj)
+    {
+        if (!_gridQuery.TryComp(obj.Grid, out var grid))
+            return 0f;
 
-    /// <summary>The unjoined frill state, whose rim is the wall's cap.</summary>
-    public const string FrillCapState = "frill-0";
+        foreach (var uid in _map.GetAnchoredEntities(obj.Grid, grid, obj.Tile))
+        {
+            if (uid == obj.Uid || !LowWall(uid) || !TryComp<SpriteComponent>(uid, out var sprite)
+                || sprite.BaseRSI is not { } rsi)
+            {
+                continue;
+            }
 
-    /// <summary>Image size of a frill wall: its own tile plus the frill's half tile above, both ways from the centre.</summary>
+            var key = Mix(Mix(Mix(KeySeed, rsi.Path.GetHashCode()), 41), 0);
+            return _geometry.TryGetValue(key, out var entry) && entry.Mesh is { } mesh ? mesh.Top : 0f;
+        }
+
+        return 0f;
+    }
+
+    /// <summary>Whether a block is a low wall: climbable, not tagged a wall, and it doesn't block sight.</summary>
+    private bool LowWall(EntityUid uid)
+    {
+        return _climbQuery.HasComp(uid) && !_tags.HasTag(uid, WallTag) && !HasComp<OccluderComponent>(uid);
+    }
+
+    /// <summary>The state number of a straight east-west run, joined east 4 and west 8. Its front is the side faces.</summary>
+    public const int RunAcross = 12;
+
+    /// <summary>The state number of a straight north-south run, joined north 1 and south 2. Its rims are the side faces.</summary>
+    public const int RunAlong = 3;
+
+    /// <summary>Image size of a rimmed block: two runs a tile tall each, one above and one below the centre.</summary>
     private const int FrillSlot = 68;
+
+    /// <summary>Start value of an object's placement hash.</summary>
+    private const ulong PlaceSeed = 14695981039346656037UL;
 
     /// <summary>Picks the image and the mesh for an object.</summary>
     private void Prepare(SceneObject obj, Entity<SpriteComponent> sprite, Angle worldRot, Angle gridRot, Angle eyeRot)
     {
         obj.Mesh = null;
         var offset = obj.Kind != SceneKind.Mob;
-        obj.GeometryKey = Mix(SpriteKey(sprite.Comp, false, Angle.Zero, obj.SlotSize, offset),
+        var place = Mix(PlaceSeed,
             obj.Kind == SceneKind.Flat ? 2 : obj.OnWall ? 1 : obj.Hung ? 3 : obj.Console ? 6 : obj.Turnable ? 9
             : obj.Low ? 23 : 0);
         if (obj.OnSurface)
-            obj.GeometryKey = Mix(obj.GeometryKey, 11);
+            place = Mix(place, 11);
 
         if (obj.LieOn || obj.Seat)
-            obj.GeometryKey = Mix(obj.GeometryKey, obj.LieOn ? 13 : 17);
+            place = Mix(place, obj.LieOn ? 13 : 17);
 
         if (obj.Shape is { } shape)
-            obj.GeometryKey = Mix(obj.GeometryKey, 97 + (int) shape);
+            place = Mix(place, 97 + (int) shape);
 
         if (obj.Decal || obj.Tall)
-            obj.GeometryKey = Mix(obj.GeometryKey, obj.Decal ? 29 : 31);
+            place = Mix(place, obj.Decal ? 29 : 31);
 
         if (obj.Painted || obj.Stair)
-            obj.GeometryKey = Mix(obj.GeometryKey, obj.Painted ? 59 : 61);
+            place = Mix(place, obj.Painted ? 59 : 61);
 
         if (obj.Panel || obj.Ceiling)
-            obj.GeometryKey = Mix(obj.GeometryKey, obj.Panel ? 71 : 73);
+            place = Mix(place, obj.Panel ? 71 : 73);
+
+        obj.Place = place;
+        obj.GeometryKey = Mix(Mix(SpriteKey(sprite.Comp, false, Angle.Zero, obj.SlotSize, offset), (int) place),
+            (int) (place >> 32));
 
         obj.Footprint = null;
         obj.Fence = null;
@@ -951,9 +1017,13 @@ public sealed partial class CameraModesSystem
 
                 if (obj.Frill is { } frill)
                 {
-                    // Every wall of one frill sheet shares the shape read once from its unjoined art.
+                    // Every block of one rimmed sheet shares the shape read once from its straight runs.
                     obj.Fronted = false;
-                    obj.GeometryKey = Mix(Mix(KeySeed, frill.GetHashCode()), 41);
+                    obj.LowWall = obj.Kind == SceneKind.Block && LowWall(obj.Uid);
+                    // A window standing on a low wall starts at its top.
+                    obj.WindowBase = obj.Kind == SceneKind.Window ? LowWallTop(obj) : 0f;
+                    obj.GeometryKey = Mix(Mix(Mix(KeySeed, frill.GetHashCode()), 41),
+                        (int) MathF.Round(obj.WindowBase * EyeManager.PixelsPerMeter));
                     if (!_geometry.TryGetValue(obj.GeometryKey, out var capped))
                     {
                         capped = new GeometryEntry();
@@ -984,8 +1054,7 @@ public sealed partial class CameraModesSystem
 
                 obj.Fronted = obj.Kind == SceneKind.Block && _smoothQuery.TryComp(obj.Uid, out var smooth)
                               && smooth.Mode == IconSmoothingMode.Bitmask;
-                obj.LowWall = obj.Kind == SceneKind.Block && _climbQuery.HasComp(obj.Uid)
-                              && !_tags.HasTag(obj.Uid, WallTag) && !HasComp<OccluderComponent>(obj.Uid);
+                obj.LowWall = obj.Kind == SceneKind.Block && LowWall(obj.Uid);
                 if (obj.LowWall)
                 {
                     obj.GeometryKey = Mix(obj.GeometryKey, 53);
@@ -1025,10 +1094,14 @@ public sealed partial class CameraModesSystem
             case SceneKind.Solid:
             case SceneKind.Flat:
                 // An entity keeps its first shape while its image size holds, so an opened crate shows its open art
-                // on the same box rather than growing a new one. A joining fence takes the shape of its joins.
+                // on the same box rather than growing a new one. A joining fence takes the shape of its joins. A new
+                // placement, like a sign whose wall arrived after it, builds a new shape.
                 var look = obj.GeometryKey;
-                if (obj.KeptKey != 0 && obj.KeptSize == obj.SlotSize && obj.KeptKind == obj.Kind && obj.Chain == null)
+                if (obj.KeptKey != 0 && obj.KeptSize == obj.SlotSize && obj.KeptKind == obj.Kind
+                    && obj.KeptPlace == obj.Place && obj.Chain == null)
+                {
                     obj.GeometryKey = obj.KeptKey;
+                }
 
                 if (!_geometry.TryGetValue(obj.GeometryKey, out var entry))
                 {
@@ -1056,6 +1129,7 @@ public sealed partial class CameraModesSystem
                 obj.KeptKey = obj.GeometryKey;
                 obj.KeptSize = obj.SlotSize;
                 obj.KeptKind = obj.Kind;
+                obj.KeptPlace = obj.Place;
                 if (look != obj.KeptKey && obj.Kind == SceneKind.Solid && entry.Mesh.Fixed && !entry.Mesh.Views)
                     obj.Mesh = Grown(obj, look, entry);
                 // Items lie at their exact angle.
@@ -1118,7 +1192,7 @@ public sealed partial class CameraModesSystem
         if (obj.Kind == SceneKind.Window)
             obj.TextureKey = Mix(obj.TextureKey, 23);
 
-        // A frill wall is drawn from its sheet's unjoined art, the same for every wall of that sheet and tint.
+        // A rimmed block is drawn from its sheet's straight runs, the same for every block of that sheet and tint.
         if (obj.Frill is { } sheet)
             obj.TextureKey = Mix(Mix(Mix(KeySeed, sheet.GetHashCode()), Quantise(sprite.Comp.Color)), obj.SlotSize);
 
@@ -1501,10 +1575,13 @@ public sealed partial class CameraModesSystem
         });
 
         // First person looks out from the player, so nothing stands in front of them.
+        Covered = false;
+        Slice();
         if (FirstPerson)
             return;
 
-        // Solids drawn over the player at the view centre fade, so the player shows through walls in front of them.
+        // Everything raised in front of the player fades inside the see-through circle round them. The circle only
+        // opens while something covers the player at the view centre.
         var local = _player.LocalEntity;
         var centreKey = Vector2.Dot(_viewCentre, Up) * profile.PitchCos;
         var stretch = profile.PitchCos / profile.PitchSin;
@@ -1524,17 +1601,85 @@ public sealed partial class CameraModesSystem
                 top = mesh.Top;
 
             // The solid's top must reach over the player's feet and its foot sit under the player's head, so a story
-            // lifted above the player on screen stays.
+            // lifted above the player on screen doesn't open the circle.
+            var rise = StoryRise(obj);
             var rel = _viewCentre - obj.Position;
             var along = Vector2.Dot(rel, Up);
-            var rise = StoryRise(obj);
-            if (MathF.Abs(Vector2.Dot(rel, Right)) < tileHalf + FadeReach
-                && along < (top + rise - FadeCover) * stretch + tileHalf
-                && along > (rise - 1f + FadeCover) * stretch - tileHalf)
+            var covers = MathF.Abs(Vector2.Dot(rel, Right)) < tileHalf + FadeReach
+                         && along < (top + rise - FadeCover) * stretch + tileHalf
+                         && along > (rise - 1f + FadeCover) * stretch - tileHalf;
+            Covered |= covers;
+
+            // Stories above, floors over the player and walls fade anywhere in the circle. A machine or other solid
+            // on the player's own level only fades while it covers the player.
+            obj.Faded = rise > 0f || obj.Kind is SceneKind.Slab or SceneKind.Block or SceneKind.Window || covers;
+        }
+
+        foreach (var slice in Slices)
+        {
+            slice.Faded = slice.Parent.Faded;
+        }
+    }
+
+    /// <summary>
+    /// Cuts each solid taller than a story at every story's height, in the 2.5D views. The part above each cut sorts
+    /// as if it stood on that story, so a story behind it never draws over it.
+    /// </summary>
+    private void Slice()
+    {
+        RecycleSlices();
+        var sin = Profile.PitchSin;
+        foreach (var obj in Drawn)
+        {
+            obj.SliceTop = float.PositiveInfinity;
+            if (FirstPerson || obj.Level < 0 || obj.Billboard || obj.Kind is SceneKind.Slab or SceneKind.Flat
+                || obj.Mesh is not { Fixed: true } mesh || obj.Lift + mesh.Top <= BlockHeight + SliceSlack)
             {
-                obj.Faded = true;
+                continue;
+            }
+
+            // Cut at the story heights over the object's floor, given over its own base.
+            obj.SliceTop = BlockHeight - obj.Lift;
+            for (var story = 1; story * BlockHeight < obj.Lift + mesh.Top; story++)
+            {
+                SceneSlice slice;
+                if (_slicePool.Count > 0)
+                {
+                    slice = _slicePool[^1];
+                    _slicePool.RemoveAt(_slicePool.Count - 1);
+                }
+                else
+                {
+                    slice = new SceneSlice();
+                }
+
+                slice.Parent = obj;
+                slice.Low = story * BlockHeight - obj.Lift;
+                slice.High = (story + 1) * BlockHeight - obj.Lift;
+                slice.SortKey = obj.SortKey - story * BlockHeight * sin;
+                slice.Faded = false;
+                Slices.Add(slice);
             }
         }
+
+        Slices.Sort((a, b) => b.SortKey.CompareTo(a.SortKey));
+    }
+
+    private void RecycleSlices()
+    {
+        foreach (var slice in Slices)
+        {
+            _slicePool.Add(slice);
+        }
+
+        Slices.Clear();
+    }
+
+    /// <summary>Opens the see-through circle while something covers the player and closes it after, over a moment.</summary>
+    private void UpdateCircle(float frameTime)
+    {
+        var step = frameTime / CircleEase;
+        CircleStrength = Math.Clamp(CircleStrength + (Covered ? step : -step), 0f, 1f);
     }
 
     /// <summary>
@@ -1571,6 +1716,8 @@ public sealed partial class CameraModesSystem
 
             if (Wall(uid, wallSprite))
                 _wallTiles.Add(at);
+            else if (_doorQuery.HasComp(uid))
+                _doorwayTiles.Add(at);
         }
 
         foreach (var (uid, sprite, xform) in _query)
@@ -1666,7 +1813,8 @@ public sealed partial class CameraModesSystem
                 obj.Seat = !obj.LieOn;
             }
             obj.Painted = kind == SceneKind.Solid && !obj.Low && obj.Grid.IsValid()
-                          && _wallTiles.Contains((obj.Grid, obj.Tile)) && !Collides(uid)
+                          && (_wallTiles.Contains((obj.Grid, obj.Tile)) || _doorwayTiles.Contains((obj.Grid, obj.Tile)))
+                          && !Collides(uid)
                           && sprite.DrawDepth is (int) DrawDepth.Overdoors or (int) DrawDepth.WallTops;
             if (obj.Painted)
             {
@@ -1798,6 +1946,8 @@ public sealed partial class CameraModesSystem
         _sheets.Clear();
         _tables.Clear();
         Drawn.Clear();
+        Slices.Clear();
+        _slicePool.Clear();
         Analyse.Clear();
         Footings.Clear();
         _footing.Clear();

@@ -64,12 +64,18 @@ them to a builder. `SpriteAnalysis` holds the opaque mask, brightness and colour
 
 More rules in `BlockBuilder`, chosen in `CameraModesSystem.Scene`:
 
-- A wall with `WallFrill` keeps its top in a separate frill image. It is drawn from its sheet's unjoined `wall-0` and
-  `frill-0` states: the frill is the top and the wall art is every side (`BuildFrilled`).
+- A wall with `WallFrill`, a low wall with `Bitmask` smoothing, or a window whose smoothing joins by its sides
+  (`CardinalFlags`), is drawn from its sheet's straight runs (`BuildRimmed`), so every piece has one shape whichever
+  way it joins. The north-south run shows two thin rims either side of a middle, and the middle is the top. The
+  east-west run's front, below the rows drawn in the top's colour, is every side. A low wall's front starts under
+  the shadow of its lip (`ShadowRow`). A window's art draws no top, so its whole east-west run is every side and the
+  top takes a row of its upper pane. A window on a low wall's tile starts at that low wall's top. Both runs are drawn
+  at their own size and mirrored about the centre row, since the atlas runs top row first from low y.
 - A window or door whose art reaches above its tile keeps its full height (`BuildTall`, `BuildDoor`).
 - A low wall (climbable, no occluder, not tagged `Wall`) is as tall as its drawn front.
-- Flat art on a wall tile that nothing collides with, like graffiti or a neon sign, is painted on the wall's open face
-  (`BuildPainted`) and is never culled as being inside a room.
+- Flat art on a wall or door tile that nothing collides with, like graffiti or a neon sign over a door, is painted on
+  the wall's open face (`BuildPainted`) and is never culled as being inside a room. A kept shape only carries over
+  while the placement stays the same, so art seen before its wall arrived is rebuilt once the wall is there.
 - On a vehicle interior map (`VehicleInteriorLink`), anchored art at wall or over-door depth stands as a flat panel
   along its tile's north edge (`BuildPanel`) and roof pieces lie overhead as a ceiling (`BuildCeiling`). The interior
   map takes the `Blank` parallax when it loads, so nothing shows outside the walls.
@@ -85,9 +91,18 @@ list in the scene's order (back faces and faces against a neighbour block are cu
 grounded solids and draws it all with `mesh.swsl`. Each vertex carries its shade in red and, in UV2, the step to the
 floor point it stands on. The shader reads the light map and the FOV texture there. In perspective the meshes go to a
 target and `perspective.swsl` composites them over the stock floor picture, warped so the top edge stays fixed and the
-bottom is magnified (`Warp`). In isometric the vertices sit in world space on the squashed stock picture. Solids that
-hide the player are drawn into a separate target and laid over the view at partial alpha (`DrawFadeLayer`,
-`fade.swsl`).
+bottom is magnified (`Warp`). In isometric the vertices sit in world space on the squashed stock picture.
+
+**See-through circle.** In the tilted views the stories above, their floor slabs, and walls, windows and doors that
+sort in front of the player are flagged in the vertex blue (`FadeFlag`). A machine or other solid on the player's own
+level is flagged only while it covers the player. While
+any of it covers the player, `mesh.swsl` fades those pixels in a soft circle round the player's body
+(`CircleInner` to `CircleOuter` tiles), opening and closing over `CircleEase` seconds. The engine turns vertex
+colours to linear, so the shader reads the blue flags back through `zToSrgb`.
+
+**Tall solids.** A solid taller than a story is cut at each story's height (`Sort` → `Slice`). The part above each
+cut is a `SceneSlice` that sorts as if it stood on that story, merged into the draw order in `Build`, so a story
+behind a lamp post never draws over its top.
 
 **First person** (`CameraModeMeshOverlay.Eye.cs`). A pinhole projection from the eye (`ToEye`, `EyeScreen`), with
 quads clipped at the near plane. Quads with a large depth change are split (retro look) or textured with a divide by
@@ -114,8 +129,8 @@ click is at the screen centre with a few points round it. A click on bare floor 
 the second above the player up to the eighth (the stock code covers the first), so buildings stand at full height. On the client CE's z-level renderer raises `WGZLevelPassEvent`
 around each pass for a level below (`Levels.cs:OnZLevelPass`). The views keep up to 8 levels below, draw their objects
 in that level's own pass, and in first person copy each level and its light map so the floor shader can show it
-through holes. In the tilted views `Cutaway.cs` leaves out the levels above over the building the player stands in, so rooms
-stay visible.
+through holes. In the tilted views the levels above fade inside the see-through circle. `Cutaway.cs` finds the
+building the player stands in, whose rooms are never culled as closed.
 
 **Weather in first person** (`CameraModeMeshOverlay.Weather.cs`). WolfWeather layers are drawn as world-fixed slices
 between the scene's quads (`weather3d.swsl`): rain streaks and snow flakes stop at the first solid floor below
@@ -249,7 +264,8 @@ First person:
 All views:
 - Clicks land offset from what is drawn, for example right-clicking yourself misses.
 - Any see-through gap at a wall, window or door join is a bug.
-- Walls in front still fade when walking behind a building (fix not checked).
+- The see-through circle, painted over-door signs and tall-solid slices are not checked in game yet. Slices of a
+  tall solid can't be clicked.
 - Diagonal windows: pick one of the three looks (`wg_camera_diagonal`).
 - Shapes not judged yet: bench, keg, slot machine, jukebox depth, shredders. Still wrong: opened crates, table side
   parts, walls with offset dark top lines, directional window height, other cryopod states, particles.
@@ -342,7 +358,6 @@ module.
 
 - [`Resources/Textures/_WG/CameraModes/Shaders/backdrop.swsl`](../../../Resources/Textures/_WG/CameraModes/Shaders/backdrop.swsl)
 - [`Resources/Textures/_WG/CameraModes/Shaders/clear.swsl`](../../../Resources/Textures/_WG/CameraModes/Shaders/clear.swsl)
-- [`Resources/Textures/_WG/CameraModes/Shaders/fade.swsl`](../../../Resources/Textures/_WG/CameraModes/Shaders/fade.swsl)
 - [`Resources/Textures/_WG/CameraModes/Shaders/firstperson.swsl`](../../../Resources/Textures/_WG/CameraModes/Shaders/firstperson.swsl)
 - [`Resources/Textures/_WG/CameraModes/Shaders/fogfield.swsl`](../../../Resources/Textures/_WG/CameraModes/Shaders/fogfield.swsl)
 - [`Resources/Textures/_WG/CameraModes/Shaders/mesh.swsl`](../../../Resources/Textures/_WG/CameraModes/Shaders/mesh.swsl)

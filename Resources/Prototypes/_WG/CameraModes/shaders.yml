@@ -9,11 +9,6 @@
   path: "/Textures/_WG/CameraModes/Shaders/clear.swsl"
 
 - type: shader
-  id: WGCameraModeFade
-  kind: source
-  path: "/Textures/_WG/CameraModes/Shaders/fade.swsl"
-
-- type: shader
   id: WGCameraModePerspective
   kind: source
   path: "/Textures/_WG/CameraModes/Shaders/perspective.swsl"

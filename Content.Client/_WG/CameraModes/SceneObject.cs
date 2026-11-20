@@ -47,6 +47,12 @@ public sealed class SceneObject
     public int KeptSize;
     public SceneKind KeptKind;
 
+    /// <summary>The placement the kept shape was built for, such as painted on a wall or hung.</summary>
+    public ulong KeptPlace;
+
+    /// <summary>The placement this frame, mixed from the flags that pick a builder.</summary>
+    public ulong Place;
+
     /// <summary>The image drawn this frame.</summary>
     public ulong TextureKey;
 
@@ -84,10 +90,17 @@ public sealed class SceneObject
     public FoldMesh? FrontMesh;
 
     /// <summary>
-    /// The RSI of a wall whose top is a separate frill image. Such a wall is drawn from its unjoined art: the frill's
-    /// cap on top and the unjoined front on every side.
+    /// The RSI of a rimmed block: a frill wall, or a window whose art joins by its sides. It is drawn from its sheet's
+    /// straight runs: the middle of the north-south run on top, its rim down the east and west sides, and the
+    /// east-west run's front on the north and south sides.
     /// </summary>
     public ResPath? Frill;
+
+    /// <summary>The smoothing state prefix of a rimmed block's sheet, such as "wall-".</summary>
+    public string? RimBase;
+
+    /// <summary>Height a rimmed window starts at: the top of a low wall on its tile, or zero.</summary>
+    public float WindowBase;
 
     /// <summary>
     /// The straight east-west art of a fence that joins its neighbours side by side, drawn on every piece of it, or
@@ -187,7 +200,7 @@ public sealed class SceneObject
     /// <summary>The surface an item or solid stands on. It draws right after it.</summary>
     public SceneObject? Surface;
 
-    /// <summary>It stands between the camera and the view centre and is drawn see-through.</summary>
+    /// <summary>It stands between the camera and the view centre and fades inside the see-through circle.</summary>
     public bool Faded;
 
     /// <summary>The box round its hard fixtures, in the frame its solid faces south in.</summary>
@@ -225,6 +238,9 @@ public sealed class SceneObject
 
     public float Alpha;
     public float SortKey;
+
+    /// <summary>The height over its own floor, in tiles, where the object is cut and the rest drawn as slices.</summary>
+    public float SliceTop = float.PositiveInfinity;
 
     /// <summary>Faces of a block that touch another block, as a direction flag set.</summary>
     public DirectionFlag Neighbours;
@@ -278,4 +294,20 @@ public sealed class GeometryEntry
     public string Path = "";
     public bool Requested;
     public int LastUsed;
+}
+
+/// <summary>
+/// One story's height of a solid taller than a story, above its first, in the 2.5D views. It sorts as if it stood on
+/// that story, so the stories behind it draw first.
+/// </summary>
+public sealed class SceneSlice
+{
+    public SceneObject Parent = default!;
+
+    /// <summary>The slice's height range over the object's own floor, in tiles.</summary>
+    public float Low;
+    public float High;
+
+    public float SortKey;
+    public bool Faded;
 }

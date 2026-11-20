@@ -68,35 +68,156 @@ public static class BlockBuilder
     }
 
     /// <summary>
-    /// A frill wall from its unjoined art, which the image holds on its own tile with the frill's art the half tile
-    /// above. The frill and the wall's dark top band are the top, and the wall's front shows on every side.
+    /// A block drawn from its sheet's straight runs, like a frill wall: the image holds the east-west run above the
+    /// centre row and the north-south run below it. The north-south run shows two thin rims either side of a middle,
+    /// and the middle is the top. The east-west run's front, below the rows in the top's colour, is every side.
     /// </summary>
-    public static FoldMesh BuildFrilled(SpriteAnalysis a, Vector2 origin, float height)
+    /// <param name="bottom">Height its sides start at, for a window standing on a low wall.</param>
+    /// <param name="frontRow">Image row the sides start at, or -1 to read it from the east-west run.</param>
+    /// <param name="topped">
+    /// Whether its art draws a top. Without one, like a window, the whole east-west run is every side and the top
+    /// takes one row a quarter of the way down it, inside the upper pane.
+    /// </param>
+    public static FoldMesh BuildRimmed(SpriteAnalysis a, Vector2 origin, float height, float bottom = 0f,
+        int frontRow = -1, bool topped = true)
     {
         var quads = new List<FoldQuad>();
         var l = origin.X - 16f;
         var r = origin.X + 16f;
-        var tile = origin.Y - 16f;
-        var b = origin.Y + 16f;
+        var centre = (int) origin.Y;
+        var across = a.Rows(0, centre);
+        var along = a.Rows(centre, a.Height);
+        var alongTop = along.Empty ? centre : along.Y0;
+        var alongBottom = along.Empty ? centre + 32 : along.Y1;
 
-        var wall = a.Rows((int) tile, (int) b);
-        var lid = wall.Empty ? 0 : SilhouetteFold.LidLine(wall);
-        var front = tile + lid;
-        var cap = a.Rows((int) (tile - 16f), (int) tile);
-        var top = cap.Empty ? tile : cap.Y0;
+        // The sides: the front of the east-west run, from the first row below its top band to its lowest opaque row.
+        // The top band is the rows drawn in the top's own colour, the top seen at a slant.
+        float foot = across.Empty ? centre : across.Y1;
+        float front = frontRow >= 0 ? frontRow : across.Empty ? centre - 32 : across.Y0;
+        if (topped && frontRow < 0 && !across.Empty)
+        {
+            var top = ColumnLum(a, (int) origin.X, alongTop, alongBottom);
+            var row = across.Y0;
+            while (row < across.Y1 - 1 && MathF.Abs(RowLum(a, row, (int) l, (int) r) - top) <= RimStep)
+            {
+                row++;
+            }
 
-        Add(quads, new(-Half, -Half, height), new(Half, -Half, height), new(Half, Half, height), new(-Half, Half, height),
-            new(l, front), new(r, front), new(r, top), new(l, top), new(0, 0, 1), 1f, Direction.Invalid);
-        Add(quads, new(-Half, -Half, 0), new(Half, -Half, 0), new(Half, -Half, height), new(-Half, -Half, height),
-            new(l, b), new(r, b), new(r, front), new(l, front), new(0, -1, 0), SideShade, Direction.South);
-        Add(quads, new(Half, Half, 0), new(-Half, Half, 0), new(-Half, Half, height), new(Half, Half, height),
-            new(l, b), new(r, b), new(r, front), new(l, front), new(0, 1, 0), SideShade, Direction.North);
-        Add(quads, new(Half, -Half, 0), new(Half, Half, 0), new(Half, Half, height), new(Half, -Half, height),
-            new(l, b), new(r, b), new(r, front), new(l, front), new(1, 0, 0), SideShade, Direction.East);
-        Add(quads, new(-Half, Half, 0), new(-Half, -Half, 0), new(-Half, -Half, height), new(-Half, Half, height),
-            new(l, b), new(r, b), new(r, front), new(l, front), new(-1, 0, 0), SideShade, Direction.West);
+            front = row;
+        }
+
+        if (topped)
+        {
+            // The rims of the north-south run, each at most a quarter of the tile wide, are left off the top.
+            var (west, east) = Rims(a, (int) l, alongTop, alongBottom);
+            Add(quads, new(-Half, -Half, height), new(Half, -Half, height), new(Half, Half, height),
+                new(-Half, Half, height), new(l + west, alongBottom), new(r - east, alongBottom),
+                new(r - east, alongTop), new(l + west, alongTop), new(0, 0, 1), 1f, Direction.Invalid);
+        }
+        else
+        {
+            var pane = MathF.Floor(front + (foot - front) / 4f);
+            Add(quads, new(-Half, -Half, height), new(Half, -Half, height), new(Half, Half, height),
+                new(-Half, Half, height), new(l, pane + 1), new(r, pane + 1), new(r, pane), new(l, pane),
+                new(0, 0, 1), 1f, Direction.Invalid);
+        }
+        var z = bottom;
+        Add(quads, new(-Half, -Half, z), new(Half, -Half, z), new(Half, -Half, height), new(-Half, -Half, height),
+            new(l, foot), new(r, foot), new(r, front), new(l, front), new(0, -1, 0), SideShade, Direction.South);
+        Add(quads, new(Half, Half, z), new(-Half, Half, z), new(-Half, Half, height), new(Half, Half, height),
+            new(l, foot), new(r, foot), new(r, front), new(l, front), new(0, 1, 0), SideShade, Direction.North);
+        Add(quads, new(Half, -Half, z), new(Half, Half, z), new(Half, Half, height), new(Half, -Half, height),
+            new(l, foot), new(r, foot), new(r, front), new(l, front), new(1, 0, 0), SideShade, Direction.East);
+        Add(quads, new(-Half, Half, z), new(-Half, -Half, z), new(-Half, -Half, height), new(-Half, Half, height),
+            new(l, foot), new(r, foot), new(r, front), new(l, front), new(-1, 0, 0), SideShade, Direction.West);
 
         return new FoldMesh(quads.ToArray(), true);
+    }
+
+    /// <summary>
+    /// The row a low wall's front starts at: under the sharpest step to darker rows in the lower half of its art, the
+    /// shadow under its lip.
+    /// </summary>
+    public static int ShadowRow(SpriteAnalysis a, int top, int bottom, int left, int right)
+    {
+        var best = -1;
+        var drop = 0f;
+        var above = RowLum(a, (top + bottom) / 2 - 1, left, right);
+        for (var row = (top + bottom) / 2; row < bottom; row++)
+        {
+            var lum = RowLum(a, row, left, right);
+            if (above >= 0f && lum >= 0f && above - lum > drop)
+            {
+                drop = above - lum;
+                best = row;
+            }
+
+            above = lum;
+        }
+
+        return best;
+    }
+
+    /// <summary>Mean brightness of one row's opaque pixels between two columns, or -1 when none are opaque.</summary>
+    private static float RowLum(SpriteAnalysis a, int row, int left, int right)
+    {
+        var sum = 0f;
+        var count = 0;
+        for (var column = left; column < right; column++)
+        {
+            if (!a.Opaque(column, row))
+                continue;
+
+            sum += a.Lum[row * a.Width + column];
+            count++;
+        }
+
+        return count == 0 ? -1f : sum / count;
+    }
+
+    /// <summary>How far a column's mean brightness may stray from the middle's and still count as middle.</summary>
+    private const float RimStep = 0.06f;
+
+    /// <summary>The widest a rim may be, in pixels.</summary>
+    private const int RimMax = 8;
+
+    /// <summary>
+    /// The width of the rim at each side of a straight run's image: the columns in from each edge whose brightness
+    /// differs from the middle column's.
+    /// </summary>
+    private static (int West, int East) Rims(SpriteAnalysis a, int left, int top, int bottom)
+    {
+        var middle = ColumnLum(a, left + 16, top, bottom);
+        var west = 0;
+        while (west < RimMax && MathF.Abs(ColumnLum(a, left + west, top, bottom) - middle) > RimStep)
+        {
+            west++;
+        }
+
+        var east = 0;
+        while (east < RimMax && MathF.Abs(ColumnLum(a, left + 31 - east, top, bottom) - middle) > RimStep)
+        {
+            east++;
+        }
+
+        return (west, east);
+    }
+
+    /// <summary>Mean brightness of one column's opaque pixels between two rows, or -1 when none are opaque.</summary>
+    private static float ColumnLum(SpriteAnalysis a, int column, int top, int bottom)
+    {
+        var sum = 0f;
+        var count = 0;
+        for (var row = top; row < bottom; row++)
+        {
+            if (!a.Opaque(column, row))
+                continue;
+
+            sum += a.Lum[row * a.Width + column];
+            count++;
+        }
+
+        return count == 0 ? -1f : sum / count;
     }
 
     /// <summary>

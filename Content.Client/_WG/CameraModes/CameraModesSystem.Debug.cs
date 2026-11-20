@@ -128,8 +128,17 @@ public sealed partial class CameraModesSystem
                       + $" door={o.Door} fronted={o.Fronted} faded={o.Faded} viewFrame={o.ViewFrame}");
         sb.AppendLine($" rot={o.Rotation.Degrees:0} lift={o.Lift:0.00} slot={o.SlotSize} frameBottom={o.FrameBottom:0.0}"
                       + $" footprint={o.Footprint} neighbours={o.Neighbours} alpha={o.Alpha:0.00}");
+        sb.AppendLine($" sort: key={o.SortKey:0.000} level={o.Level} painted={o.Painted} sliceTop={o.SliceTop:0.00}"
+                      + $" slices={string.Join(",", Slices.Where(s => s.Parent == o).Select(s => $"{s.SortKey:0.000}"))}");
         if (o.Mesh is { } mesh)
+        {
             sb.AppendLine($" mesh: quads={mesh.Quads.Length} fixed={mesh.Fixed} top={mesh.Top:0.00}");
+            // Image rows and columns each face reads, for faces that show the wrong part of the art.
+            foreach (var q in mesh.Quads.Take(6))
+            {
+                sb.AppendLine($"  face n={q.Normal} image {q.T3}..{q.T1}");
+            }
+        }
         else
             sb.AppendLine(" mesh: none (billboard or not built yet)");
 

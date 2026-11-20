@@ -124,6 +124,7 @@ public sealed partial class CameraModesSystem : EntitySystem
     {
         base.FrameUpdate(frameTime);
         RestoreColors();
+        UpdateCircle(frameTime);
 
         // Movement turns with the view on screen, so a preview in the options window moves the way it looks.
         var iso = Mode == CameraMode.Isometric;
